@@ -6,5 +6,5 @@
 	android:layout_height="wrap_content"
 	android:textSize="14pt"
 	android:height="17pt"
-	android:background="@drawable/bg_selector" />
+	android:background="@drawable/ripple" />
 	<!--android:background="?android:attr/selectableItemBackground" />-->

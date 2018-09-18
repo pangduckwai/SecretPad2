@@ -37,7 +37,7 @@ public class TempAdaptor extends RecyclerView.Adapter<TempAdaptor.ViewHolder> {
 	}
 
 	// Provide a suitable constructor (depends on the kind of dataset)
-	public TempAdaptor(Map<String, String> data, ContentUpdater updtr) {
+	TempAdaptor(Map<String, String> data, ContentUpdater updtr) {
 		dataSet = new ArrayList<>(data.entrySet());
 		updater = updtr;
 	}
@@ -51,8 +51,15 @@ public class TempAdaptor extends RecyclerView.Adapter<TempAdaptor.ViewHolder> {
 		item.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				selectedPos = recyclerView.getChildLayoutPosition(v);
-				updater.update(dataSet.get(selectedPos).getValue());
+				int pos = recyclerView.getChildLayoutPosition(v);
+				if (pos == selectedPos) {
+					selectedPos = -1;
+					updater.update("");
+				} else {
+					selectedPos = pos;
+					updater.update(dataSet.get(selectedPos).getValue());
+				}
+				notifyDataSetChanged();
 			}
 		});
 
@@ -64,12 +71,12 @@ public class TempAdaptor extends RecyclerView.Adapter<TempAdaptor.ViewHolder> {
 	public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
 		// - get element from your dataset at this position
 		// - replace the contents of the view with that element
-		holder.key.setText(dataSet.get(position).getKey());
 		if (selectedPos == position) {
 			holder.key.setSelected(true);
 		} else {
 			holder.key.setSelected(false);
 		}
+		holder.key.setText(dataSet.get(position).getKey());
 	}
 
 	// Return the size of your dataset (invoked by the layout manager)
