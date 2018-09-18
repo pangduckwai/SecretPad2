@@ -3,6 +3,6 @@
 	<color name="colorPrimary">#3F51B5</color>
 	<color name="colorPrimaryDark">#303F9F</color>
 	<color name="colorAccent">#FF4081</color>
-	<color name="colorRipple">#777777</color>
-	<color name="colorSelLight">#AAAAAA</color>
+	<color name="colorRipple">#000000</color>
+	<color name="colorSelLight">#DDDDDD</color>
 </resources>
