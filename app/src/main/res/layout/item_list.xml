@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-	xmlns:app="http://schemas.android.com/apk/res-auto"
+<LinearLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
 	android:id="@+id/list_item"
 	android:layout_width="match_parent"
 	android:layout_height="wrap_content"
+	android:paddingTop="8dp"
+	android:paddingBottom="16dp"
 	android:background="@drawable/select"
 	android:orientation="horizontal">
 
@@ -11,27 +13,14 @@
 		android:id="@+id/item_num"
 		android:layout_width="50dp"
 		android:layout_height="wrap_content"
-		android:layout_marginBottom="16dp"
-		android:layout_marginEnd="8dp"
-		android:layout_marginStart="8dp"
-		android:layout_marginTop="8dp"
 		android:height="17pt"
-		android:textSize="14pt"
-		app:layout_constraintBottom_toBottomOf="parent"
-		app:layout_constraintEnd_toStartOf="@+id/item_name"
-		app:layout_constraintHorizontal_bias="0.5"
-		app:layout_constraintStart_toStartOf="parent"
-		app:layout_constraintTop_toTopOf="parent" />
+		android:textSize="14pt" />
 
 	<TextView
 		android:id="@+id/item_name"
 		android:layout_width="0dp"
 		android:layout_height="wrap_content"
-		android:layout_marginEnd="8dp"
+		android:layout_weight="1"
 		android:height="17pt"
-		android:textSize="14pt"
-		app:layout_constraintBaseline_toBaselineOf="@+id/item_num"
-		app:layout_constraintEnd_toEndOf="parent"
-		app:layout_constraintHorizontal_bias="0.5"
-		app:layout_constraintStart_toEndOf="@+id/item_num" />
-</android.support.constraint.ConstraintLayout>
+		android:textSize="14pt" />
+</LinearLayout>
