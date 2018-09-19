@@ -4,7 +4,7 @@
 	android:id="@+id/list_item"
 	android:layout_width="match_parent"
 	android:layout_height="wrap_content"
-	android:background="?android:attr/selectableItemBackground"
+	android:background="@drawable/select"
 	android:orientation="horizontal">
 
 	<TextView
