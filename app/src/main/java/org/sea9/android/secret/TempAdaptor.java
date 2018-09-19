@@ -1,6 +1,9 @@
 package org.sea9.android.secret;
 
+import android.content.res.TypedArray;
+import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -30,9 +33,11 @@ public class TempAdaptor extends RecyclerView.Adapter<TempAdaptor.ViewHolder> {
 	static class ViewHolder extends RecyclerView.ViewHolder {
 		// each data item is just a string in this case
 		TextView key;
-		ViewHolder(TextView v) {
+		int color;
+		ViewHolder(TextView v, int c) {
 			super(v);
 			key = v;
+			color = c;
 		}
 	}
 
@@ -48,6 +53,7 @@ public class TempAdaptor extends RecyclerView.Adapter<TempAdaptor.ViewHolder> {
 		// create a new view
 		TextView item = (TextView) LayoutInflater.from(parent.getContext()).inflate(R.layout.item_list, parent, false);
 
+		// Click listener
 		item.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
@@ -59,11 +65,24 @@ public class TempAdaptor extends RecyclerView.Adapter<TempAdaptor.ViewHolder> {
 					selectedPos = pos;
 					updater.update(dataSet.get(selectedPos).getValue());
 				}
-				notifyDataSetChanged();
+
+				recyclerView.postDelayed(new Runnable() {
+					@Override
+					public void run() {
+						notifyDataSetChanged();
+					}
+				}, 70);
 			}
 		});
 
-		return new ViewHolder(item);
+		// Highlight color
+		int col = ContextCompat.getColor(parent.getContext(), R.color.colorSelect);
+//		int[] attrs = new int[] { android.R.attr.selectableItemBackground };
+//		TypedArray ta = parent.getContext().obtainStyledAttributes(attrs);
+//		Drawable bkg = ta.getDrawable(0);
+//		ta.recycle();
+
+		return new ViewHolder(item, col);
 	}
 
 	// Replace the contents of a view (invoked by the layout manager)
@@ -73,6 +92,7 @@ public class TempAdaptor extends RecyclerView.Adapter<TempAdaptor.ViewHolder> {
 		// - replace the contents of the view with that element
 		if (selectedPos == position) {
 			holder.key.setSelected(true);
+			holder.key.setBackgroundColor(holder.color);
 		} else {
 			holder.key.setSelected(false);
 		}
