@@ -15,11 +15,15 @@ import java.util.List;
 import java.util.Map;
 
 public class TempAdaptor extends RecyclerView.Adapter<TempAdaptor.ViewHolder> {
+	private static final String EMPTY = "";
+
 	private List<Map.Entry<String, String>> dataSet;
 
 	private RecyclerView recyclerView;
 	private ContentUpdater updater;
 	private int selectedPos = -1;
+	private int highlightColor;
+	private Drawable itemBackground;
 
 	@Override
 	public void onAttachedToRecyclerView(@NonNull RecyclerView recycler) {
@@ -31,13 +35,14 @@ public class TempAdaptor extends RecyclerView.Adapter<TempAdaptor.ViewHolder> {
 	// Complex data items may need more than one view per item, and
 	// you provide access to all the views for a data item in a view holder
 	static class ViewHolder extends RecyclerView.ViewHolder {
-		// each data item is just a string in this case
+		View bkg;
+		TextView num;
 		TextView key;
-		int color;
-		ViewHolder(TextView v, int c) {
+		ViewHolder(View v) {
 			super(v);
-			key = v;
-			color = c;
+			bkg = v;
+			num = v.findViewById(R.id.item_num);
+			key = v.findViewById(R.id.item_name);
 		}
 	}
 
@@ -50,8 +55,17 @@ public class TempAdaptor extends RecyclerView.Adapter<TempAdaptor.ViewHolder> {
 	// Create new views (invoked by the layout manager)
 	@Override @NonNull
 	public TempAdaptor.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+		// Highlight color
+		highlightColor = ContextCompat.getColor(parent.getContext(), R.color.colorSelect);
+
+		// Ripple background
+		int[] attrs = new int[] { android.R.attr.selectableItemBackground };
+		TypedArray ta = parent.getContext().obtainStyledAttributes(attrs);
+		itemBackground = ta.getDrawable(0);
+		ta.recycle();
+
 		// create a new view
-		TextView item = (TextView) LayoutInflater.from(parent.getContext()).inflate(R.layout.item_list, parent, false);
+		View item = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_list, parent, false);
 
 		// Click listener
 		item.setOnClickListener(new View.OnClickListener() {
@@ -60,7 +74,7 @@ public class TempAdaptor extends RecyclerView.Adapter<TempAdaptor.ViewHolder> {
 				int pos = recyclerView.getChildLayoutPosition(v);
 				if (pos == selectedPos) {
 					selectedPos = -1;
-					updater.update("");
+					updater.update(EMPTY);
 				} else {
 					selectedPos = pos;
 					updater.update(dataSet.get(selectedPos).getValue());
@@ -75,14 +89,7 @@ public class TempAdaptor extends RecyclerView.Adapter<TempAdaptor.ViewHolder> {
 			}
 		});
 
-		// Highlight color
-		int col = ContextCompat.getColor(parent.getContext(), R.color.colorSelect);
-//		int[] attrs = new int[] { android.R.attr.selectableItemBackground };
-//		TypedArray ta = parent.getContext().obtainStyledAttributes(attrs);
-//		Drawable bkg = ta.getDrawable(0);
-//		ta.recycle();
-
-		return new ViewHolder(item, col);
+		return new ViewHolder(item);
 	}
 
 	// Replace the contents of a view (invoked by the layout manager)
@@ -91,11 +98,13 @@ public class TempAdaptor extends RecyclerView.Adapter<TempAdaptor.ViewHolder> {
 		// - get element from your dataset at this position
 		// - replace the contents of the view with that element
 		if (selectedPos == position) {
-			holder.key.setSelected(true);
-			holder.key.setBackgroundColor(holder.color);
+			holder.bkg.setSelected(true);
+			holder.bkg.setBackgroundColor(highlightColor);
 		} else {
-			holder.key.setSelected(false);
+			holder.bkg.setSelected(false);
+			holder.bkg.setBackground(itemBackground);
 		}
+		holder.num.setText(Integer.toString(position));
 		holder.key.setText(dataSet.get(position).getKey());
 	}
 
