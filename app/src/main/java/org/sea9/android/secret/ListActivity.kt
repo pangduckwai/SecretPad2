@@ -1,5 +1,6 @@
 package org.sea9.android.secret
 
+import android.animation.LayoutTransition
 import android.app.SearchManager
 import android.content.Context
 import android.content.Intent
@@ -9,6 +10,7 @@ import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.ViewGroup
 import android.widget.SearchView
 
 import kotlinx.android.synthetic.main.activity_list.*
@@ -21,14 +23,22 @@ class ListActivity : AppCompatActivity() {
 		setSupportActionBar(toolbar)
 
 		fab.setOnClickListener { view ->
-			Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-					.setAction("Action", null).show()
+			Snackbar.make(view, "Action!", Snackbar.LENGTH_LONG).setAction("Action", null).show()
 		}
 
-		// TODO Verify the action and get the query
-		if (Intent.ACTION_SEARCH == intent.action) {
+		handleIntent(intent)
+	}
+
+	override fun onNewIntent(intent: Intent) {
+		handleIntent(intent)
+	}
+
+	private fun handleIntent(intent: Intent) {
+		if (intent.action == Intent.ACTION_SEARCH) {
+			// TODO Verify the action and get the query
 			intent.getStringExtra(SearchManager.QUERY)?.also { query ->
 				Log.i("SecretPad2", query) // doSearchQuery(query)
+				Snackbar.make(window.decorView, "Searching...", Snackbar.LENGTH_LONG).setAction("Action", null).show()
 			}
 		}
 	}
@@ -42,7 +52,9 @@ class ListActivity : AppCompatActivity() {
 		(menu.findItem(R.id.menu_search).actionView as SearchView).apply {
 			// Assumes current activity is the searchable activity
 			setSearchableInfo(searchManager.getSearchableInfo(componentName))
-			setIconifiedByDefault(false) // Do not iconify the widget; expand it by default
+
+			val searchBar = findViewById<ViewGroup>(context.resources.getIdentifier("android:id/search_bar", null, null))
+			searchBar?.layoutTransition = LayoutTransition()
 		}
 
 		return true
@@ -52,9 +64,20 @@ class ListActivity : AppCompatActivity() {
 		// Handle action bar item clicks here. The action bar will
 		// automatically handle clicks on the Home/Up button, so long
 		// as you specify a parent activity in AndroidManifest.xml.
-		return when (item.itemId) {
-			R.id.action_settings -> true
-			else -> super.onOptionsItemSelected(item)
+		// return when (item.itemId) {
+		//	R.id.action_settings -> true
+		//	else -> super.onOptionsItemSelected(item)
+		// }
+		when (item.itemId) {
+			R.id.action_settings -> {
+				Snackbar.make(window.decorView, "Changing settings", Snackbar.LENGTH_LONG).setAction("Action", null).show()
+				return true
+			}
+			R.id.action_about -> {
+				Snackbar.make(window.decorView, "About...", Snackbar.LENGTH_LONG).setAction("Action", null).show()
+				return true
+			}
 		}
+		return super.onOptionsItemSelected(item)
 	}
 }
