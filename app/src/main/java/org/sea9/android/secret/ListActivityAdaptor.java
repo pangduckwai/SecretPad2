@@ -1,14 +1,15 @@
 package org.sea9.android.secret;
 
 import android.support.annotation.NonNull;
+import android.support.design.widget.Snackbar;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 public abstract class ListActivityAdaptor<H extends RecyclerView.ViewHolder> extends RecyclerView.Adapter<H> {
-//	protected int highlightColor;
-//	protected Drawable itemBackground;
+	// protected int highlightColor;
+	// protected Drawable itemBackground;
 	private RecyclerView recyclerView;
 
 	protected int selectedPos = -1;
@@ -49,15 +50,15 @@ public abstract class ListActivityAdaptor<H extends RecyclerView.ViewHolder> ext
 	}
 
 	@Override @NonNull
-	public final H onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+	public final H onCreateViewHolder(@NonNull final ViewGroup parent, int viewType) {
 		// Highlight color
-//		highlightColor = ContextCompat.getColor(parent.getContext(), R.color.colorSelect);
+		// highlightColor = ContextCompat.getColor(parent.getContext(), R.color.colorSelect);
 
 		// Ripple background
-//		int[] attrs = new int[] { android.R.attr.selectableItemBackground };
-//		TypedArray ta = parent.getContext().obtainStyledAttributes(attrs);
-//		itemBackground = ta.getDrawable(0);
-//		ta.recycle();
+		// int[] attrs = new int[] { android.R.attr.selectableItemBackground };
+		// TypedArray ta = parent.getContext().obtainStyledAttributes(attrs);
+		// itemBackground = ta.getDrawable(0);
+		// ta.recycle();
 
 		// create a new view
 		View item = LayoutInflater.from(parent.getContext()).inflate(getListItemLayout(), parent, false);
@@ -75,6 +76,14 @@ public abstract class ListActivityAdaptor<H extends RecyclerView.ViewHolder> ext
 					updateContent(pos);
 				}
 				notifyDataSetChanged();
+			}
+		});
+
+		item.setOnLongClickListener(new View.OnLongClickListener() {
+			@Override
+			public boolean onLongClick(View v) {
+				Snackbar.make(parent, "Long pressed...", Snackbar.LENGTH_LONG).setAction("Action", null).show();
+				return false;
 			}
 		});
 
