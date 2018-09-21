@@ -8,11 +8,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class TempAdaptor extends ListActivityAdaptor<TempAdaptor.ViewHolder> {
+public class TempAdaptor extends ListAdaptor<TempAdaptor.ViewHolder> {
 	private static final String EMPTY = "";
 
 	private List<Map.Entry<String, String>> dataSet;
-	private ContentUpdater updater;
 
 	static class ViewHolder extends RecyclerView.ViewHolder {
 		View bkg;
@@ -26,9 +25,17 @@ public class TempAdaptor extends ListActivityAdaptor<TempAdaptor.ViewHolder> {
 		}
 	}
 
-	TempAdaptor(Map<String, String> data, ContentUpdater updtr) {
-		dataSet = new ArrayList<>(data.entrySet());
-		updater = updtr;
+	public interface Listener {
+		void update(String content);
+	}
+
+	private Listener callback;
+	public void setCallback(Listener cb) {
+		callback = cb;
+	}
+
+	TempAdaptor() {
+		dataSet = new ArrayList<>(TempData.Companion.get().entrySet());
 	}
 
 	@Override
@@ -59,13 +66,13 @@ public class TempAdaptor extends ListActivityAdaptor<TempAdaptor.ViewHolder> {
 
 	@Override
 	protected void clearContent() {
-		updater.update(EMPTY);
+		callback.update(EMPTY);
 	}
 
 	@Override
 	protected void updateContent(int index) {
 		if (index >= 0) {
-			updater.update(dataSet.get(selectedPos).getValue());
+			callback.update(dataSet.get(selectedPos).getValue());
 		}
 	}
 }

@@ -5,16 +5,17 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 
-import java.util.Map;
-
 public class ContextFragment extends Fragment {
 	public static final String TAG = "secret.ctx_frag";
 
-	private Map<String, String> dataSet;
-	public final Map<String, String> getDataSet() { return dataSet; }
+	private TempAdaptor adaptor;
+	public final TempAdaptor getAdaptor(TempAdaptor.Listener cb) {
+		adaptor.setCallback(cb);
+		return adaptor;
+	}
 
 	private void init() {
-		dataSet = TempData.Companion.get();
+		adaptor = new TempAdaptor();
 	}
 
 	@Override
@@ -35,7 +36,7 @@ public class ContextFragment extends Fragment {
 		try {
 			callback = (Listener) context;
 		} catch (ClassCastException e) {
-			throw new ClassCastException(context.toString() + " missing implementation of ListActivityFragment.Listener");
+			throw new ClassCastException(context.toString() + " missing implementation of ContextFragment.Listener");
 		}
 	}
 

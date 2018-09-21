@@ -7,7 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-public abstract class ListActivityAdaptor<H extends RecyclerView.ViewHolder> extends RecyclerView.Adapter<H> {
+public abstract class ListAdaptor<H extends RecyclerView.ViewHolder> extends RecyclerView.Adapter<H> {
 	// protected int highlightColor;
 	// protected Drawable itemBackground;
 	private RecyclerView recyclerView;

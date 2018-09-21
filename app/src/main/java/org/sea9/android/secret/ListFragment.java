@@ -1,6 +1,6 @@
 package org.sea9.android.secret;
 
-import android.content.Context;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
@@ -11,21 +11,17 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import org.jetbrains.annotations.NotNull;
-
-import java.util.Map;
-
 /**
  * A placeholder fragment containing a simple view.
  */
-public class ListActivityFragment extends Fragment implements ContentUpdater {
+public class ListFragment extends Fragment implements TempAdaptor.Listener {
 	private ContextFragment ctxFrag;
 
 	private RecyclerView recycler;
 	private TextView content;
 
 	@Override
-	public View onCreateView(@NotNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+	public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		View ret = inflater.inflate(R.layout.fragment_list, container, false);
 		recycler = ret.findViewById(R.id.recycler_list);
 		content = ret.findViewById(R.id.item_content);
@@ -48,7 +44,7 @@ public class ListActivityFragment extends Fragment implements ContentUpdater {
 		if (manager != null) {
 			ctxFrag = (ContextFragment) manager.findFragmentByTag(ContextFragment.TAG);
 			if (ctxFrag != null)
-				recycler.setAdapter(new TempAdaptor(ctxFrag.getDataSet(), this));
+				recycler.setAdapter(ctxFrag.getAdaptor(this)); //new TempAdaptor(ctxFrag.getDataSet(), this));
 		}
 	}
 
