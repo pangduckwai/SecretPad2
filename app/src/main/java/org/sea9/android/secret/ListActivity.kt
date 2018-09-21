@@ -14,12 +14,13 @@ import android.view.ViewGroup
 import android.widget.SearchView
 
 import kotlinx.android.synthetic.main.activity_list.*
-import android.view.ViewAnimationUtils
-import android.animation.Animator
 
+class ListActivity : AppCompatActivity(), ContextFragment.Listener {
+	companion object {
+		const val TAG = "secret.main"
+	}
 
-
-class ListActivity : AppCompatActivity() {
+	private var ctxFrag: ContextFragment? = null
 	private lateinit var searchView: SearchView
 
 	override fun onCreate(savedInstanceState: Bundle?) {
@@ -29,6 +30,12 @@ class ListActivity : AppCompatActivity() {
 
 		fab.setOnClickListener { view ->
 			Snackbar.make(view, "Action!", Snackbar.LENGTH_LONG).setAction("Action", null).show()
+		}
+
+		ctxFrag = supportFragmentManager.findFragmentByTag(ContextFragment.TAG) as ContextFragment?
+		if (ctxFrag === null) {
+			ctxFrag = ContextFragment()
+			supportFragmentManager.beginTransaction().add(ctxFrag as ContextFragment, ContextFragment.TAG).commit()
 		}
 
 		handleIntent(intent)
@@ -42,12 +49,19 @@ class ListActivity : AppCompatActivity() {
 		if (intent.action == Intent.ACTION_SEARCH) {
 			// TODO Verify the action and get the query
 			intent.getStringExtra(SearchManager.QUERY)?.also { query ->
-				Log.i("SecretPad2", query) // doSearchQuery(query)
-				Snackbar.make(window.decorView, "Searching $query...", Snackbar.LENGTH_LONG).setAction("Action", null).show()
 				searchView.setQuery("", false)
 				searchView.isIconified = true
+				doSearch(query)
 			}
 		}
+	}
+
+	/*
+	 * @see org.sea9.android.secret.ContextFragment.Listener
+	 */
+	override fun doSearch(query: String?) {
+		Log.d(TAG, "Searching $query...")
+		Snackbar.make(window.decorView, "Searching $query ....", Snackbar.LENGTH_LONG).setAction("Action", null).show()
 	}
 
 	override fun onCreateOptionsMenu(menu: Menu): Boolean {
