@@ -5,18 +5,41 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 
-public class ContextFragment extends Fragment {
+import java.util.ArrayList;
+import java.util.List;
+
+public class ContextFragment extends Fragment implements TempAdaptor.Listener {
 	public static final String TAG = "secret.ctx_frag";
 
+	public interface SelectListener {
+		void select(String content);
+	}
+	private List<SelectListener> selectListeners;
+	public void addSelectListener(SelectListener listener) {
+		selectListeners.add(listener);
+	}
+
 	private TempAdaptor adaptor;
-	public final TempAdaptor getAdaptor(TempAdaptor.Listener cb) {
-		adaptor.setCallback(cb);
+	public final TempAdaptor getAdaptor() {
 		return adaptor;
 	}
 
 	private void init() {
-		adaptor = new TempAdaptor();
+		selectListeners = new ArrayList<>();
+		adaptor = new TempAdaptor(this);
 	}
+
+	/*===================================================
+	 * @see org.sea9.android.secret.TempAdaptor.Listener
+	 */
+	@Override
+	public void update(String txt) {
+		callback.clearFocus();
+		for (SelectListener listener : selectListeners) {
+			listener.select(txt);
+		}
+	}
+	//===================================================
 
 	@Override
 	public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -25,8 +48,11 @@ public class ContextFragment extends Fragment {
 		init();
 	}
 
+	/**
+	 * Callback interface for the main activity
+	 */
 	public interface Listener {
-		void doSearch(String query);
+		void clearFocus();
 	}
 	private Listener callback;
 
@@ -43,5 +69,6 @@ public class ContextFragment extends Fragment {
 	@Override
 	public void onDetach() {
 		super.onDetach();
+		callback = null;
 	}
 }

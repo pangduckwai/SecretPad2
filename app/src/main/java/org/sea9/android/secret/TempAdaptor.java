@@ -28,13 +28,10 @@ public class TempAdaptor extends ListAdaptor<TempAdaptor.ViewHolder> {
 	public interface Listener {
 		void update(String content);
 	}
-
 	private Listener callback;
-	public void setCallback(Listener cb) {
-		callback = cb;
-	}
 
-	TempAdaptor() {
+	TempAdaptor(Listener cb) {
+		callback = cb;
 		dataSet = new ArrayList<>(TempData.Companion.get().entrySet());
 	}
 

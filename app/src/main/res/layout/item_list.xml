@@ -4,7 +4,7 @@
 	android:id="@+id/list_item"
 	android:layout_width="match_parent"
 	android:layout_height="wrap_content"
-	android:paddingTop="8dp"
+	android:paddingTop="4dp"
 	android:paddingBottom="8dp"
 	android:background="@drawable/select"
 	android:orientation="horizontal">
@@ -13,14 +13,14 @@
 		android:id="@+id/item_num"
 		android:layout_width="50dp"
 		android:layout_height="wrap_content"
-		android:height="17pt"
-		android:textSize="14pt" />
+		android:height="15pt"
+		android:textSize="12pt" />
 
 	<TextView
 		android:id="@+id/item_name"
 		android:layout_width="0dp"
 		android:layout_height="wrap_content"
 		android:layout_weight="1"
-		android:height="17pt"
-		android:textSize="14pt" />
+		android:height="15pt"
+		android:textSize="12pt" />
 </LinearLayout>

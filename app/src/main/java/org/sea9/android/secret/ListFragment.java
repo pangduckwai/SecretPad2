@@ -14,7 +14,7 @@ import android.widget.TextView;
 /**
  * A placeholder fragment containing a simple view.
  */
-public class ListFragment extends Fragment implements TempAdaptor.Listener {
+public class ListFragment extends Fragment implements ContextFragment.SelectListener {
 	private ContextFragment ctxFrag;
 
 	private RecyclerView recycler;
@@ -27,7 +27,7 @@ public class ListFragment extends Fragment implements TempAdaptor.Listener {
 		content = ret.findViewById(R.id.item_content);
 
 		// use this setting to improve performance if you know that changes
-		// in content do not change the layout size of the RecyclerView
+		// in content do not select the layout size of the RecyclerView
 		recycler.setHasFixedSize(true);
 
 		// use a linear layout manager
@@ -43,13 +43,15 @@ public class ListFragment extends Fragment implements TempAdaptor.Listener {
 		FragmentManager manager = getFragmentManager();
 		if (manager != null) {
 			ctxFrag = (ContextFragment) manager.findFragmentByTag(ContextFragment.TAG);
-			if (ctxFrag != null)
-				recycler.setAdapter(ctxFrag.getAdaptor(this)); //new TempAdaptor(ctxFrag.getDataSet(), this));
+			if (ctxFrag != null) {
+				ctxFrag.addSelectListener(this);
+				recycler.setAdapter(ctxFrag.getAdaptor()); //new TempAdaptor(ctxFrag.getDataSet(), this));
+			}
 		}
 	}
 
 	@Override
-	public void update(String txt) {
+	public void select(String txt) {
 		content.setText(txt);
 	}
 }

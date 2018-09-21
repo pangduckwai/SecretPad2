@@ -21,6 +21,7 @@ class ListActivity : AppCompatActivity(), ContextFragment.Listener {
 	}
 
 	private var ctxFrag: ContextFragment? = null
+	private lateinit var listFrag: ViewGroup
 	private lateinit var searchView: SearchView
 
 	override fun onCreate(savedInstanceState: Bundle?) {
@@ -38,30 +39,32 @@ class ListActivity : AppCompatActivity(), ContextFragment.Listener {
 			supportFragmentManager.beginTransaction().add(ctxFrag as ContextFragment, ContextFragment.TAG).commit()
 		}
 
-		handleIntent(intent)
+		listFrag = findViewById(R.id.fragment)
+
+		handleIntent(intent, 1)
 	}
 
 	override fun onNewIntent(intent: Intent) {
-		handleIntent(intent)
+		handleIntent(intent, 2)
 	}
 
-	private fun handleIntent(intent: Intent) {
+	private fun handleIntent(intent: Intent, idx: Int) {
 		if (intent.action == Intent.ACTION_SEARCH) {
 			// TODO Verify the action and get the query
 			intent.getStringExtra(SearchManager.QUERY)?.also { query ->
-				searchView.setQuery("", false)
-				searchView.isIconified = true
+//				searchView.setQuery("", false)
+//				searchView.isIconified = true
 				doSearch(query)
+//				if (idx == 1)
+//					Snackbar.make(window.decorView, "HA! Searching $query ....", Snackbar.LENGTH_LONG).setAction("Action", null).show()
+//				else
+//					Snackbar.make(window.decorView, "YO! Searching $query ....", Snackbar.LENGTH_LONG).setAction("Action", null).show()
 			}
 		}
 	}
-
-	/*
-	 * @see org.sea9.android.secret.ContextFragment.Listener
-	 */
-	override fun doSearch(query: String?) {
+	private fun doSearch(query: String?) {
 		Log.d(TAG, "Searching $query...")
-		Snackbar.make(window.decorView, "Searching $query ....", Snackbar.LENGTH_LONG).setAction("Action", null).show()
+//		Snackbar.make(window.decorView, "Searching $query ....", Snackbar.LENGTH_LONG).setAction("Action", null).show()
 	}
 
 	override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -80,6 +83,22 @@ class ListActivity : AppCompatActivity(), ContextFragment.Listener {
 			val transit = LayoutTransition()
 			transit.setDuration(LayoutTransition.CHANGE_APPEARING, 0)
 			searchBar?.layoutTransition = transit
+
+//			setOnCloseListener {
+//				Snackbar.make(window.decorView, "Closing ...", Snackbar.LENGTH_LONG).setAction("Action", null).show()
+//				false
+//			}
+//			setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+//				override fun onQueryTextSubmit(query: String): Boolean {
+//					Snackbar.make(window.decorView, "Submit $query...", Snackbar.LENGTH_LONG).setAction("Action", null).show()
+//					return false
+//				}
+//				override fun onQueryTextChange(newText: String): Boolean {
+//					Log.d(TAG, "Searching $newText...")
+//					Snackbar.make(window.decorView, "CHange $newText...", Snackbar.LENGTH_LONG).setAction("Action", null).show()
+//					return false
+//				}
+//			})
 		}
 
 		return true
@@ -104,5 +123,12 @@ class ListActivity : AppCompatActivity(), ContextFragment.Listener {
 			}
 		}
 		return super.onOptionsItemSelected(item)
+	}
+
+	/*=======================================================
+	 * @see org.sea9.android.secret.ContextFragment.Listener
+	 */
+	override fun clearFocus() {
+		listFrag.requestFocus()
 	}
 }
