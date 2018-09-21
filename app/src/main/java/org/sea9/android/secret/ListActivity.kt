@@ -14,8 +14,13 @@ import android.view.ViewGroup
 import android.widget.SearchView
 
 import kotlinx.android.synthetic.main.activity_list.*
+import android.view.ViewAnimationUtils
+import android.animation.Animator
+
+
 
 class ListActivity : AppCompatActivity() {
+	private lateinit var searchView: SearchView
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
@@ -38,7 +43,9 @@ class ListActivity : AppCompatActivity() {
 			// TODO Verify the action and get the query
 			intent.getStringExtra(SearchManager.QUERY)?.also { query ->
 				Log.i("SecretPad2", query) // doSearchQuery(query)
-				Snackbar.make(window.decorView, "Searching...", Snackbar.LENGTH_LONG).setAction("Action", null).show()
+				Snackbar.make(window.decorView, "Searching $query...", Snackbar.LENGTH_LONG).setAction("Action", null).show()
+				searchView.setQuery("", false)
+				searchView.isIconified = true
 			}
 		}
 	}
@@ -53,8 +60,12 @@ class ListActivity : AppCompatActivity() {
 			// Assumes current activity is the searchable activity
 			setSearchableInfo(searchManager.getSearchableInfo(componentName))
 
+			searchView = this
+
 			val searchBar = findViewById<ViewGroup>(context.resources.getIdentifier("android:id/search_bar", null, null))
-			searchBar?.layoutTransition = LayoutTransition()
+			val transit = LayoutTransition()
+			transit.setDuration(LayoutTransition.CHANGE_APPEARING, 0)
+			searchBar?.layoutTransition = transit
 		}
 
 		return true
