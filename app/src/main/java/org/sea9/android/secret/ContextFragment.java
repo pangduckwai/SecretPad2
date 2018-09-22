@@ -29,18 +29,6 @@ public class ContextFragment extends Fragment implements TempAdaptor.Listener {
 		adaptor = new TempAdaptor(this);
 	}
 
-	/*===================================================
-	 * @see org.sea9.android.secret.TempAdaptor.Listener
-	 */
-	@Override
-	public void update(String txt) {
-		callback.clearFocus();
-		for (SelectListener listener : selectListeners) {
-			listener.select(txt);
-		}
-	}
-	//===================================================
-
 	@Override
 	public void onCreate(@Nullable Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -71,4 +59,16 @@ public class ContextFragment extends Fragment implements TempAdaptor.Listener {
 		super.onDetach();
 		callback = null;
 	}
+
+	/*===================================================
+	 * @see org.sea9.android.secret.TempAdaptor.Listener
+	 */
+	@Override
+	public void update(String txt) {
+		callback.clearFocus();
+		for (SelectListener listener : selectListeners) {
+			listener.select(txt);
+		}
+	}
+	//===================================================
 }

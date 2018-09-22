@@ -50,6 +50,9 @@ public class ListFragment extends Fragment implements ContextFragment.SelectList
 		}
 	}
 
+	/*=============================================================
+	 * @see org.sea9.android.secret.ContextFragment.SelectListener
+	 */
 	@Override
 	public void select(String txt) {
 		content.setText(txt);

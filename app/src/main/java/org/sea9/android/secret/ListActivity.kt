@@ -10,6 +10,7 @@ import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import android.view.ViewGroup
 import android.widget.SearchView
 
@@ -52,19 +53,13 @@ class ListActivity : AppCompatActivity(), ContextFragment.Listener {
 		if (intent.action == Intent.ACTION_SEARCH) {
 			// TODO Verify the action and get the query
 			intent.getStringExtra(SearchManager.QUERY)?.also { query ->
-//				searchView.setQuery("", false)
-//				searchView.isIconified = true
 				doSearch(query)
-//				if (idx == 1)
-//					Snackbar.make(window.decorView, "HA! Searching $query ....", Snackbar.LENGTH_LONG).setAction("Action", null).show()
-//				else
-//					Snackbar.make(window.decorView, "YO! Searching $query ....", Snackbar.LENGTH_LONG).setAction("Action", null).show()
 			}
 		}
 	}
 	private fun doSearch(query: String?) {
 		Log.d(TAG, "Searching $query...")
-//		Snackbar.make(window.decorView, "Searching $query ....", Snackbar.LENGTH_LONG).setAction("Action", null).show()
+		Snackbar.make(window.decorView, "Searching $query ....", Snackbar.LENGTH_LONG).setAction("Action", null).show()
 	}
 
 	override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -84,21 +79,11 @@ class ListActivity : AppCompatActivity(), ContextFragment.Listener {
 			transit.setDuration(LayoutTransition.CHANGE_APPEARING, 0)
 			searchBar?.layoutTransition = transit
 
-//			setOnCloseListener {
-//				Snackbar.make(window.decorView, "Closing ...", Snackbar.LENGTH_LONG).setAction("Action", null).show()
-//				false
-//			}
-//			setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-//				override fun onQueryTextSubmit(query: String): Boolean {
-//					Snackbar.make(window.decorView, "Submit $query...", Snackbar.LENGTH_LONG).setAction("Action", null).show()
-//					return false
-//				}
-//				override fun onQueryTextChange(newText: String): Boolean {
-//					Log.d(TAG, "Searching $newText...")
-//					Snackbar.make(window.decorView, "CHange $newText...", Snackbar.LENGTH_LONG).setAction("Action", null).show()
-//					return false
-//				}
-//			})
+			val btnid = searchView.context.resources.getIdentifier("android:id/search_close_btn", null, null)
+			searchView.findViewById<View>(btnid).setOnClickListener {
+				searchView.setQuery("", false)
+				searchView.isIconified = true
+			}
 		}
 
 		return true
