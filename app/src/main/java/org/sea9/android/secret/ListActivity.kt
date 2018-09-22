@@ -16,13 +16,12 @@ import android.widget.SearchView
 
 import kotlinx.android.synthetic.main.activity_list.*
 
-class ListActivity : AppCompatActivity(), ContextFragment.Listener {
+class ListActivity : AppCompatActivity(), ContextFragment.Listener, ListFragment.Listener {
 	companion object {
 		const val TAG = "secret.main"
 	}
 
 	private var ctxFrag: ContextFragment? = null
-	private lateinit var listFrag: ViewGroup
 	private lateinit var searchView: SearchView
 
 	override fun onCreate(savedInstanceState: Bundle?) {
@@ -31,6 +30,7 @@ class ListActivity : AppCompatActivity(), ContextFragment.Listener {
 		setContentView(R.layout.activity_list)
 		setSupportActionBar(toolbar)
 
+		// this.fab got directly from the layout xml
 		fab.setOnClickListener { view ->
 			Snackbar.make(view, "Action!", Snackbar.LENGTH_LONG).setAction("Action", null).show()
 		}
@@ -40,8 +40,6 @@ class ListActivity : AppCompatActivity(), ContextFragment.Listener {
 			ctxFrag = ContextFragment()
 			supportFragmentManager.beginTransaction().add(ctxFrag as ContextFragment, ContextFragment.TAG).commit()
 		}
-
-		listFrag = findViewById(R.id.fragment)
 
 		handleIntent(intent, 1)
 	}
@@ -118,6 +116,14 @@ class ListActivity : AppCompatActivity(), ContextFragment.Listener {
 	 * @see org.sea9.android.secret.ContextFragment.Listener
 	 */
 	override fun clearFocus() {
-		listFrag.requestFocus()
+		fragment.view?.requestFocus()
+		fab.show()
+	}
+
+	/*====================================================
+	 * @see org.sea9.android.secret.ListFragment.Listener
+	 */
+	override fun gainFocus() {
+		fab.hide()
 	}
 }

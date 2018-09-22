@@ -19,6 +19,7 @@ public abstract class ListAdaptor<H extends RecyclerView.ViewHolder> extends Rec
 	protected final boolean isSelected(int position) {
 		return (selectedPos == position);
 	}
+	public final int getSelectedPosition() { return selectedPos; }
 
 	/**
 	 * @return Return the list item layout id.

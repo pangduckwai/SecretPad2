@@ -1,5 +1,6 @@
 package org.sea9.android.secret;
 
+import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
@@ -47,6 +48,22 @@ public class ListFragment extends Fragment implements ContextFragment.SelectList
 				Log.d(TAG, "afterTextChanged " + s);
 			}
 		});
+		content.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+			@Override
+			public void onFocusChange(View v, boolean hasFocus) {
+				if (hasFocus) {
+					callback.gainFocus();
+
+					recycler.postDelayed(new Runnable() {
+						@Override
+						public void run() {
+							int pos = ctxFrag.getAdaptor().getSelectedPosition();
+							if (pos >= 0) recycler.smoothScrollToPosition(pos); // Scroll list to the selected row
+						}
+					}, 500);
+				}
+			}
+		});
 
 		return ret;
 	}
@@ -72,5 +89,31 @@ public class ListFragment extends Fragment implements ContextFragment.SelectList
 	@Override
 	public void select(String txt) {
 		content.setText(txt);
+	}
+
+	/*==========================================
+	 * Callback interface for the main activity
+	 */
+	public interface Listener {
+		void gainFocus();
+	}
+	private Listener callback;
+
+	@Override
+	public void onAttach(Context context) {
+		super.onAttach(context);
+		Log.d(TAG, "ListFragment.onAttach");
+		try {
+			callback = (Listener) context;
+		} catch (ClassCastException e) {
+			throw new ClassCastException(context.toString() + " missing implementation of ListFragment.Listener");
+		}
+	}
+
+	@Override
+	public void onDetach() {
+		super.onDetach();
+		Log.d(TAG, "ListFragment.onDetach");
+		callback = null;
 	}
 }

@@ -38,7 +38,19 @@ public class ContextFragment extends Fragment implements TempAdaptor.Listener {
 		init();
 	}
 
-	/**
+	/*===================================================
+	 * @see org.sea9.android.secret.TempAdaptor.Listener
+	 */
+	@Override
+	public void update(String txt) {
+		callback.clearFocus();
+		for (SelectListener listener : selectListeners) {
+			listener.select(txt);
+		}
+	}
+	//===================================================
+
+	/*==========================================
 	 * Callback interface for the main activity
 	 */
 	public interface Listener {
@@ -63,16 +75,4 @@ public class ContextFragment extends Fragment implements TempAdaptor.Listener {
 		Log.d(TAG, "ContextFragment.onDetach");
 		callback = null;
 	}
-
-	/*===================================================
-	 * @see org.sea9.android.secret.TempAdaptor.Listener
-	 */
-	@Override
-	public void update(String txt) {
-		callback.clearFocus();
-		for (SelectListener listener : selectListeners) {
-			listener.select(txt);
-		}
-	}
-	//===================================================
 }
