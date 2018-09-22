@@ -4,6 +4,7 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +33,7 @@ public class ContextFragment extends Fragment implements TempAdaptor.Listener {
 	@Override
 	public void onCreate(@Nullable Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		Log.d(TAG, "ContextFragment.onCreate");
 		setRetainInstance(true);
 		init();
 	}
@@ -47,6 +49,7 @@ public class ContextFragment extends Fragment implements TempAdaptor.Listener {
 	@Override
 	public void onAttach(Context context) {
 		super.onAttach(context);
+		Log.d(TAG, "ContextFragment.onAttach");
 		try {
 			callback = (Listener) context;
 		} catch (ClassCastException e) {
@@ -57,6 +60,7 @@ public class ContextFragment extends Fragment implements TempAdaptor.Listener {
 	@Override
 	public void onDetach() {
 		super.onDetach();
+		Log.d(TAG, "ContextFragment.onDetach");
 		callback = null;
 	}
 

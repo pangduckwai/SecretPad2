@@ -27,6 +27,7 @@ class ListActivity : AppCompatActivity(), ContextFragment.Listener {
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
+		Log.d(TAG, "ListActivity.onCreate")
 		setContentView(R.layout.activity_list)
 		setSupportActionBar(toolbar)
 
@@ -46,6 +47,7 @@ class ListActivity : AppCompatActivity(), ContextFragment.Listener {
 	}
 
 	override fun onNewIntent(intent: Intent) {
+		Log.d(TAG, "ListActivity.onNewIntent")
 		handleIntent(intent, 2)
 	}
 
@@ -63,6 +65,8 @@ class ListActivity : AppCompatActivity(), ContextFragment.Listener {
 	}
 
 	override fun onCreateOptionsMenu(menu: Menu): Boolean {
+		Log.d(TAG, "ListActivity.onCreateOptionsMenu")
+
 		// Inflate the menu; this adds items to the action bar if it is present.
 		menuInflater.inflate(R.menu.menu_list, menu)
 

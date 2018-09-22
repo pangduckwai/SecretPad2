@@ -11,17 +11,18 @@ import java.util.Map;
 public class TempAdaptor extends ListAdaptor<TempAdaptor.ViewHolder> {
 	private static final String EMPTY = "";
 
-	private List<Map.Entry<String, String>> dataSet;
+	private List<String> dataKey;
+	private Map<String, String> dataSet;
 
 	static class ViewHolder extends RecyclerView.ViewHolder {
 		View bkg;
-		TextView num;
 		TextView key;
+		TextView tag;
 		ViewHolder(View v) {
 			super(v);
 			bkg = v;
-			num = v.findViewById(R.id.item_num);
 			key = v.findViewById(R.id.item_name);
+			tag = v.findViewById(R.id.item_tags);
 		}
 	}
 
@@ -32,7 +33,8 @@ public class TempAdaptor extends ListAdaptor<TempAdaptor.ViewHolder> {
 
 	TempAdaptor(Listener cb) {
 		callback = cb;
-		dataSet = new ArrayList<>(TempData.Companion.get().entrySet());
+		dataSet = TempData.Companion.get();
+		dataKey = new ArrayList<>(dataSet.keySet());
 	}
 
 	@Override
@@ -57,8 +59,8 @@ public class TempAdaptor extends ListAdaptor<TempAdaptor.ViewHolder> {
 		} else {
 			holder.bkg.setSelected(false);
 		}
-		holder.num.setText(String.format("R%d", position));
-		holder.key.setText(dataSet.get(position).getKey());
+		holder.key.setText(dataKey.get(position));
+		holder.tag.setText("TEST DFLT XXXX YYYY");
 	}
 
 	@Override
@@ -69,7 +71,7 @@ public class TempAdaptor extends ListAdaptor<TempAdaptor.ViewHolder> {
 	@Override
 	protected void updateContent(int index) {
 		if (index >= 0) {
-			callback.update(dataSet.get(selectedPos).getValue());
+			callback.update(dataSet.get(dataKey.get(selectedPos)));
 		}
 	}
 }

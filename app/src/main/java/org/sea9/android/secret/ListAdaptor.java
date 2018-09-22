@@ -3,11 +3,14 @@ package org.sea9.android.secret;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 public abstract class ListAdaptor<H extends RecyclerView.ViewHolder> extends RecyclerView.Adapter<H> {
+	public static final String TAG = "secret.list_adaptor";
+
 	// protected int highlightColor;
 	// protected Drawable itemBackground;
 	private RecyclerView recyclerView;
@@ -46,11 +49,13 @@ public abstract class ListAdaptor<H extends RecyclerView.ViewHolder> extends Rec
 	@Override
 	public final void onAttachedToRecyclerView(@NonNull RecyclerView recycler) {
 		super.onAttachedToRecyclerView(recycler);
+		Log.d(TAG, "ListAdaptor.onAttachedToRecyclerView");
 		recyclerView = recycler;
 	}
 
 	@Override @NonNull
 	public final H onCreateViewHolder(@NonNull final ViewGroup parent, int viewType) {
+		Log.d(TAG, "ListAdaptor.onCreateViewHolder");
 		// Highlight color
 		// highlightColor = ContextCompat.getColor(parent.getContext(), R.color.colorSelect);
 
