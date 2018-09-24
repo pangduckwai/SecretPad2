@@ -16,7 +16,7 @@ import android.widget.SearchView
 
 import kotlinx.android.synthetic.main.activity_list.*
 
-class ListActivity : AppCompatActivity(), ContextFragment.Listener, ListFragment.Listener {
+class ListActivity : AppCompatActivity(), ContextFragment.Listener {
 	companion object {
 		const val TAG = "secret.main"
 	}
@@ -120,10 +120,10 @@ class ListActivity : AppCompatActivity(), ContextFragment.Listener, ListFragment
 		fab.show()
 	}
 
-	/*====================================================
-	 * @see org.sea9.android.secret.ListFragment.Listener
-	 */
-	override fun gainFocus() {
-		fab.hide()
-	}
+//	/*====================================================
+//	 * @see org.sea9.android.secret.ListFragment.Listener
+//	 */
+//	override fun gainFocus() {
+//		fab.hide()
+//	}
 }

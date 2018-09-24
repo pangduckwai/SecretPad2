@@ -36,19 +36,21 @@
 		app:layout_constraintStart_toStartOf="parent"
 		app:layout_constraintTop_toBottomOf="@+id/recycler_list" />
 
-	<EditText
+	<TextView
 		android:id="@+id/item_content"
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
 		android:layout_marginBottom="@dimen/margin_normal"
 		android:layout_marginEnd="@dimen/margin_normal"
 		android:layout_marginStart="@dimen/margin_normal"
+		android:clickable="true"
+		android:focusable="true"
+		android:background="?attr/selectableItemBackground"
 		android:lines="4"
 		android:ems="10"
 		android:gravity="top"
 		android:hint="@string/hint_content"
 		android:scrollbars="vertical"
-		android:inputType="textMultiLine"
 		android:textSize="@dimen/text_normal"
 		app:layout_constraintBottom_toBottomOf="parent"
 		app:layout_constraintEnd_toEndOf="parent"
