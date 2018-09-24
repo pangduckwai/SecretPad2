@@ -1,4 +1,4 @@
-package org.sea9.android.secret
+package org.sea9.android.secret.temp
 
 class TempData {
 	companion object {
