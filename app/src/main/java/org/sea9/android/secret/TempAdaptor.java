@@ -9,8 +9,6 @@ import java.util.List;
 import java.util.Map;
 
 public class TempAdaptor extends ListAdaptor<TempAdaptor.ViewHolder> {
-	private static final String EMPTY = "";
-
 	private List<String> dataKey;
 	private Map<String, String> dataSet;
 
@@ -27,7 +25,8 @@ public class TempAdaptor extends ListAdaptor<TempAdaptor.ViewHolder> {
 	}
 
 	public interface Listener {
-		void update(String content);
+		void datSelectionMade(String content);
+		void datSelectionCleared();
 	}
 	private Listener callback;
 
@@ -65,13 +64,13 @@ public class TempAdaptor extends ListAdaptor<TempAdaptor.ViewHolder> {
 
 	@Override
 	protected void clearContent() {
-		callback.update(EMPTY);
+		callback.datSelectionCleared();
 	}
 
 	@Override
 	protected void updateContent(int index) {
 		if (index >= 0) {
-			callback.update(dataSet.get(dataKey.get(selectedPos)));
+			callback.datSelectionMade(dataSet.get(dataKey.get(selectedPos)));
 		}
 	}
 }

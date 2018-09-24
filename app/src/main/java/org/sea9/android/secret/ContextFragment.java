@@ -41,11 +41,21 @@ public class ContextFragment extends Fragment implements TempAdaptor.Listener {
 	/*===================================================
 	 * @see org.sea9.android.secret.TempAdaptor.Listener
 	 */
+	private static final String EMPTY = "";
+
 	@Override
-	public void update(String txt) {
-		callback.clearFocus();
+	public void datSelectionMade(String txt) {
+		callback.rowSelectionMade();
 		for (SelectListener listener : selectListeners) {
 			listener.select(txt);
+		}
+	}
+
+	@Override
+	public void datSelectionCleared() {
+		callback.rowSelectionCleared();
+		for (SelectListener listener : selectListeners) {
+			listener.select(EMPTY);
 		}
 	}
 	//===================================================
@@ -54,7 +64,8 @@ public class ContextFragment extends Fragment implements TempAdaptor.Listener {
 	 * Callback interface for the main activity
 	 */
 	public interface Listener {
-		void clearFocus();
+		void rowSelectionMade();
+		void rowSelectionCleared();
 	}
 	private Listener callback;
 

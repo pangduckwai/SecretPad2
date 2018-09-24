@@ -115,15 +115,12 @@ class ListActivity : AppCompatActivity(), ContextFragment.Listener {
 	/*=======================================================
 	 * @see org.sea9.android.secret.ContextFragment.Listener
 	 */
-	override fun clearFocus() {
+	override fun rowSelectionMade() {
 		fragment.view?.requestFocus()
-		fab.show()
+		fab.hide()
 	}
 
-//	/*====================================================
-//	 * @see org.sea9.android.secret.ListFragment.Listener
-//	 */
-//	override fun gainFocus() {
-//		fab.hide()
-//	}
+	override fun rowSelectionCleared() {
+		fab.show()
+	}
 }
