@@ -32,6 +32,28 @@ public class ContextFragment extends Fragment implements ListAdaptor.Listener<Te
 		adaptor = new ListAdaptor<>(this);
 	}
 
+	public final int insertData(String key, String val) {
+		// TODO TEMP start...
+		key = Integer.toString(Integer.parseInt(dataKey.get(dataKey.size() - 1)) + 1);
+		val = "1" + key;
+		// ... TEMP end
+		int ret;
+		if (dataSet.put(key, val) == null) {
+			if (dataKey.add(key)) {
+				ret = dataKey.size() - 1;
+				adaptor.onItemInsert(ret);
+			} else {
+				ret = -2;
+			}
+		} else {
+			ret = -1;
+		}
+		for (SelectListener listener : selectListeners) {
+			listener.added(ret);
+		}
+		return ret;
+	}
+
 	public final boolean deleteData(int position) {
 		if ((position < 0) || (position >= dataKey.size())) {
 			return false;
@@ -80,9 +102,9 @@ public class ContextFragment extends Fragment implements ListAdaptor.Listener<Te
 	@Override
 	public void populateList(TempViewHolder holder, int position) {
 		if (adaptor.isSelected(position)) {
-			holder.bkg.setSelected(true);
+			holder.itemView.setSelected(true);
 		} else {
-			holder.bkg.setSelected(false);
+			holder.itemView.setSelected(false);
 		}
 		holder.key.setText(dataKey.get(position));
 		holder.tag.setText("TEST DFLT XXXX YYYY");
@@ -97,7 +119,7 @@ public class ContextFragment extends Fragment implements ListAdaptor.Listener<Te
 				listener.select(txt);
 			}
 		} else {
-			datSelectionCleared();
+			datSelectionCleared(); // Should not be possible to reach here
 		}
 	}
 
@@ -143,6 +165,7 @@ public class ContextFragment extends Fragment implements ListAdaptor.Listener<Te
 	 */
 	public interface SelectListener {
 		void select(String content);
+		void added(int position);
 	}
 	private List<SelectListener> selectListeners;
 	public void addSelectListener(SelectListener listener) {

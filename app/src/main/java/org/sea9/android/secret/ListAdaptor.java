@@ -19,10 +19,20 @@ public class ListAdaptor<H extends RecyclerView.ViewHolder> extends RecyclerView
 	}
 	public final int getSelectedPosition() { return selectedPos; }
 
+	public final void onItemInsert(int position) {
+		if (position >= 0) {
+			notifyItemInserted(position);
+			selectedPos = position;
+			callback.datSelectionMade(position);
+		}
+	}
+
 	public final void onItemDeleted(int position) {
-		notifyItemRemoved(position);
-		if ((position >= 0) && (position < selectedPos)) {
-			selectedPos --;
+		if ((position >= 0) && (position <= getItemCount())) {
+			notifyItemRemoved(position);
+			if (position < selectedPos) {
+				selectedPos --;
+			}
 		}
 	}
 
@@ -63,7 +73,7 @@ public class ListAdaptor<H extends RecyclerView.ViewHolder> extends RecyclerView
 		item.setOnLongClickListener(new View.OnLongClickListener() {
 			@Override
 			public boolean onLongClick(View v) {
-				Snackbar.make(parent, "Long pressed...", Snackbar.LENGTH_LONG).setAction("Action", null).show();
+				Snackbar.make(parent, "Long pressed...", Snackbar.LENGTH_LONG).show(); //TODO TEMP
 				return false;
 			}
 		});

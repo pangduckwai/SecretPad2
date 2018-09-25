@@ -118,6 +118,15 @@ public class ListFragment extends Fragment implements ContextFragment.SelectList
 		content.setText(txt);
 	}
 
+	@Override
+	public void added(int position) {
+		if (position >= 0) recycler.smoothScrollToPosition(position);
+		Snackbar.make(recycler,
+				String.format(Locale.getDefault(),
+						getString((position >= 0) ? R.string.msg_insert_okay : R.string.msg_insert_fail),
+						Integer.toString(position+1)),
+				Snackbar.LENGTH_LONG).show();
+	}
 //	/*==========================================
 //	 * Callback interface for the main activity
 //	 */

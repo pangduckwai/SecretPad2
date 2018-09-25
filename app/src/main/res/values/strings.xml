@@ -5,6 +5,8 @@
 	<string name="hint_search">Search secrets</string>
 	<string name="hint_content">Content</string>
 	<string name="hint_key">Name</string>
+	<string name="msg_insert_okay">Item %s inserted successfully</string>
+	<string name="msg_insert_fail">Insert item %s failed</string>
 	<string name="msg_delete_okay">Item %s deleted successfully</string>
 	<string name="msg_delete_fail">Delete item %s failed</string>
 </resources>

@@ -32,7 +32,8 @@ class ListActivity : AppCompatActivity(), ContextFragment.Listener {
 
 		// this.fab got directly from the layout xml
 		fab.setOnClickListener { view ->
-			Snackbar.make(view, "Action!", Snackbar.LENGTH_LONG).setAction("Action", null).show()
+			//Snackbar.make(view, "Action!", Snackbar.LENGTH_LONG).setAction("Action", null).show()
+			ctxFrag?.insertData("x", "y")
 		}
 
 		ctxFrag = supportFragmentManager.findFragmentByTag(ContextFragment.TAG) as ContextFragment?
@@ -59,7 +60,7 @@ class ListActivity : AppCompatActivity(), ContextFragment.Listener {
 	}
 	private fun doSearch(query: String?) {
 		Log.d(TAG, "Searching $query...")
-		Snackbar.make(window.decorView, "Searching $query ....", Snackbar.LENGTH_LONG).setAction("Action", null).show()
+		Snackbar.make(window.decorView, "Searching $query ....", Snackbar.LENGTH_LONG).show() //TODO TEMP
 	}
 
 	override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -101,11 +102,11 @@ class ListActivity : AppCompatActivity(), ContextFragment.Listener {
 		// }
 		when (item.itemId) {
 			R.id.action_settings -> {
-				Snackbar.make(window.decorView, "Changing settings", Snackbar.LENGTH_LONG).setAction("Action", null).show()
+				Snackbar.make(window.decorView, "Changing settings", Snackbar.LENGTH_LONG).show() //TODO TEMP
 				return true
 			}
 			R.id.action_about -> {
-				Snackbar.make(window.decorView, "About...", Snackbar.LENGTH_LONG).setAction("Action", null).show()
+				Snackbar.make(window.decorView, "About...", Snackbar.LENGTH_LONG).show() //TODO TEMP
 				return true
 			}
 		}
