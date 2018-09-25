@@ -32,6 +32,23 @@ public class ContextFragment extends Fragment implements ListAdaptor.Listener<Te
 		adaptor = new ListAdaptor<>(this);
 	}
 
+	public final boolean deleteData(int position) {
+		if ((position < 0) || (position >= dataKey.size())) {
+			return false;
+		} else {
+			if (adaptor.isSelected(position)) {
+				datSelectionCleared();
+			}
+			if (dataSet.remove(dataKey.remove(position)) != null) {
+				adaptor.onItemDeleted(position);
+				return true;
+			} else {
+				adaptor.notifyDataSetChanged();
+				return false;
+			}
+		}
+	}
+
 	@Override
 	public void onCreate(@Nullable Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);

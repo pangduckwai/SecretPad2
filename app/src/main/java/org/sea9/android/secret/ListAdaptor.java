@@ -19,6 +19,13 @@ public class ListAdaptor<H extends RecyclerView.ViewHolder> extends RecyclerView
 	}
 	public final int getSelectedPosition() { return selectedPos; }
 
+	public final void onItemDeleted(int position) {
+		notifyItemRemoved(position);
+		if ((position >= 0) && (position < selectedPos)) {
+			selectedPos --;
+		}
+	}
+
 	public ListAdaptor(Listener<H> callback) {
 		this.callback = callback;
 	}

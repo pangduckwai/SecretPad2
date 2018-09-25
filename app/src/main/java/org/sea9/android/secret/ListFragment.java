@@ -1,16 +1,20 @@
 package org.sea9.android.secret;
 
 import android.support.annotation.NonNull;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
+import java.util.Locale;
 
 /**
  * A placeholder fragment containing a simple view.
@@ -69,6 +73,24 @@ public class ListFragment extends Fragment implements ContextFragment.SelectList
 				// TODO Open detail dialog
 			}
 		});
+
+		ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+			@Override
+			public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder viewHolder1) {
+				return false;
+			}
+
+			@Override
+			public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+				int position = viewHolder.getAdapterPosition();
+				Snackbar.make(recycler,
+						String.format(Locale.getDefault(),
+								getString(ctxFrag.deleteData(position) ? R.string.msg_delete_okay : R.string.msg_delete_fail),
+								Integer.toString(position+1)),
+						Snackbar.LENGTH_LONG).show();
+			}
+		});
+		itemTouchHelper.attachToRecyclerView(recycler);
 
 		return ret;
 	}
