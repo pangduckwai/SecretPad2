@@ -30,7 +30,7 @@ public class DetailFragment extends DialogFragment {
 
 		Bundle args = new Bundle();
 		args.putString(TAG, k);
-		args.putString(TAG, v);
+		args.putString(CTN, v);
 		dialog.setArguments(args);
 
 		return dialog;

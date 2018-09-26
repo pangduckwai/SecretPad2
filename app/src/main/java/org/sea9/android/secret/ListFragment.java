@@ -19,7 +19,7 @@ import java.util.Locale;
 /**
  * A placeholder fragment containing a simple view.
  */
-public class ListFragment extends Fragment implements ContextFragment.SelectListener {
+public class ListFragment extends Fragment implements ContextFragment.Interaction {
 	public static final String TAG = "secret.list_frag";
 
 	private ContextFragment ctxFrag;
@@ -69,8 +69,10 @@ public class ListFragment extends Fragment implements ContextFragment.SelectList
 			@Override
 			public void onClick(View v) {
 				int pos = ctxFrag.getAdaptor().getSelectedPosition();
-				if (pos >= 0) recycler.smoothScrollToPosition(pos); // Scroll list to the selected row
-				DetailFragment.getInstance("X", "Y").show(getFragmentManager(), DetailFragment.TAG);
+				if (pos >= 0) {
+					recycler.smoothScrollToPosition(pos); // Scroll list to the selected row
+					ctxFrag.queryData(pos);
+				}
 			}
 		});
 
@@ -111,7 +113,7 @@ public class ListFragment extends Fragment implements ContextFragment.SelectList
 	}
 
 	/*=============================================================
-	 * @see org.sea9.android.secret.ContextFragment.SelectListener
+	 * @see org.sea9.android.secret.ContextFragment.Interaction
 	 */
 	@Override
 	public void select(String txt) {
@@ -122,9 +124,16 @@ public class ListFragment extends Fragment implements ContextFragment.SelectList
 	public void added(int position) {
 		if (position >= 0) recycler.smoothScrollToPosition(position);
 		Snackbar.make(recycler,
-				String.format(Locale.getDefault(),
+				String.format(
+						Locale.getDefault(),
 						getString((position >= 0) ? R.string.msg_insert_okay : R.string.msg_insert_fail),
 						Integer.toString(position+1)),
 				Snackbar.LENGTH_LONG).show();
+	}
+
+	@Override
+	public void retrieved(String k, String v) {//TODO Temp data schema
+		FragmentManager manager = getFragmentManager();
+		if (manager != null) DetailFragment.getInstance(k, v).show(manager, DetailFragment.TAG);
 	}
 }

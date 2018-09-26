@@ -14,5 +14,18 @@ class TempData {
 //					, "1035" to "43035", "1036" to "43036", "1037" to "43037", "1038" to "43038", "1039" to "43039"
 			)
 		}
+
+		fun tags(): Set<String> {
+			return hashSetOf(
+					  "acct"
+					, "bank"
+					, "certs"
+					, "email"
+					, "eTax"
+					, "IT"
+					, "NIC"
+					, "work"
+			)
+		}
 	}
 }

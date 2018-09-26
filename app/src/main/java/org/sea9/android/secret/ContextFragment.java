@@ -28,11 +28,22 @@ public class ContextFragment extends Fragment implements ListAdaptor.Listener<Te
 	private void init() {
 		dataSet = TempData.Companion.get();
 		dataKey = new ArrayList<>(dataSet.keySet());
-		selectListeners = new ArrayList<>();
+		actionListeners = new ArrayList<>();
 		adaptor = new ListAdaptor<>(this);
 	}
 
-	public final int insertData(String key, String val) {
+	public final void queryData(int position) {
+		if ((position >= 0) && (position < dataKey.size())) {
+			//TODO Temp data schema
+			String k = dataKey.get(position);
+			String v = dataSet.get(k);
+			for (Interaction listener : actionListeners) {
+				listener.retrieved(k, v);
+			}
+		}
+	}
+
+	public final int insertData(String key, String val) {//TODO Temp data schema
 		// TODO TEMP start...
 		int cnt = dataKey.size();
 		if (cnt > 0) {
@@ -53,7 +64,7 @@ public class ContextFragment extends Fragment implements ListAdaptor.Listener<Te
 		} else {
 			ret = -1;
 		}
-		for (SelectListener listener : selectListeners) {
+		for (Interaction listener : actionListeners) {
 			listener.added(ret);
 		}
 		return ret;
@@ -120,7 +131,7 @@ public class ContextFragment extends Fragment implements ListAdaptor.Listener<Te
 		if (index >= 0) {
 			callback.rowSelectionMade();
 			String txt = dataSet.get(dataKey.get(index));
-			for (SelectListener listener : selectListeners) {
+			for (Interaction listener : actionListeners) {
 				listener.select(txt);
 			}
 		} else {
@@ -131,7 +142,7 @@ public class ContextFragment extends Fragment implements ListAdaptor.Listener<Te
 	@Override
 	public void datSelectionCleared() {
 		callback.rowSelectionCleared();
-		for (SelectListener listener : selectListeners) {
+		for (Interaction listener : actionListeners) {
 			listener.select(EMPTY);
 		}
 	}
@@ -166,14 +177,15 @@ public class ContextFragment extends Fragment implements ListAdaptor.Listener<Te
 	//=========================================
 
 	/*===================================================
-	 * Selection Listener interface to the list fragment
+	 * Interaction interface to the list fragment
 	 */
-	public interface SelectListener {
+	public interface Interaction {
 		void select(String content);
 		void added(int position);
+		void retrieved(String k, String v); //TODO Temp data schema
 	}
-	private List<SelectListener> selectListeners;
-	public void addSelectListener(SelectListener listener) {
-		selectListeners.add(listener);
+	private List<Interaction> actionListeners;
+	public void addSelectListener(Interaction listener) {
+		actionListeners.add(listener);
 	}
 }
