@@ -34,7 +34,12 @@ public class ContextFragment extends Fragment implements ListAdaptor.Listener<Te
 
 	public final int insertData(String key, String val) {
 		// TODO TEMP start...
-		key = Integer.toString(Integer.parseInt(dataKey.get(dataKey.size() - 1)) + 1);
+		int cnt = dataKey.size();
+		if (cnt > 0) {
+			key = Integer.toString(Integer.parseInt(dataKey.get(dataKey.size() - 1)) + 1);
+		} else {
+			key = "1000";
+		}
 		val = "1" + key;
 		// ... TEMP end
 		int ret;
