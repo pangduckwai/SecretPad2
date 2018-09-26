@@ -45,7 +45,7 @@
 		android:layout_marginStart="@dimen/margin_normal"
 		android:clickable="true"
 		android:focusable="true"
-		android:background="?attr/selectableItemBackground"
+		android:background="?android:attr/selectableItemBackground"
 		android:lines="4"
 		android:ems="10"
 		android:gravity="top"
