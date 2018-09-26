@@ -14,24 +14,45 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class ContextFragment extends Fragment implements ListAdaptor.Listener<TempViewHolder> {
+public class ContextFragment extends Fragment implements
+		ListAdaptor.Listener<TempViewHolder>,
+		TagsAdaptor.Listener {
 	public static final String TAG = "secret.ctx_frag";
+
+	@Override
+	public void onCreate(@Nullable Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		Log.d(TAG, "ContextFragment.onCreate");
+		setRetainInstance(true);
+		init();
+	}
+
+	private List<String> dataKey;
+	private Map<String, String> dataSet;
+	private List<String> tagList;
 
 	private ListAdaptor<TempViewHolder> adaptor;
 	public final ListAdaptor<TempViewHolder> getAdaptor() {
 		return adaptor;
 	}
 
-	private List<String> dataKey;
-	private Map<String, String> dataSet;
+	private TagsAdaptor tagsAdaptor;
+	public final TagsAdaptor getTagsAdaptor() {
+		return tagsAdaptor;
+	}
 
 	private void init() {
 		dataSet = TempData.Companion.get();
 		dataKey = new ArrayList<>(dataSet.keySet());
+		tagList = TempData.Companion.tags();
 		actionListeners = new ArrayList<>();
 		adaptor = new ListAdaptor<>(this);
+		tagsAdaptor = new TagsAdaptor(this);
 	}
 
+	/*=======================================================
+	 * Data maintenance APIs - query, insert, update, delete
+	 */
 	public final void queryData(int position) {
 		if ((position >= 0) && (position < dataKey.size())) {
 			//TODO Temp data schema
@@ -86,14 +107,7 @@ public class ContextFragment extends Fragment implements ListAdaptor.Listener<Te
 			}
 		}
 	}
-
-	@Override
-	public void onCreate(@Nullable Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		Log.d(TAG, "ContextFragment.onCreate");
-		setRetainInstance(true);
-		init();
-	}
+	//=======================================================
 
 	/*===================================================
 	 * @see org.sea9.android.secret.ListAdaptor.Listener
@@ -145,6 +159,20 @@ public class ContextFragment extends Fragment implements ListAdaptor.Listener<Te
 		for (Interaction listener : actionListeners) {
 			listener.select(EMPTY);
 		}
+	}
+	//===================================================
+
+	/*===================================================
+	 * @see org.sea9.android.secret.TagsAdaptor.Listener
+	 */
+	@Override
+	public String getTag(int position) {
+		return tagList.get(position);
+	}
+
+	@Override
+	public int getTagsCount() {
+		return tagList.size();
 	}
 	//===================================================
 

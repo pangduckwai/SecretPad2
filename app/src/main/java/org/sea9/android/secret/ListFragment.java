@@ -91,7 +91,7 @@ public class ListFragment extends Fragment implements ContextFragment.Interactio
 			ctxFrag = (ContextFragment) manager.findFragmentByTag(ContextFragment.TAG);
 			if (ctxFrag != null) {
 				ctxFrag.addSelectListener(this);
-				recycler.setAdapter(ctxFrag.getAdaptor()); //new TempAdaptor(ctxFrag.getDataSet(), this));
+				recycler.setAdapter(ctxFrag.getAdaptor());
 			}
 		}
 	}

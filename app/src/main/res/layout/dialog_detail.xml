@@ -34,7 +34,7 @@
 		android:gravity="top"
 		android:hint="@string/hint_content"
 		android:inputType="textMultiLine"
-		android:lines="8"
+		android:lines="7"
 		android:textSize="@dimen/text_normal"
 		app:layout_constraintBottom_toBottomOf="parent"
 		app:layout_constraintEnd_toStartOf="@+id/edit_tags"
@@ -116,7 +116,7 @@
 	<View
 		android:id="@+id/divider_v"
 		android:layout_width="1dp"
-		android:layout_height="330dp"
+		android:layout_height="300dp"
 		android:background="@android:color/darker_gray"
 		app:layout_constraintBottom_toTopOf="@+id/divider_b"
 		app:layout_constraintStart_toEndOf="@+id/edit_content" />

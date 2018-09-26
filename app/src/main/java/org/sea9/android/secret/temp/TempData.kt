@@ -15,8 +15,8 @@ class TempData {
 			)
 		}
 
-		fun tags(): Set<String> {
-			return hashSetOf(
+		fun tags(): List<String> {
+			return arrayListOf(
 					  "acct"
 					, "bank"
 					, "certs"

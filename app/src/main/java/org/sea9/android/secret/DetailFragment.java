@@ -20,7 +20,7 @@ public class DetailFragment extends DialogFragment {
 	public static final String TAG = "secret.dialog_frag";
 	public static final String CTN = "secret.content";
 
-//	private ContextFragment ctxFrag;
+	private ContextFragment ctxFrag;
 	private RecyclerView tagList;
 	private EditText editKey;
 	private EditText editCtn;
@@ -87,10 +87,14 @@ public class DetailFragment extends DialogFragment {
 		super.onResume();
 		Log.d(TAG, "DetailFragment.onResume");
 
-//		FragmentManager manager = getFragmentManager();
-//		if (manager != null) {
-//			ctxFrag = (ContextFragment) manager.findFragmentByTag(ContextFragment.TAG);
-//		}
+		FragmentManager manager = getFragmentManager();
+		if (manager != null) {
+			ctxFrag = (ContextFragment) manager.findFragmentByTag(ContextFragment.TAG);
+			if (ctxFrag != null) {
+				tagList.setAdapter(ctxFrag.getTagsAdaptor());
+			}
+		}
+
 		Bundle args = getArguments();
 		if (args != null) {
 			editKey.setText(args.getString(TAG));
