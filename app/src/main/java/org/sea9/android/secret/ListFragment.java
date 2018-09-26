@@ -49,22 +49,6 @@ public class ListFragment extends Fragment implements ContextFragment.Interactio
 //				Log.d(TAG, "afterTextChanged " + s);
 //			}
 //		});
-//		content.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-//			@Override
-//			public void onFocusChange(View v, boolean hasFocus) {
-//				if (hasFocus) {
-//					callback.gainFocus();
-//
-//					recycler.postDelayed(new Runnable() {
-//						@Override
-//						public void run() {
-//							int pos = ctxFrag.getAdaptor().getSelectedPosition();
-//							if (pos >= 0) recycler.smoothScrollToPosition(pos); // Scroll list to the selected row
-//						}
-//					}, 500);
-//				}
-//			}
-//		});
 		content.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
