@@ -96,7 +96,7 @@ public class ContextFragment extends Fragment implements ListAdaptor.Listener<Te
 
 	@Override
 	public int getListItemLayoutId() {
-		return R.layout.item_list;
+		return R.layout.list_item;
 	}
 
 	@Override

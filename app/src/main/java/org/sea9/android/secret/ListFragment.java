@@ -70,7 +70,7 @@ public class ListFragment extends Fragment implements ContextFragment.SelectList
 			public void onClick(View v) {
 				int pos = ctxFrag.getAdaptor().getSelectedPosition();
 				if (pos >= 0) recycler.smoothScrollToPosition(pos); // Scroll list to the selected row
-				// TODO Open detail dialog
+				DetailFragment.getInstance("X", "Y").show(getFragmentManager(), DetailFragment.TAG);
 			}
 		});
 
@@ -127,29 +127,4 @@ public class ListFragment extends Fragment implements ContextFragment.SelectList
 						Integer.toString(position+1)),
 				Snackbar.LENGTH_LONG).show();
 	}
-//	/*==========================================
-//	 * Callback interface for the main activity
-//	 */
-//	public interface Listener {
-//		void gainFocus();
-//	}
-//	private Listener callback;
-//
-//	@Override
-//	public void onAttach(Context context) {
-//		super.onAttach(context);
-//		Log.d(TAG, "ListFragment.onAttach");
-//		try {
-//			callback = (Listener) context;
-//		} catch (ClassCastException e) {
-//			throw new ClassCastException(context.toString() + " missing implementation of ListFragment.Listener");
-//		}
-//	}
-//
-//	@Override
-//	public void onDetach() {
-//		super.onDetach();
-//		Log.d(TAG, "ListFragment.onDetach");
-//		callback = null;
-//	}
 }
