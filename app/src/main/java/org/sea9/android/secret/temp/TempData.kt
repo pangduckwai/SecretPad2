@@ -5,15 +5,18 @@ import org.sea9.android.secret.DataRecord
 class TempData {
 	companion object {
 		fun tags(): List<String> {
+//			return arrayListOf(
+//					  "0acct"
+//					, "1bank"
+//					, "2certs"
+//					, "3email"
+//					, "4eTax"
+//					, "5IT"
+//					, "6NIC"
+//					, "7work"
+//			)
 			return arrayListOf(
-					  "0acct"
-					, "1bank"
-					, "2certs"
-					, "3email"
-					, "4eTax"
-					, "5IT"
-					, "6NIC"
-					, "7work"
+					"ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX", "SEVEN", "EIGHT"
 			)
 		}
 

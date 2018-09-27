@@ -1,5 +1,6 @@
 package org.sea9.android.secret;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -8,6 +9,8 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.InputFilter;
+import android.text.Spanned;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -20,6 +23,7 @@ import java.util.ArrayList;
 
 public class DetailFragment extends DialogFragment {
 	public static final String TAG = "secret.dialog_frag";
+	public static final String NEW = "secret.new";
 	public static final String KEY = "secret.key";
 	public static final String CTN = "secret.content";
 
@@ -28,15 +32,18 @@ public class DetailFragment extends DialogFragment {
 	private EditText editKey;
 	private EditText editCtn;
 
-	public static DetailFragment getInstance(DataRecord record) {
+	public static DetailFragment getInstance(boolean isNew, DataRecord record) {
 		DetailFragment dialog = new DetailFragment();
 		dialog.setCancelable(false);
 
-		Bundle args = new Bundle();
-		args.putString(KEY, record.getKey());
-		args.putString(CTN, record.getContent());
-		args.putIntegerArrayList(TAG, (ArrayList<Integer>) record.getTags());
-		dialog.setArguments(args);
+		if (record != null) {
+			Bundle args = new Bundle();
+			args.putBoolean(NEW, isNew);
+			args.putString(KEY, record.getKey());
+			args.putString(CTN, record.getContent());
+			args.putIntegerArrayList(TAG, (ArrayList<Integer>) record.getTags());
+			dialog.setArguments(args);
+		}
 
 		return dialog;
 	}
@@ -55,10 +62,18 @@ public class DetailFragment extends DialogFragment {
 		tagList.setHasFixedSize(true);
 		tagList.setLayoutManager(new LinearLayoutManager(this.getContext()));
 
+		view.findViewById(R.id.tag_add).setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				callback.onAdd();
+			}
+		});
+
 		view.findViewById(R.id.dtl_save).setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				Log.d(TAG, "SAVED!");
+				dismiss();
+				callback.onSave();
 			}
 		});
 
@@ -93,8 +108,15 @@ public class DetailFragment extends DialogFragment {
 
 		Bundle args = getArguments();
 		if (args != null) {
-			editKey.setText(args.getString(KEY));
 			editCtn.setText(args.getString(CTN));
+			editKey.setText(args.getString(KEY));
+			if (!args.getBoolean(NEW)) {
+				editKey.setFilters(new InputFilter[] { new InputFilter() {
+					public CharSequence filter(CharSequence src, int start, int end, Spanned dst, int dstart, int dend) {
+						return src.length() < 1 ? dst.subSequence(dstart, dend) : "";
+					}
+				}});
+			}
 		}
 
 		FragmentManager manager = getFragmentManager();
@@ -102,9 +124,38 @@ public class DetailFragment extends DialogFragment {
 			ctxFrag = (ContextFragment) manager.findFragmentByTag(ContextFragment.TAG);
 			if (ctxFrag != null) {
 				TagsAdaptor adaptor = ctxFrag.getTagsAdaptor();
-				adaptor.prepare(args.getIntegerArrayList(TAG));
+				adaptor.prepare((args != null) ? args.getIntegerArrayList(TAG) : null);
 				tagList.setAdapter(adaptor);
 			}
 		}
 	}
+
+	/*=========================================
+	 * Callback interface to the main activity
+	 */
+	public interface Listener {
+		void onAdd();
+		void onSave();
+	}
+	private Listener callback;
+
+	@Override
+	public void onAttach(Context context) {
+		super.onAttach(context);
+		Log.d(TAG, "DetailFragment.onAttach");
+		try {
+			callback = (Listener) context;
+		} catch (ClassCastException e) {
+			throw new ClassCastException(context.toString() + " missing implementation of DetailFragment.Listener");
+		}
+	}
+
+	@Override
+	public void onDetach() {
+		super.onDetach();
+		Log.d(TAG, "DetailFragment.onDetach");
+		callback = null;
+	}
+	//=========================================
+
 }

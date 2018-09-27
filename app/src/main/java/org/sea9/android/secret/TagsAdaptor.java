@@ -32,7 +32,7 @@ public class TagsAdaptor extends RecyclerView.Adapter<TagsAdaptor.ViewHolder> {
 
 	public void prepare(List<Integer> sel) {
 		selectedPos.clear();
-		selectedPos.addAll(sel);
+		if (sel != null) selectedPos.addAll(sel);
 	}
 
 	@Override

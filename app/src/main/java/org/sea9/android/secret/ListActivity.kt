@@ -16,7 +16,7 @@ import android.widget.SearchView
 
 import kotlinx.android.synthetic.main.activity_list.*
 
-class ListActivity : AppCompatActivity(), ContextFragment.Listener {
+class ListActivity : AppCompatActivity(), ContextFragment.Listener, DetailFragment.Listener {
 	companion object {
 		const val TAG = "secret.main"
 	}
@@ -32,8 +32,9 @@ class ListActivity : AppCompatActivity(), ContextFragment.Listener {
 
 		// this.fab got directly from the layout xml
 		fab.setOnClickListener { view ->
-			Snackbar.make(view, "Action!", Snackbar.LENGTH_LONG).setAction("Action", null).show()
-			ctxFrag?.insertData(null); //TODO TEMP
+//			Snackbar.make(view, "Action!", Snackbar.LENGTH_LONG).setAction("Action", null).show()
+//			ctxFrag?.insertData(null); //TODO TEMP
+			DetailFragment.getInstance(true, null).show(this.supportFragmentManager, DetailFragment.TAG)
 		}
 
 		ctxFrag = supportFragmentManager.findFragmentByTag(ContextFragment.TAG) as ContextFragment?
@@ -123,5 +124,17 @@ class ListActivity : AppCompatActivity(), ContextFragment.Listener {
 
 	override fun rowSelectionCleared() {
 		fab.show()
+	}
+	//=======================================================
+
+	/*=======================================================
+	 * @see org.sea9.android.secret.DetailFragment.Listener
+	 */
+	override fun onAdd() {
+		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+	}
+
+	override fun onSave() {
+		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 }
