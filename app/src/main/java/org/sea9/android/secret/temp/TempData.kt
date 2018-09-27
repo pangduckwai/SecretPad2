@@ -1,30 +1,48 @@
 package org.sea9.android.secret.temp
 
+import org.sea9.android.secret.DataRecord
+
 class TempData {
 	companion object {
-		fun get(): Map<String, String> {
-			return linkedMapOf(
-					  "1000" to "43000", "1001" to "43001", "1002" to "43002", "1003" to "43003", "1004" to "43004"
-					, "1005" to "43005", "1006" to "43006", "1007" to "43007", "1008" to "43008", "1009" to "43009"
-					, "1010" to "43010", "1011" to "43011", "1012" to "43012", "1013" to "43013", "1014" to "43014"
-					, "1015" to "43015", "1016" to "43016", "1017" to "43017", "1018" to "43018", "1019" to "43019"
-					, "1020" to "43020", "1021" to "43021", "1022" to "43022", "1023" to "43023", "1024" to "43024"
-					, "1025" to "43025", "1026" to "43026", "1027" to "43027", "1028" to "43028", "1029" to "43029"
-//					, "1030" to "43030", "1031" to "43031", "1032" to "43032", "1033" to "43033", "1034" to "43034"
-//					, "1035" to "43035", "1036" to "43036", "1037" to "43037", "1038" to "43038", "1039" to "43039"
+		fun tags(): List<String> {
+			return arrayListOf(
+					  "0acct"
+					, "1bank"
+					, "2certs"
+					, "3email"
+					, "4eTax"
+					, "5IT"
+					, "6NIC"
+					, "7work"
 			)
 		}
 
-		fun tags(): List<String> {
+		fun data(): List<DataRecord> {
 			return arrayListOf(
-					  "acct"
-					, "bank"
-					, "certs"
-					, "email"
-					, "eTax"
-					, "IT"
-					, "NIC"
-					, "work"
+					  DataRecord("1000", "56000", arrayListOf(1, 2, 3))
+					, DataRecord("1001", "56001", arrayListOf(2, 3, 4))
+					, DataRecord("1002", "56002", arrayListOf(3, 4, 5))
+					, DataRecord("1003", "56003", arrayListOf(4, 5, 6))
+					, DataRecord("1004", "56004", arrayListOf(5, 6, 7))
+					, DataRecord("1005", "56005", arrayListOf(6, 7, 0))
+					, DataRecord("1006", "56006", arrayListOf(7, 0, 1))
+					, DataRecord("1007", "56007", arrayListOf(0, 1, 2))
+					, DataRecord("1008", "56008", arrayListOf(1, 2, 3))
+					, DataRecord("1009", "56009", arrayListOf(2, 3, 4))
+					, DataRecord("1010", "56010", arrayListOf(3, 4, 5))
+					, DataRecord("1011", "56011", arrayListOf(4, 5, 6))
+					, DataRecord("1012", "56012", arrayListOf(5, 6, 7))
+					, DataRecord("1013", "56013", arrayListOf(6, 7, 0))
+					, DataRecord("1014", "56014", arrayListOf(7, 0, 1))
+					, DataRecord("1015", "56015", arrayListOf(0, 1, 2))
+					, DataRecord("1016", "56016", arrayListOf(1, 2, 3))
+					, DataRecord("1017", "56017", arrayListOf(2, 3, 4))
+					, DataRecord("1018", "56018", arrayListOf(3, 4, 5))
+					, DataRecord("1019", "56019", arrayListOf(4, 5, 6))
+					, DataRecord("1020", "56020", arrayListOf(5, 6, 7))
+					, DataRecord("1021", "56021", arrayListOf(6, 7, 0))
+					, DataRecord("1022", "56022", arrayListOf(7, 0, 1))
+					, DataRecord("1023", "56023", arrayListOf(0, 1, 2))
 			)
 		}
 	}

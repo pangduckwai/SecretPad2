@@ -12,7 +12,6 @@ import org.sea9.android.secret.temp.TempViewHolder;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class ContextFragment extends Fragment implements
 		ListAdaptor.Listener<TempViewHolder>,
@@ -27,8 +26,7 @@ public class ContextFragment extends Fragment implements
 		init();
 	}
 
-	private List<String> dataKey;
-	private Map<String, String> dataSet;
+	private List<DataRecord> dataList;
 	private List<String> tagList;
 
 	private ListAdaptor<TempViewHolder> adaptor;
@@ -42,8 +40,7 @@ public class ContextFragment extends Fragment implements
 	}
 
 	private void init() {
-		dataSet = TempData.Companion.get();
-		dataKey = new ArrayList<>(dataSet.keySet());
+		dataList = TempData.Companion.data();
 		tagList = TempData.Companion.tags();
 		actionListeners = new ArrayList<>();
 		adaptor = new ListAdaptor<>(this);
@@ -54,34 +51,26 @@ public class ContextFragment extends Fragment implements
 	 * Data maintenance APIs - query, insert, update, delete
 	 */
 	public final void queryData(int position) {
-		if ((position >= 0) && (position < dataKey.size())) {
-			//TODO Temp data schema
-			String k = dataKey.get(position);
-			String v = dataSet.get(k);
+		if ((position >= 0) && (position < dataList.size())) {
 			for (Interaction listener : actionListeners) {
-				listener.retrieved(k, v);
+				listener.retrieved(dataList.get(position));
 			}
 		}
 	}
 
-	public final int insertData(String key, String val) {//TODO Temp data schema
+	public final int insertData(DataRecord rec) {
 		// TODO TEMP start...
-		int cnt = dataKey.size();
-		if (cnt > 0) {
-			key = Integer.toString(Integer.parseInt(dataKey.get(dataKey.size() - 1)) + 1);
-		} else {
-			key = "1000";
-		}
-		val = "1" + key;
+		int cnt = dataList.size();
+		String key = "1000";
+		if (cnt > 0) key = Integer.toString(Integer.parseInt(dataList.get(dataList.size() - 1).getKey()) + 1);
+		String val = "1" + key;
+		rec = new DataRecord(key, val, new ArrayList<Integer>(3));
 		// ... TEMP end
+
 		int ret;
-		if (dataSet.put(key, val) == null) {
-			if (dataKey.add(key)) {
-				ret = dataKey.size() - 1;
-				adaptor.onItemInsert(ret);
-			} else {
-				ret = -2;
-			}
+		if (dataList.add(rec)) {
+			ret = dataList.size() - 1;
+			adaptor.onItemInsert(ret);
 		} else {
 			ret = -1;
 		}
@@ -92,13 +81,13 @@ public class ContextFragment extends Fragment implements
 	}
 
 	public final boolean deleteData(int position) {
-		if ((position < 0) || (position >= dataKey.size())) {
+		if ((position < 0) || (position >= dataList.size())) {
 			return false;
 		} else {
 			if (adaptor.isSelected(position)) {
 				datSelectionCleared();
 			}
-			if (dataSet.remove(dataKey.remove(position)) != null) {
+			if (dataList.remove(position) != null) {
 				adaptor.onItemDeleted(position);
 				return true;
 			} else {
@@ -113,10 +102,11 @@ public class ContextFragment extends Fragment implements
 	 * @see org.sea9.android.secret.ListAdaptor.Listener
 	 */
 	private static final String EMPTY = "";
+	private static final String SPACE = " ";
 
 	@Override
 	public int getItemCount() {
-		return dataSet.size();
+		return dataList.size();
 	}
 
 	@Override
@@ -136,15 +126,21 @@ public class ContextFragment extends Fragment implements
 		} else {
 			holder.itemView.setSelected(false);
 		}
-		holder.key.setText(dataKey.get(position));
-		holder.tag.setText("TEST DFLT XXXX YYYY");
+
+		DataRecord rec = dataList.get(position);
+		List<Integer> tag = rec.getTags();
+		StringBuilder tags = new StringBuilder((tag.size() > 0) ? tagList.get(tag.get(0)) : EMPTY);
+		for (int i = 1; i < tag.size(); i ++)
+			tags.append(SPACE).append(tagList.get(tag.get(i)));
+		holder.key.setText(rec.getKey());
+		holder.tag.setText(tags.toString());
 	}
 
 	@Override
 	public void datSelectionMade(int index) {
 		if (index >= 0) {
 			callback.rowSelectionMade();
-			String txt = dataSet.get(dataKey.get(index));
+			String txt = dataList.get(index).getContent();
 			for (Interaction listener : actionListeners) {
 				listener.select(txt);
 			}
@@ -210,7 +206,7 @@ public class ContextFragment extends Fragment implements
 	public interface Interaction {
 		void select(String content);
 		void added(int position);
-		void retrieved(String k, String v); //TODO Temp data schema
+		void retrieved(DataRecord record); //TODO Temp data schema
 	}
 	private List<Interaction> actionListeners;
 	public void addSelectListener(Interaction listener) {

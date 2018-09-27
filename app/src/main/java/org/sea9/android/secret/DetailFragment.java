@@ -16,8 +16,11 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.EditText;
 
+import java.util.ArrayList;
+
 public class DetailFragment extends DialogFragment {
 	public static final String TAG = "secret.dialog_frag";
+	public static final String KEY = "secret.key";
 	public static final String CTN = "secret.content";
 
 	private ContextFragment ctxFrag;
@@ -25,13 +28,14 @@ public class DetailFragment extends DialogFragment {
 	private EditText editKey;
 	private EditText editCtn;
 
-	public static DetailFragment getInstance(String k, String v) {
+	public static DetailFragment getInstance(DataRecord record) {
 		DetailFragment dialog = new DetailFragment();
 		dialog.setCancelable(false);
 
 		Bundle args = new Bundle();
-		args.putString(TAG, k);
-		args.putString(CTN, v);
+		args.putString(KEY, record.getKey());
+		args.putString(CTN, record.getContent());
+		args.putIntegerArrayList(TAG, (ArrayList<Integer>) record.getTags());
 		dialog.setArguments(args);
 
 		return dialog;
@@ -87,18 +91,20 @@ public class DetailFragment extends DialogFragment {
 		super.onResume();
 		Log.d(TAG, "DetailFragment.onResume");
 
+		Bundle args = getArguments();
+		if (args != null) {
+			editKey.setText(args.getString(KEY));
+			editCtn.setText(args.getString(CTN));
+		}
+
 		FragmentManager manager = getFragmentManager();
 		if (manager != null) {
 			ctxFrag = (ContextFragment) manager.findFragmentByTag(ContextFragment.TAG);
 			if (ctxFrag != null) {
-				tagList.setAdapter(ctxFrag.getTagsAdaptor());
+				TagsAdaptor adaptor = ctxFrag.getTagsAdaptor();
+				adaptor.prepare(args.getIntegerArrayList(TAG));
+				tagList.setAdapter(adaptor);
 			}
-		}
-
-		Bundle args = getArguments();
-		if (args != null) {
-			editKey.setText(args.getString(TAG));
-			editCtn.setText(args.getString(CTN));
 		}
 	}
 }

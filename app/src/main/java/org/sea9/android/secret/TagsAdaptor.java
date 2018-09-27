@@ -30,6 +30,11 @@ public class TagsAdaptor extends RecyclerView.Adapter<TagsAdaptor.ViewHolder> {
 		this.callback = callback;
 	}
 
+	public void prepare(List<Integer> sel) {
+		selectedPos.clear();
+		selectedPos.addAll(sel);
+	}
+
 	@Override
 	public final void onAttachedToRecyclerView(@NonNull RecyclerView recycler) {
 		super.onAttachedToRecyclerView(recycler);
@@ -82,5 +87,4 @@ public class TagsAdaptor extends RecyclerView.Adapter<TagsAdaptor.ViewHolder> {
 		int getTagsCount();
 	}
 	private TagsAdaptor.Listener callback;
-
 }

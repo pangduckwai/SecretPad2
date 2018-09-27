@@ -32,8 +32,8 @@ class ListActivity : AppCompatActivity(), ContextFragment.Listener {
 
 		// this.fab got directly from the layout xml
 		fab.setOnClickListener { view ->
-			//Snackbar.make(view, "Action!", Snackbar.LENGTH_LONG).setAction("Action", null).show()
-			ctxFrag?.insertData("x", "y")
+			Snackbar.make(view, "Action!", Snackbar.LENGTH_LONG).setAction("Action", null).show()
+			ctxFrag?.insertData(null); //TODO TEMP
 		}
 
 		ctxFrag = supportFragmentManager.findFragmentByTag(ContextFragment.TAG) as ContextFragment?

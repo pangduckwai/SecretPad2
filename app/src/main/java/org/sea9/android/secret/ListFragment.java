@@ -116,8 +116,8 @@ public class ListFragment extends Fragment implements ContextFragment.Interactio
 	}
 
 	@Override
-	public void retrieved(String k, String v) {//TODO Temp data schema
+	public void retrieved(DataRecord record) {//TODO Temp data schema
 		FragmentManager manager = getFragmentManager();
-		if (manager != null) DetailFragment.getInstance(k, v).show(manager, DetailFragment.TAG);
+		if (manager != null) DetailFragment.getInstance(record).show(manager, DetailFragment.TAG);
 	}
 }
