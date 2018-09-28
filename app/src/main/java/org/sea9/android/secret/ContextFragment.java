@@ -21,7 +21,7 @@ public class ContextFragment extends Fragment implements
 	@Override
 	public void onCreate(@Nullable Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		Log.d(TAG, "ContextFragment.onCreate");
+		Log.d(TAG, "onCreate");
 		setRetainInstance(true);
 		init();
 	}
@@ -42,7 +42,6 @@ public class ContextFragment extends Fragment implements
 	private void init() {
 		dataList = TempData.Companion.data();
 		tagList = TempData.Companion.tags();
-		interactListeners = new ArrayList<>();
 		tagSelectListeners = new ArrayList<>();
 		adaptor = new ListAdaptor<>(this);
 		tagsAdaptor = new TagsAdaptor(this);
@@ -53,9 +52,7 @@ public class ContextFragment extends Fragment implements
 	 */
 	public final void queryData(int position) {
 		if ((position >= 0) && (position < dataList.size())) {
-			for (Interaction listener : interactListeners) {
-				listener.retrieved(dataList.get(position));
-			}
+			callback.rowRetrieved(dataList.get(position));
 		}
 	}
 
@@ -69,9 +66,7 @@ public class ContextFragment extends Fragment implements
 		} else {
 			ret = -1;
 		}
-		for (Interaction listener : interactListeners) {
-			listener.added(ret);
-		}
+		callback.rowAdded(ret);
 		return ret;
 	}
 
@@ -93,10 +88,7 @@ public class ContextFragment extends Fragment implements
 			ret ++;
 		}
 		if (ret >= dataList.size()) ret = -1;
-		for (Interaction listener : interactListeners) {
-			listener.changed(ret);
-			listener.select(c);
-		}
+		callback.rowChanged(ret, c);
 		return ret;
 	}
 
@@ -160,11 +152,7 @@ public class ContextFragment extends Fragment implements
 	@Override
 	public void datSelectionMade(int index) {
 		if (index >= 0) {
-			callback.rowSelectionMade();
-			String txt = dataList.get(index).getContent();
-			for (Interaction listener : interactListeners) {
-				listener.select(txt);
-			}
+			callback.rowSelectionMade(dataList.get(index).getContent());
 		} else {
 			datSelectionCleared(); // Should not be possible to reach here
 		}
@@ -173,9 +161,6 @@ public class ContextFragment extends Fragment implements
 	@Override
 	public void datSelectionCleared() {
 		callback.rowSelectionCleared();
-		for (Interaction listener : interactListeners) {
-			listener.select(EMPTY);
-		}
 	}
 	//===================================================
 
@@ -204,8 +189,11 @@ public class ContextFragment extends Fragment implements
 	 * Callback interface to the main activity
 	 */
 	public interface Listener {
-		void rowSelectionMade();
+		void rowSelectionMade(String content);
 		void rowSelectionCleared();
+		void rowAdded(int position);
+		void rowChanged(int position, String content);
+		void rowRetrieved(DataRecord record);
 	}
 	private Listener callback;
 
@@ -227,21 +215,6 @@ public class ContextFragment extends Fragment implements
 		callback = null;
 	}
 	//=========================================
-
-	/*============================================
-	 * Interaction interface to the list fragment
-	 */
-	public interface Interaction {
-		void select(String content);
-		void added(int position);
-		void changed(int position);
-		void retrieved(DataRecord record);
-	}
-	private List<Interaction> interactListeners;
-	public void addInteractListener(Interaction listener) {
-		interactListeners.add(listener);
-	}
-	//============================================
 
 	/*================================================
 	 * Tag selection interface to the dialog fragment

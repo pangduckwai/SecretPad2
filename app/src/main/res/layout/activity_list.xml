@@ -5,7 +5,7 @@
 	xmlns:tools="http://schemas.android.com/tools"
 	android:layout_width="match_parent"
 	android:layout_height="match_parent"
-	tools:context=".ListActivity">
+	tools:context=".MainActivity">
 
     <android.support.design.widget.AppBarLayout
 		android:layout_width="match_parent"
@@ -20,15 +20,7 @@
 			app:popupTheme="@style/AppTheme.PopupOverlay" />
 	</android.support.design.widget.AppBarLayout>
 
-	<fragment
-		android:id="@+id/fragment"
-		android:name="org.sea9.android.secret.ListFragment"
-		android:layout_width="match_parent"
-		android:layout_height="match_parent"
-		android:focusable="true"
-		android:focusableInTouchMode="true"
-		app:layout_behavior="@string/appbar_scrolling_view_behavior"
-		tools:layout="@layout/fragment_list" />
+	<include layout="@layout/content_list" />
 
 	<android.support.design.widget.FloatingActionButton
 		android:id="@+id/fab"

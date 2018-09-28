@@ -13,7 +13,7 @@
 		android:layout_marginBottom="@dimen/margin_normal"
 		android:layout_marginEnd="@dimen/margin_normal"
 		android:layout_marginStart="@dimen/margin_normal"
-		android:layout_marginTop="@dimen/margin_normal"
+		android:layout_marginTop="@dimen/fab_margin"
 		android:scrollbars="vertical"
 		app:layout_constraintBottom_toTopOf="@+id/separator1"
 		app:layout_constraintEnd_toEndOf="parent"

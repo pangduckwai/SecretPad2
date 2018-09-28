@@ -104,7 +104,7 @@ public class DetailFragment extends DialogFragment implements ContextFragment.Ta
 		view.findViewById(R.id.dtl_save).setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				if (tagList.getAdapter() != null) {
+				if (updated && (tagList.getAdapter() != null)) {
 					callback.onSave(isNew
 							, editKey.getText().toString()
 							, editCtn.getText().toString()
