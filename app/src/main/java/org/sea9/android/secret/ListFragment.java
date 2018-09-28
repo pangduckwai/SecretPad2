@@ -116,6 +116,17 @@ public class ListFragment extends Fragment implements ContextFragment.Interactio
 	}
 
 	@Override
+	public void changed(int position) {
+		if (position >= 0) recycler.smoothScrollToPosition(position);
+		Snackbar.make(recycler,
+				String.format(
+						Locale.getDefault(),
+						getString((position >= 0) ? R.string.msg_insert_okay : R.string.msg_insert_fail),
+						Integer.toString(position+1)),
+				Snackbar.LENGTH_LONG).show();
+	}
+
+	@Override
 	public void retrieved(DataRecord record) {
 		FragmentManager manager = getFragmentManager();
 		if (manager != null) DetailFragment.getInstance(false, record).show(manager, DetailFragment.TAG);

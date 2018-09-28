@@ -58,8 +58,10 @@ public class ContextFragment extends Fragment implements
 		}
 	}
 
-	public final int insertData(DataRecord rec) {
+	// TODO TEMP
+	public final int insertData(String k, String c, List<Integer> t) {
 		int ret;
+		DataRecord rec = new DataRecord(k, c, t);
 		if (dataList.add(rec)) {
 			ret = dataList.size() - 1;
 			adaptor.onItemInsert(ret);
@@ -72,6 +74,32 @@ public class ContextFragment extends Fragment implements
 		return ret;
 	}
 
+	// TODO TEMP
+	public final int updateData(String k, String c, List<Integer> t) {
+		DataRecord rec;
+		int ret = 0;
+		while (ret < dataList.size()) {
+			rec = dataList.get(ret);
+			if (rec.getKey().equals(k)) {
+				rec.setContent(c);
+				rec.getTags().clear();
+				rec.getTags().addAll(t);
+				if (dataList.set(ret, rec) != null) {
+					adaptor.notifyItemChanged(ret);
+					break;
+				}
+			}
+			ret ++;
+		}
+		if (ret >= dataList.size()) ret = -1;
+		for (Interaction listener : actionListeners) {
+			listener.changed(ret);
+			listener.select(c);
+		}
+		return ret;
+	}
+
+	// TODO TEMP
 	public final boolean deleteData(int position) {
 		if ((position < 0) || (position >= dataList.size())) {
 			return false;
@@ -198,7 +226,8 @@ public class ContextFragment extends Fragment implements
 	public interface Interaction {
 		void select(String content);
 		void added(int position);
-		void retrieved(DataRecord record); //TODO Temp data schema
+		void changed(int position);
+		void retrieved(DataRecord record);
 	}
 	private List<Interaction> actionListeners;
 	public void addSelectListener(Interaction listener) {

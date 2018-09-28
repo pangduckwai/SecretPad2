@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class TagsAdaptor extends RecyclerView.Adapter<TagsAdaptor.ViewHolder> {
@@ -17,8 +18,10 @@ public class TagsAdaptor extends RecyclerView.Adapter<TagsAdaptor.ViewHolder> {
 	private RecyclerView recyclerView;
 
 	private List<Integer> selectedPos = new ArrayList<>();
-	public final Integer[] getSelectedPosition() {
-		return selectedPos.toArray(new Integer[selectedPos.size()]);
+	public final List<Integer> getSelectedPosition() {
+		List<Integer> ret = new ArrayList<>(selectedPos);
+		Collections.sort(ret);
+		return ret;
 	}
 
 	static class ViewHolder extends RecyclerView.ViewHolder {
@@ -54,9 +57,9 @@ public class TagsAdaptor extends RecyclerView.Adapter<TagsAdaptor.ViewHolder> {
 		item.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				Integer pos = Integer.valueOf(recyclerView.getChildLayoutPosition(v));
+				int pos = recyclerView.getChildLayoutPosition(v);
 				if (selectedPos.contains(pos)) {
-					selectedPos.remove(pos);
+					selectedPos.remove(Integer.valueOf(pos));
 				} else {
 					selectedPos.add(pos);
 				}

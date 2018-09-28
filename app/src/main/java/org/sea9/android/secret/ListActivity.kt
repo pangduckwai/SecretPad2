@@ -31,7 +31,7 @@ class ListActivity : AppCompatActivity(), ContextFragment.Listener, DetailFragme
 		setSupportActionBar(toolbar)
 
 		// this.fab got directly from the layout xml
-		fab.setOnClickListener { view ->
+		fab.setOnClickListener { _ ->
 			DetailFragment.getInstance(true, null).show(this.supportFragmentManager, DetailFragment.TAG)
 		}
 
@@ -41,17 +41,16 @@ class ListActivity : AppCompatActivity(), ContextFragment.Listener, DetailFragme
 			supportFragmentManager.beginTransaction().add(ctxFrag as ContextFragment, ContextFragment.TAG).commit()
 		}
 
-		handleIntent(intent, 1)
+		handleIntent(intent)
 	}
 
 	override fun onNewIntent(intent: Intent) {
 		Log.d(TAG, "ListActivity.onNewIntent")
-		handleIntent(intent, 2)
+		handleIntent(intent)
 	}
 
-	private fun handleIntent(intent: Intent, idx: Int) {
+	private fun handleIntent(intent: Intent) {
 		if (intent.action == Intent.ACTION_SEARCH) {
-			// TODO Verify the action and get the query
 			intent.getStringExtra(SearchManager.QUERY)?.also { query ->
 				doSearch(query)
 			}
@@ -132,11 +131,11 @@ class ListActivity : AppCompatActivity(), ContextFragment.Listener, DetailFragme
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
-	override fun onSave(isNew: Boolean, k: String?, c: String?, t: Array<out Int>?) {
+	override fun onSave(isNew: Boolean, k: String?, c: String?, t: MutableList<Int>?) {
 		if (isNew) {
-			Snackbar.make(window.decorView, "Insert saved", Snackbar.LENGTH_LONG).show() //TODO TEMP
+			ctxFrag?.insertData(k, c, t)
 		} else {
-			Snackbar.make(window.decorView, "Update saved", Snackbar.LENGTH_LONG).show() //TODO TEMP
+			ctxFrag?.updateData(k, c, t)
 		}
 	}
 }

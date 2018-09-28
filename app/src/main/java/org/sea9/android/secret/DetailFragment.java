@@ -20,6 +20,7 @@ import android.view.Window;
 import android.widget.EditText;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class DetailFragment extends DialogFragment {
 	public static final String TAG = "secret.dialog_frag";
@@ -27,7 +28,6 @@ public class DetailFragment extends DialogFragment {
 	public static final String KEY = "secret.key";
 	public static final String CTN = "secret.content";
 
-	private ContextFragment ctxFrag;
 	private RecyclerView tagList;
 	private EditText editKey;
 	private EditText editCtn;
@@ -128,7 +128,7 @@ public class DetailFragment extends DialogFragment {
 
 		FragmentManager manager = getFragmentManager();
 		if (manager != null) {
-			ctxFrag = (ContextFragment) manager.findFragmentByTag(ContextFragment.TAG);
+			ContextFragment ctxFrag = (ContextFragment) manager.findFragmentByTag(ContextFragment.TAG);
 			if (ctxFrag != null) {
 				TagsAdaptor adaptor = ctxFrag.getTagsAdaptor();
 				adaptor.prepare((args != null) ? args.getIntegerArrayList(TAG) : null);
@@ -142,7 +142,7 @@ public class DetailFragment extends DialogFragment {
 	 */
 	public interface Listener {
 		void onAdd();
-		void onSave(boolean isNew, String k, String c, Integer[] t);
+		void onSave(boolean isNew, String k, String c, List<Integer> t);
 	}
 	private Listener callback;
 
