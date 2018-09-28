@@ -17,6 +17,9 @@ public class TagsAdaptor extends RecyclerView.Adapter<TagsAdaptor.ViewHolder> {
 	private RecyclerView recyclerView;
 
 	private List<Integer> selectedPos = new ArrayList<>();
+	public final Integer[] getSelectedPosition() {
+		return selectedPos.toArray(new Integer[selectedPos.size()]);
+	}
 
 	static class ViewHolder extends RecyclerView.ViewHolder {
 		TextView tag;

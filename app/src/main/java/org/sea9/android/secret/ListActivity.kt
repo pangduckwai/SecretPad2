@@ -32,8 +32,6 @@ class ListActivity : AppCompatActivity(), ContextFragment.Listener, DetailFragme
 
 		// this.fab got directly from the layout xml
 		fab.setOnClickListener { view ->
-//			Snackbar.make(view, "Action!", Snackbar.LENGTH_LONG).setAction("Action", null).show()
-//			ctxFrag?.insertData(null); //TODO TEMP
 			DetailFragment.getInstance(true, null).show(this.supportFragmentManager, DetailFragment.TAG)
 		}
 
@@ -134,7 +132,11 @@ class ListActivity : AppCompatActivity(), ContextFragment.Listener, DetailFragme
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
-	override fun onSave() {
-		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+	override fun onSave(isNew: Boolean, k: String?, c: String?, t: Array<out Int>?) {
+		if (isNew) {
+			Snackbar.make(window.decorView, "Insert saved", Snackbar.LENGTH_LONG).show() //TODO TEMP
+		} else {
+			Snackbar.make(window.decorView, "Update saved", Snackbar.LENGTH_LONG).show() //TODO TEMP
+		}
 	}
 }

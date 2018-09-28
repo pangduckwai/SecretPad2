@@ -31,19 +31,20 @@ public class DetailFragment extends DialogFragment {
 	private RecyclerView tagList;
 	private EditText editKey;
 	private EditText editCtn;
+	private boolean isNew;
 
 	public static DetailFragment getInstance(boolean isNew, DataRecord record) {
 		DetailFragment dialog = new DetailFragment();
 		dialog.setCancelable(false);
 
+		Bundle args = new Bundle();
+		args.putBoolean(NEW, isNew);
 		if (record != null) {
-			Bundle args = new Bundle();
-			args.putBoolean(NEW, isNew);
 			args.putString(KEY, record.getKey());
 			args.putString(CTN, record.getContent());
 			args.putIntegerArrayList(TAG, (ArrayList<Integer>) record.getTags());
-			dialog.setArguments(args);
 		}
+		dialog.setArguments(args);
 
 		return dialog;
 	}
@@ -73,7 +74,12 @@ public class DetailFragment extends DialogFragment {
 			@Override
 			public void onClick(View v) {
 				dismiss();
-				callback.onSave();
+				if (tagList.getAdapter() != null) {
+					callback.onSave(isNew
+							, editKey.getText().toString()
+							, editCtn.getText().toString()
+							, ((TagsAdaptor) tagList.getAdapter()).getSelectedPosition());
+				}
 			}
 		});
 
@@ -108,12 +114,13 @@ public class DetailFragment extends DialogFragment {
 
 		Bundle args = getArguments();
 		if (args != null) {
+			isNew = args.getBoolean(NEW);
 			editCtn.setText(args.getString(CTN));
 			editKey.setText(args.getString(KEY));
-			if (!args.getBoolean(NEW)) {
+			if (!isNew) {
 				editKey.setFilters(new InputFilter[] { new InputFilter() {
 					public CharSequence filter(CharSequence src, int start, int end, Spanned dst, int dstart, int dend) {
-						return src.length() < 1 ? dst.subSequence(dstart, dend) : "";
+						return dst.subSequence(dstart, dend);
 					}
 				}});
 			}
@@ -135,7 +142,7 @@ public class DetailFragment extends DialogFragment {
 	 */
 	public interface Listener {
 		void onAdd();
-		void onSave();
+		void onSave(boolean isNew, String k, String c, Integer[] t);
 	}
 	private Listener callback;
 

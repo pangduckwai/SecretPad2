@@ -59,14 +59,6 @@ public class ContextFragment extends Fragment implements
 	}
 
 	public final int insertData(DataRecord rec) {
-		// TODO TEMP start...
-		int cnt = dataList.size();
-		String key = "1000";
-		if (cnt > 0) key = Integer.toString(Integer.parseInt(dataList.get(dataList.size() - 1).getKey()) + 1);
-		String val = "1" + key;
-		rec = new DataRecord(key, val, new ArrayList<Integer>(3));
-		// ... TEMP end
-
 		int ret;
 		if (dataList.add(rec)) {
 			ret = dataList.size() - 1;
