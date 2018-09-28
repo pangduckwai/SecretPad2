@@ -42,7 +42,8 @@ public class ContextFragment extends Fragment implements
 	private void init() {
 		dataList = TempData.Companion.data();
 		tagList = TempData.Companion.tags();
-		actionListeners = new ArrayList<>();
+		interactListeners = new ArrayList<>();
+		tagSelectListeners = new ArrayList<>();
 		adaptor = new ListAdaptor<>(this);
 		tagsAdaptor = new TagsAdaptor(this);
 	}
@@ -52,7 +53,7 @@ public class ContextFragment extends Fragment implements
 	 */
 	public final void queryData(int position) {
 		if ((position >= 0) && (position < dataList.size())) {
-			for (Interaction listener : actionListeners) {
+			for (Interaction listener : interactListeners) {
 				listener.retrieved(dataList.get(position));
 			}
 		}
@@ -68,7 +69,7 @@ public class ContextFragment extends Fragment implements
 		} else {
 			ret = -1;
 		}
-		for (Interaction listener : actionListeners) {
+		for (Interaction listener : interactListeners) {
 			listener.added(ret);
 		}
 		return ret;
@@ -92,7 +93,7 @@ public class ContextFragment extends Fragment implements
 			ret ++;
 		}
 		if (ret >= dataList.size()) ret = -1;
-		for (Interaction listener : actionListeners) {
+		for (Interaction listener : interactListeners) {
 			listener.changed(ret);
 			listener.select(c);
 		}
@@ -161,7 +162,7 @@ public class ContextFragment extends Fragment implements
 		if (index >= 0) {
 			callback.rowSelectionMade();
 			String txt = dataList.get(index).getContent();
-			for (Interaction listener : actionListeners) {
+			for (Interaction listener : interactListeners) {
 				listener.select(txt);
 			}
 		} else {
@@ -172,7 +173,7 @@ public class ContextFragment extends Fragment implements
 	@Override
 	public void datSelectionCleared() {
 		callback.rowSelectionCleared();
-		for (Interaction listener : actionListeners) {
+		for (Interaction listener : interactListeners) {
 			listener.select(EMPTY);
 		}
 	}
@@ -189,6 +190,13 @@ public class ContextFragment extends Fragment implements
 	@Override
 	public int getTagsCount() {
 		return tagList.size();
+	}
+
+	@Override
+	public void selectionChanged() {
+		for (TagSelection listener : tagSelectListeners) {
+			listener.changed();
+		}
 	}
 	//===================================================
 
@@ -220,7 +228,7 @@ public class ContextFragment extends Fragment implements
 	}
 	//=========================================
 
-	/*===================================================
+	/*============================================
 	 * Interaction interface to the list fragment
 	 */
 	public interface Interaction {
@@ -229,8 +237,20 @@ public class ContextFragment extends Fragment implements
 		void changed(int position);
 		void retrieved(DataRecord record);
 	}
-	private List<Interaction> actionListeners;
-	public void addSelectListener(Interaction listener) {
-		actionListeners.add(listener);
+	private List<Interaction> interactListeners;
+	public void addInteractListener(Interaction listener) {
+		interactListeners.add(listener);
+	}
+	//============================================
+
+	/*================================================
+	 * Tag selection interface to the dialog fragment
+	 */
+	public interface TagSelection {
+		void changed();
+	}
+	private List<TagSelection> tagSelectListeners;
+	public void addTagSelectListener(TagSelection listener) {
+		tagSelectListeners.add(listener);
 	}
 }

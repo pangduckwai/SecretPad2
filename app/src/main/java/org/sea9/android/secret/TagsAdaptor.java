@@ -63,6 +63,7 @@ public class TagsAdaptor extends RecyclerView.Adapter<TagsAdaptor.ViewHolder> {
 				} else {
 					selectedPos.add(pos);
 				}
+				callback.selectionChanged();
 				notifyDataSetChanged();
 			}
 		});
@@ -91,6 +92,7 @@ public class TagsAdaptor extends RecyclerView.Adapter<TagsAdaptor.ViewHolder> {
 	public interface Listener {
 		String getTag(int position);
 		int getTagsCount();
+		void selectionChanged();
 	}
 	private TagsAdaptor.Listener callback;
 }

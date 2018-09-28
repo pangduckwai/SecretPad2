@@ -1,10 +1,13 @@
 package org.sea9.android.secret;
 
+import android.content.DialogInterface;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
@@ -38,17 +41,6 @@ public class ListFragment extends Fragment implements ContextFragment.Interactio
 		recycler.setHasFixedSize(true); // improve performance since content changes do not affect layout size of the RecyclerView
 		recycler.setLayoutManager(new LinearLayoutManager(this.getContext())); // use a linear layout manager
 
-//		content.addTextChangedListener(new TextWatcher() {
-//			@Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-//				Log.d(TAG, "beforeTextChanged " + s);
-//			}
-//			@Override public void onTextChanged(CharSequence s, int start, int before, int count) {
-//				Log.d(TAG, "onTextChanged " + s);
-//			}
-//			@Override public void afterTextChanged(Editable s) {
-//				Log.d(TAG, "afterTextChanged " + s);
-//			}
-//		});
 		content.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
@@ -68,12 +60,29 @@ public class ListFragment extends Fragment implements ContextFragment.Interactio
 
 			@Override
 			public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
-				int position = viewHolder.getAdapterPosition();
-				Snackbar.make(recycler,
-						String.format(Locale.getDefault(),
-								getString(ctxFrag.deleteData(position) ? R.string.msg_delete_okay : R.string.msg_delete_fail),
-								Integer.toString(position+1)),
-						Snackbar.LENGTH_LONG).show();
+				final int position = viewHolder.getAdapterPosition();
+				FragmentActivity activity = getActivity();
+				if (activity != null) {
+					AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+					builder.setMessage(String.format(Locale.getDefault(),
+							getString(R.string.msg_confirm_delete), Integer.toString(position+1)));
+					builder.setPositiveButton(R.string.btn_okay, new DialogInterface.OnClickListener() {
+						@Override public void onClick(DialogInterface arg0, int arg1) {
+							Snackbar.make(recycler,
+									String.format(Locale.getDefault(),
+											getString(ctxFrag.deleteData(position) ? R.string.msg_delete_okay : R.string.msg_delete_fail),
+											Integer.toString(position+1)),
+									Snackbar.LENGTH_LONG).show();
+						}
+					});
+					builder.setNegativeButton(R.string.btn_cancel, new DialogInterface.OnClickListener() {
+						@Override public void onClick(DialogInterface arg0, int arg1) {
+							if (recycler.getAdapter() != null)
+								recycler.getAdapter().notifyDataSetChanged();
+						}
+					});
+					(builder.create()).show();
+				}
 			}
 		});
 		itemTouchHelper.attachToRecyclerView(recycler);
@@ -90,7 +99,7 @@ public class ListFragment extends Fragment implements ContextFragment.Interactio
 		if (manager != null) {
 			ctxFrag = (ContextFragment) manager.findFragmentByTag(ContextFragment.TAG);
 			if (ctxFrag != null) {
-				ctxFrag.addSelectListener(this);
+				ctxFrag.addInteractListener(this);
 				recycler.setAdapter(ctxFrag.getAdaptor());
 			}
 		}
@@ -121,7 +130,7 @@ public class ListFragment extends Fragment implements ContextFragment.Interactio
 		Snackbar.make(recycler,
 				String.format(
 						Locale.getDefault(),
-						getString((position >= 0) ? R.string.msg_insert_okay : R.string.msg_insert_fail),
+						getString((position >= 0) ? R.string.msg_update_okay : R.string.msg_update_fail),
 						Integer.toString(position+1)),
 				Snackbar.LENGTH_LONG).show();
 	}
