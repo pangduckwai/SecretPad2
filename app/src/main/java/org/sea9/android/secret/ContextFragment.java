@@ -121,6 +121,23 @@ public class ContextFragment extends Fragment implements
 	}
 	//=======================================================
 
+	/*=======================================================
+	 * Tag maintenance APIs - add, delete
+	 */
+	public final void addTag(String t) {
+		if (tagList.add(t)) {
+			tagsAdaptor.notifyItemInserted(tagList.size() - 1);
+		}
+	}
+
+	/**
+	 * Delete unused tags.
+	 */
+	public final void deleteTags() {
+		//TODO
+	}
+	//=======================================================
+
 	/*===================================================
 	 * @see org.sea9.android.secret.ListAdaptor.Listener
 	 */

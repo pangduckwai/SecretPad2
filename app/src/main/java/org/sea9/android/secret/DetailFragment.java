@@ -29,11 +29,13 @@ public class DetailFragment extends DialogFragment {
 	public static final String TAG = "secret.dialog_frag";
 	public static final String KEY = "secret.key";
 	public static final String CTN = "secret.content";
+	private static final String EMPTY = "";
 
 	private ContextFragment ctxFrag;
 	private RecyclerView tagList;
 	private EditText editKey;
 	private EditText editCtn;
+	private EditText editTag;
 	private boolean isNew;
 
 	public static DetailFragment getInstance(boolean isNew, DataRecord record) {
@@ -61,6 +63,7 @@ public class DetailFragment extends DialogFragment {
 		tagList = view.findViewById(R.id.edit_tags);
 		editKey = view.findViewById(R.id.edit_key);
 		editCtn = view.findViewById(R.id.edit_content);
+		editTag = view.findViewById(R.id.edit_tag);
 
 		Bundle args = getArguments();
 		if (args != null) {
@@ -103,7 +106,13 @@ public class DetailFragment extends DialogFragment {
 		view.findViewById(R.id.tag_add).setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				callback.onAdd();
+				Editable e = editTag.getText();
+				if (e != null) {
+					String t = e.toString();
+					if (t.trim().length() > 0) {
+						callback.onAdd(t);
+					}
+				}
 			}
 		});
 
@@ -111,10 +120,9 @@ public class DetailFragment extends DialogFragment {
 			@Override
 			public void onClick(View v) {
 				if ((ctxFrag != null) && ctxFrag.isUpdated() && (tagList.getAdapter() != null)) {
-					callback.onSave(isNew
-							, editKey.getText().toString()
-							, editCtn.getText().toString()
-							, ((TagsAdaptor) tagList.getAdapter()).getSelectedPosition());
+					String k = (editKey.getText() != null) ? editKey.getText().toString() : EMPTY;
+					String c = (editCtn.getText() != null) ? editCtn.getText().toString() : EMPTY;
+					callback.onSave(isNew, k, c, ((TagsAdaptor) tagList.getAdapter()).getSelectedPosition());
 				}
 				dismiss();
 			}
@@ -191,7 +199,7 @@ public class DetailFragment extends DialogFragment {
 	 * Callback interface to the main activity
 	 */
 	public interface Listener {
-		void onAdd();
+		void onAdd(String t);
 		void onSave(boolean isNew, String k, String c, List<Integer> t);
 	}
 	private Listener callback;

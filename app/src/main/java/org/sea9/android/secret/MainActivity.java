@@ -26,7 +26,9 @@ import android.widget.TextView;
 import java.util.List;
 import java.util.Locale;
 
-public class MainActivity extends AppCompatActivity implements ContextFragment.Listener, DetailFragment.Listener {
+public class MainActivity extends AppCompatActivity implements
+		ContextFragment.Listener,
+		DetailFragment.Listener {
 	public static final String TAG = "secret.main";
 	private static final String EMPTY = "";
 
@@ -167,10 +169,12 @@ public class MainActivity extends AppCompatActivity implements ContextFragment.L
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
+		case R.id.action_cleanup:
+			Snackbar.make(getWindow().getDecorView(), "Cleanup unused tags", Snackbar.LENGTH_LONG).show(); //TODO TEMP
+			break;
 		case R.id.action_settings:
 			Snackbar.make(getWindow().getDecorView(), "Changing settings", Snackbar.LENGTH_LONG).show(); //TODO TEMP
 			break;
-
 		case R.id.action_about:
 			Snackbar.make(getWindow().getDecorView(), "About...", Snackbar.LENGTH_LONG).show(); //TODO TEMP
 			break;
@@ -242,8 +246,8 @@ public class MainActivity extends AppCompatActivity implements ContextFragment.L
 	 * @see org.sea9.android.secret.DetailFragment.Listener
 	 */
 	@Override
-	public void onAdd() {
-		//TODO HERE
+	public void onAdd(String t) {
+		ctxFrag.addTag(t);
 	}
 
 	@Override
