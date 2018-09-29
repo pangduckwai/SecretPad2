@@ -43,13 +43,13 @@ public class ListAdaptor<H extends RecyclerView.ViewHolder> extends RecyclerView
 	@Override
 	public final void onAttachedToRecyclerView(@NonNull RecyclerView recycler) {
 		super.onAttachedToRecyclerView(recycler);
-		Log.d(TAG, "ListAdaptor.onAttachedToRecyclerView");
+		Log.d(TAG, "onAttachedToRecyclerView");
 		recyclerView = recycler;
 	}
 
 	@Override @NonNull
 	public final H onCreateViewHolder(@NonNull final ViewGroup parent, int viewType) {
-		Log.d(TAG, "ListAdaptor.onCreateViewHolder");
+		Log.d(TAG, "onCreateViewHolder");
 
 		// create a new view
 		View item = LayoutInflater.from(parent.getContext()).inflate(callback.getListItemLayoutId(), parent, false);

@@ -58,6 +58,7 @@ public class ContextFragment extends Fragment implements
 		callback.onPrepareAddCompleted();
 	}
 
+	// TODO TEMP using memory, will use SQLite
 	public final void queryData(int position) {
 		if ((position >= 0) && (position < dataList.size())) {
 			DataRecord rec = dataList.get(position);
@@ -67,7 +68,7 @@ public class ContextFragment extends Fragment implements
 		}
 	}
 
-	// TODO TEMP
+	// TODO TEMP using memory, will use SQLite
 	public final void insertData(String k, String c, List<Integer> t) {
 		int ret;
 		DataRecord rec = new DataRecord(k, c, t);
@@ -80,7 +81,7 @@ public class ContextFragment extends Fragment implements
 		callback.onInsertDataCompleted(ret);
 	}
 
-	// TODO TEMP
+	// TODO TEMP using memory, will use SQLite
 	public final void updateData(String k, String c, List<Integer> t) {
 		DataRecord rec;
 		int ret = 0;
@@ -101,7 +102,7 @@ public class ContextFragment extends Fragment implements
 		callback.onUpdateDataCompleted(ret, c);
 	}
 
-	// TODO TEMP
+	// TODO TEMP using memory, will use SQLite
 	public final boolean deleteData(int position) {
 		if ((position < 0) || (position >= dataList.size())) {
 			return false;
@@ -208,7 +209,7 @@ public class ContextFragment extends Fragment implements
 	@Override
 	public void onAttach(Context context) {
 		super.onAttach(context);
-		Log.d(TAG, "ContextFragment.onAttach");
+		Log.d(TAG, "onAttach");
 		try {
 			callback = (Listener) context;
 		} catch (ClassCastException e) {
@@ -219,7 +220,7 @@ public class ContextFragment extends Fragment implements
 	@Override
 	public void onDetach() {
 		super.onDetach();
-		Log.d(TAG, "ContextFragment.onDetach");
+		Log.d(TAG, "onDetach");
 		callback = null;
 	}
 	//=========================================

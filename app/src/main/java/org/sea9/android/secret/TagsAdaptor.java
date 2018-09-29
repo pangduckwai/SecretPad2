@@ -44,13 +44,13 @@ public class TagsAdaptor extends RecyclerView.Adapter<TagsAdaptor.ViewHolder> {
 	@Override
 	public final void onAttachedToRecyclerView(@NonNull RecyclerView recycler) {
 		super.onAttachedToRecyclerView(recycler);
-		Log.d(TAG, "TagsAdaptor.onAttachedToRecyclerView");
+		Log.d(TAG, "onAttachedToRecyclerView");
 		recyclerView = recycler;
 	}
 
 	@Override @NonNull
 	public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-		Log.d(TAG, "TagsAdaptor.onCreateViewHolder");
+		Log.d(TAG, "onCreateViewHolder");
 
 		TextView item = (TextView) LayoutInflater.from(parent.getContext()).inflate(R.layout.tag_item, parent, false);
 

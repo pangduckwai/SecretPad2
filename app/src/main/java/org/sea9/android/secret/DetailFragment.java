@@ -27,7 +27,6 @@ import java.util.List;
 
 public class DetailFragment extends DialogFragment {
 	public static final String TAG = "secret.dialog_frag";
-	public static final String NEW = "secret.new";
 	public static final String KEY = "secret.key";
 	public static final String CTN = "secret.content";
 
@@ -42,7 +41,7 @@ public class DetailFragment extends DialogFragment {
 		dialog.setCancelable(false);
 
 		Bundle args = new Bundle();
-		args.putBoolean(NEW, isNew);
+		args.putBoolean(TAG, isNew);
 		if (record != null) {
 			args.putString(KEY, record.getKey());
 			args.putString(CTN, record.getContent());
@@ -65,7 +64,7 @@ public class DetailFragment extends DialogFragment {
 
 		Bundle args = getArguments();
 		if (args != null) {
-			isNew = args.getBoolean(NEW);
+			isNew = args.getBoolean(TAG);
 			editCtn.setText(args.getString(CTN));
 			editKey.setText(args.getString(KEY));
 		}
@@ -200,7 +199,7 @@ public class DetailFragment extends DialogFragment {
 	@Override
 	public void onAttach(Context context) {
 		super.onAttach(context);
-		Log.d(TAG, "DetailFragment.onAttach");
+		Log.d(TAG, "onAttach");
 		try {
 			callback = (Listener) context;
 		} catch (ClassCastException e) {
@@ -211,7 +210,7 @@ public class DetailFragment extends DialogFragment {
 	@Override
 	public void onDetach() {
 		super.onDetach();
-		Log.d(TAG, "DetailFragment.onDetach");
+		Log.d(TAG, "onDetach");
 		callback = null;
 	}
 	//=========================================
