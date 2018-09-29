@@ -45,19 +45,19 @@ public class MainActivity extends AppCompatActivity implements ContextFragment.L
 		Toolbar toolbar = findViewById(R.id.toolbar);
 		setSupportActionBar(toolbar);
 
-		fab = findViewById(R.id.fab);
-		fab.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View view) {
-				DetailFragment.getInstance(true, null).show(getSupportFragmentManager(), DetailFragment.TAG);
-			}
-		});
-
 		ctxFrag = (ContextFragment) getSupportFragmentManager().findFragmentByTag(ContextFragment.TAG);
 		if (ctxFrag == null) {
 			ctxFrag = new ContextFragment();
 			getSupportFragmentManager().beginTransaction().add(ctxFrag, ContextFragment.TAG).commit();
 		}
+
+		fab = findViewById(R.id.fab);
+		fab.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				ctxFrag.prepareAdd();
+			}
+		});
 
 		recycler = findViewById(R.id.recycler_list);
 		content = findViewById(R.id.item_content);
@@ -192,20 +192,25 @@ public class MainActivity extends AppCompatActivity implements ContextFragment.L
 	 * @see org.sea9.android.secret.ContextFragment.Listener
 	 */
 	@Override
-	public void rowSelectionMade(String txt) {
+	public void onRowSelectionMade(String txt) {
 		//fragment.view?.requestFocus()
 		content.setText(txt);
 		fab.hide();
 	}
 
 	@Override
-	public void rowSelectionCleared() {
+	public void onRowSelectionCleared() {
 		content.setText(EMPTY);
 		fab.show();
 	}
 
 	@Override
-	public void rowAdded(int position) {
+	public void onPrepareAddCompleted() {
+		DetailFragment.getInstance(true, null).show(getSupportFragmentManager(), DetailFragment.TAG);
+	}
+
+	@Override
+	public void onInsertDataCompleted(int position) {
 		if (position >= 0) recycler.smoothScrollToPosition(position);
 		Snackbar.make(recycler,
 				String.format(
@@ -216,7 +221,7 @@ public class MainActivity extends AppCompatActivity implements ContextFragment.L
 	}
 
 	@Override
-	public void rowChanged(int position, String content) {
+	public void onUpdateDataCompleted(int position, String content) {
 		if (position >= 0) recycler.smoothScrollToPosition(position);
 		Snackbar.make(recycler,
 				String.format(
@@ -224,11 +229,11 @@ public class MainActivity extends AppCompatActivity implements ContextFragment.L
 						getString((position >= 0) ? R.string.msg_update_okay : R.string.msg_update_fail),
 						Integer.toString(position+1)),
 				Snackbar.LENGTH_LONG).show();
-		rowSelectionMade(content);
+		onRowSelectionMade(content);
 	}
 
 	@Override
-	public void rowRetrieved(DataRecord record) {
+	public void onQueryDataCompleted(DataRecord record) {
 		DetailFragment.getInstance(false, record).show(getSupportFragmentManager(), DetailFragment.TAG);
 	}
 	//=======================================================

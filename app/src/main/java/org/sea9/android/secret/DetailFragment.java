@@ -23,19 +23,19 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.EditText;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public class DetailFragment extends DialogFragment implements ContextFragment.TagSelection {
+public class DetailFragment extends DialogFragment {
 	public static final String TAG = "secret.dialog_frag";
 	public static final String NEW = "secret.new";
 	public static final String KEY = "secret.key";
 	public static final String CTN = "secret.content";
 
+	private ContextFragment ctxFrag;
 	private RecyclerView tagList;
 	private EditText editKey;
 	private EditText editCtn;
-	private boolean isNew, updated;
+	private boolean isNew;
 
 	public static DetailFragment getInstance(boolean isNew, DataRecord record) {
 		DetailFragment dialog = new DetailFragment();
@@ -46,7 +46,6 @@ public class DetailFragment extends DialogFragment implements ContextFragment.Ta
 		if (record != null) {
 			args.putString(KEY, record.getKey());
 			args.putString(CTN, record.getContent());
-			args.putIntegerArrayList(TAG, (ArrayList<Integer>) record.getTags());
 		}
 		dialog.setArguments(args);
 
@@ -56,14 +55,20 @@ public class DetailFragment extends DialogFragment implements ContextFragment.Ta
 	@Nullable
 	@Override
 	public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-		Log.d(TAG, "DetailFragment.onCreateView");
+		Log.d(TAG, "onCreateView");
 
 		View view = inflater.inflate(R.layout.dialog_detail, container, false);
 
-		updated = false;
 		tagList = view.findViewById(R.id.edit_tags);
 		editKey = view.findViewById(R.id.edit_key);
 		editCtn = view.findViewById(R.id.edit_content);
+
+		Bundle args = getArguments();
+		if (args != null) {
+			isNew = args.getBoolean(NEW);
+			editCtn.setText(args.getString(CTN));
+			editKey.setText(args.getString(KEY));
+		}
 
 		tagList.setHasFixedSize(true);
 		tagList.setLayoutManager(new LinearLayoutManager(this.getContext()));
@@ -74,7 +79,9 @@ public class DetailFragment extends DialogFragment implements ContextFragment.Ta
 
 			@Override
 			public void onTextChanged(CharSequence s, int start, int before, int count) {
-				if ((before != 0) || (count != 0)) updated = true;
+				if ((before != 0) || (count != 0)) {
+					if (ctxFrag != null) ctxFrag.detailUpdated();
+				}
 			}
 
 			@Override
@@ -90,7 +97,7 @@ public class DetailFragment extends DialogFragment implements ContextFragment.Ta
 
 			@Override
 			public void afterTextChanged(Editable s) {
-				updated = true;
+				if (ctxFrag != null) ctxFrag.detailUpdated();
 			}
 		});
 
@@ -104,7 +111,7 @@ public class DetailFragment extends DialogFragment implements ContextFragment.Ta
 		view.findViewById(R.id.dtl_save).setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				if (updated && (tagList.getAdapter() != null)) {
+				if ((ctxFrag != null) && ctxFrag.isUpdated() && (tagList.getAdapter() != null)) {
 					callback.onSave(isNew
 							, editKey.getText().toString()
 							, editCtn.getText().toString()
@@ -141,38 +148,27 @@ public class DetailFragment extends DialogFragment implements ContextFragment.Ta
 	@Override
 	public void onResume() {
 		super.onResume();
-		Log.d(TAG, "DetailFragment.onResume");
+		Log.d(TAG, "onResume");
 
-		Bundle args = getArguments();
-		if (args != null) {
-			isNew = args.getBoolean(NEW);
-			editCtn.setText(args.getString(CTN));
-			editKey.setText(args.getString(KEY));
-			if (!isNew) {
-				editKey.setFilters(new InputFilter[] { new InputFilter() {
-					public CharSequence filter(CharSequence src, int start, int end, Spanned dst, int dstart, int dend) {
-						return dst.subSequence(dstart, dend);
-					}
-				}});
-			}
+		if (!isNew) {
+			editKey.setFilters(new InputFilter[] { new InputFilter() {
+				public CharSequence filter(CharSequence src, int start, int end, Spanned dst, int dstart, int dend) {
+					return dst.subSequence(dstart, dend);
+				}
+			}});
 		}
 
 		FragmentManager manager = getFragmentManager();
 		if (manager != null) {
-			ContextFragment ctxFrag = (ContextFragment) manager.findFragmentByTag(ContextFragment.TAG);
+			ctxFrag = (ContextFragment) manager.findFragmentByTag(ContextFragment.TAG);
 			if (ctxFrag != null) {
-				ctxFrag.addTagSelectListener(this);
-				TagsAdaptor adaptor = ctxFrag.getTagsAdaptor();
-				adaptor.prepare((args != null) ? args.getIntegerArrayList(TAG) : null);
-				tagList.setAdapter(adaptor);
+				tagList.setAdapter(ctxFrag.getTagsAdaptor());
 			}
 		}
-
-		updated = false;
 	}
 
 	private void close() {
-		if (updated) {//btn_okay
+		if ((ctxFrag != null) && ctxFrag.isUpdated()) {//btn_okay
 			FragmentActivity activity = getActivity();
 			if (activity != null) {
 				AlertDialog.Builder builder = new AlertDialog.Builder(activity);
@@ -219,12 +215,4 @@ public class DetailFragment extends DialogFragment implements ContextFragment.Ta
 		callback = null;
 	}
 	//=========================================
-
-	/*===========================================================
-	 * @see org.sea9.android.secret.ContextFragment.TagSelection
-	 */
-	@Override
-	public void changed() {
-		updated = true;
-	}
 }

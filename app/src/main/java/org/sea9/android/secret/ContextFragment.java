@@ -10,7 +10,6 @@ import android.view.View;
 import org.sea9.android.secret.temp.TempData;
 import org.sea9.android.secret.temp.TempViewHolder;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class ContextFragment extends Fragment implements
@@ -42,7 +41,6 @@ public class ContextFragment extends Fragment implements
 	private void init() {
 		dataList = TempData.Companion.data();
 		tagList = TempData.Companion.tags();
-		tagSelectListeners = new ArrayList<>();
 		adaptor = new ListAdaptor<>(this);
 		tagsAdaptor = new TagsAdaptor(this);
 	}
@@ -50,14 +48,27 @@ public class ContextFragment extends Fragment implements
 	/*=======================================================
 	 * Data maintenance APIs - query, insert, update, delete
 	 */
+	private boolean updated = false;
+	public final boolean isUpdated() { return updated; }
+	public final void detailUpdated() { updated = true; }
+
+	public final void prepareAdd() {
+		tagsAdaptor.prepare(null);
+		updated = false;
+		callback.onPrepareAddCompleted();
+	}
+
 	public final void queryData(int position) {
 		if ((position >= 0) && (position < dataList.size())) {
-			callback.rowRetrieved(dataList.get(position));
+			DataRecord rec = dataList.get(position);
+			tagsAdaptor.prepare(rec.getTags());
+			updated = false; // Reset detail dialog updated flag every time opening it
+			callback.onQueryDataCompleted(rec);
 		}
 	}
 
 	// TODO TEMP
-	public final int insertData(String k, String c, List<Integer> t) {
+	public final void insertData(String k, String c, List<Integer> t) {
 		int ret;
 		DataRecord rec = new DataRecord(k, c, t);
 		if (dataList.add(rec)) {
@@ -66,12 +77,11 @@ public class ContextFragment extends Fragment implements
 		} else {
 			ret = -1;
 		}
-		callback.rowAdded(ret);
-		return ret;
+		callback.onInsertDataCompleted(ret);
 	}
 
 	// TODO TEMP
-	public final int updateData(String k, String c, List<Integer> t) {
+	public final void updateData(String k, String c, List<Integer> t) {
 		DataRecord rec;
 		int ret = 0;
 		while (ret < dataList.size()) {
@@ -88,8 +98,7 @@ public class ContextFragment extends Fragment implements
 			ret ++;
 		}
 		if (ret >= dataList.size()) ret = -1;
-		callback.rowChanged(ret, c);
-		return ret;
+		callback.onUpdateDataCompleted(ret, c);
 	}
 
 	// TODO TEMP
@@ -152,7 +161,7 @@ public class ContextFragment extends Fragment implements
 	@Override
 	public void datSelectionMade(int index) {
 		if (index >= 0) {
-			callback.rowSelectionMade(dataList.get(index).getContent());
+			callback.onRowSelectionMade(dataList.get(index).getContent());
 		} else {
 			datSelectionCleared(); // Should not be possible to reach here
 		}
@@ -160,7 +169,7 @@ public class ContextFragment extends Fragment implements
 
 	@Override
 	public void datSelectionCleared() {
-		callback.rowSelectionCleared();
+		callback.onRowSelectionCleared();
 	}
 	//===================================================
 
@@ -179,9 +188,7 @@ public class ContextFragment extends Fragment implements
 
 	@Override
 	public void selectionChanged() {
-		for (TagSelection listener : tagSelectListeners) {
-			listener.changed();
-		}
+		detailUpdated();
 	}
 	//===================================================
 
@@ -189,11 +196,12 @@ public class ContextFragment extends Fragment implements
 	 * Callback interface to the main activity
 	 */
 	public interface Listener {
-		void rowSelectionMade(String content);
-		void rowSelectionCleared();
-		void rowAdded(int position);
-		void rowChanged(int position, String content);
-		void rowRetrieved(DataRecord record);
+		void onRowSelectionMade(String content);
+		void onRowSelectionCleared();
+		void onPrepareAddCompleted();
+		void onInsertDataCompleted(int position);
+		void onUpdateDataCompleted(int position, String content);
+		void onQueryDataCompleted(DataRecord record);
 	}
 	private Listener callback;
 
@@ -215,15 +223,4 @@ public class ContextFragment extends Fragment implements
 		callback = null;
 	}
 	//=========================================
-
-	/*================================================
-	 * Tag selection interface to the dialog fragment
-	 */
-	public interface TagSelection {
-		void changed();
-	}
-	private List<TagSelection> tagSelectListeners;
-	public void addTagSelectListener(TagSelection listener) {
-		tagSelectListeners.add(listener);
-	}
 }
