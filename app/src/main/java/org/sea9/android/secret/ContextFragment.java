@@ -125,8 +125,19 @@ public class ContextFragment extends Fragment implements
 	 * Tag maintenance APIs - add, delete
 	 */
 	public final void addTag(String t) {
+		// TODO TEMP using memory, will use SQLite
+		for (int i = 0; i < tagList.size(); i ++) {
+			if (t.toLowerCase().equals(tagList.get(i).toLowerCase())) {
+				if (detailListener != null) detailListener.onTagAddCompleted(i);
+				return;
+			}
+		}
+
+		// Tag not found, can add to list
 		if (tagList.add(t)) {
-			tagsAdaptor.notifyItemInserted(tagList.size() - 1);
+			int idx = tagList.size() - 1;
+			tagsAdaptor.notifyItemInserted(idx);
+			if (detailListener != null) detailListener.onTagAddCompleted(idx);
 		}
 	}
 
@@ -241,4 +252,13 @@ public class ContextFragment extends Fragment implements
 		callback = null;
 	}
 	//=========================================
+
+	/*=========================================
+	 * Callback interface to the detail dialog
+	 */
+	public interface DetailListener {
+		void onTagAddCompleted(int position);
+	}
+	private DetailListener detailListener;
+	public final void setDetailListener(DetailListener listener) { detailListener = listener; }
 }

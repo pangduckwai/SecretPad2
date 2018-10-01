@@ -25,7 +25,7 @@ import android.widget.EditText;
 
 import java.util.List;
 
-public class DetailFragment extends DialogFragment {
+public class DetailFragment extends DialogFragment implements ContextFragment.DetailListener {
 	public static final String TAG = "secret.dialog_frag";
 	public static final String KEY = "secret.key";
 	public static final String CTN = "secret.content";
@@ -170,6 +170,7 @@ public class DetailFragment extends DialogFragment {
 			ctxFrag = (ContextFragment) manager.findFragmentByTag(ContextFragment.TAG);
 			if (ctxFrag != null) {
 				tagList.setAdapter(ctxFrag.getTagsAdaptor());
+				ctxFrag.setDetailListener(this);
 			}
 		}
 	}
@@ -222,4 +223,13 @@ public class DetailFragment extends DialogFragment {
 		callback = null;
 	}
 	//=========================================
+
+	/*=============================================================
+	 * @see org.sea9.android.secret.ContextFragment.DetailListener
+	 */
+	@Override
+	public void onTagAddCompleted(int position) {
+		editTag.setText(EMPTY);
+		tagList.smoothScrollToPosition(position);
+	}
 }
