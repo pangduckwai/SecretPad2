@@ -144,8 +144,10 @@ public class ContextFragment extends Fragment implements
 	/**
 	 * Delete unused tags.
 	 */
-	public final void deleteTags() {
-		//TODO
+	public final boolean deleteTags() {
+		//TODO - Implement when switched to SQLite
+		Log.i(TAG, "TEMP - Deleting unused Tags");
+		return false;
 	}
 	//=======================================================
 

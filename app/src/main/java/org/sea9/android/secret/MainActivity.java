@@ -170,7 +170,21 @@ public class MainActivity extends AppCompatActivity implements
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case R.id.action_cleanup:
-			Snackbar.make(getWindow().getDecorView(), "Cleanup unused tags", Snackbar.LENGTH_LONG).show(); //TODO TEMP
+			AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+			builder.setMessage(getString(R.string.msg_confirm_delete_tags));
+			builder.setPositiveButton(R.string.btn_okay, new DialogInterface.OnClickListener() {
+				@Override public void onClick(DialogInterface arg0, int arg1) {
+					Snackbar.make(recycler,
+							getString(ctxFrag.deleteTags() ? R.string.msg_delete_tags_okay : R.string.msg_delete_tags_fail),
+							Snackbar.LENGTH_LONG).show();
+				}
+			});
+			builder.setNegativeButton(R.string.btn_cancel, new DialogInterface.OnClickListener() {
+				@Override public void onClick(DialogInterface arg0, int arg1) {
+					Snackbar.make(recycler, getString(R.string.msg_delete_tags_cancel), Snackbar.LENGTH_LONG).show();
+				}
+			});
+			(builder.create()).show();
 			break;
 		case R.id.action_settings:
 			Snackbar.make(getWindow().getDecorView(), "Changing settings", Snackbar.LENGTH_LONG).show(); //TODO TEMP
