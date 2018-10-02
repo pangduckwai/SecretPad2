@@ -32,6 +32,7 @@ public class MainActivity extends AppCompatActivity implements
 	public static final String TAG = "secret.main";
 	private static final String EMPTY = "";
 
+	private View mainView;
 	private FloatingActionButton fab;
 	private ContextFragment ctxFrag;
 	private RecyclerView recycler;
@@ -52,6 +53,8 @@ public class MainActivity extends AppCompatActivity implements
 			ctxFrag = new ContextFragment();
 			getSupportFragmentManager().beginTransaction().add(ctxFrag, ContextFragment.TAG).commit();
 		}
+
+		mainView = findViewById(R.id.main_view);
 
 		fab = findViewById(R.id.fab);
 		fab.setOnClickListener(new View.OnClickListener() {
@@ -207,6 +210,7 @@ public class MainActivity extends AppCompatActivity implements
 				Snackbar.make(getWindow().getDecorView(), "Searching " + query + "...", Snackbar.LENGTH_LONG).show(); //TODO TEMP
 			}
 			ctxFrag.clearSelection();
+			mainView.requestFocus();
 		}
 	}
 
@@ -215,7 +219,6 @@ public class MainActivity extends AppCompatActivity implements
 	 */
 	@Override
 	public void onRowSelectionMade(String txt) {
-		//fragment.view?.requestFocus()
 		content.setText(txt);
 		fab.hide();
 	}
