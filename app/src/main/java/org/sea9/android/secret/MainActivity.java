@@ -159,6 +159,9 @@ public class MainActivity extends AppCompatActivity implements
 						public void onClick(View v) {
 							searchView.setQuery(EMPTY, false);
 							searchView.setIconified(true);
+
+							int pos = ctxFrag.getAdaptor().getSelectedPosition();
+							if (pos >= 0) { recycler.smoothScrollToPosition(pos); }
 						}
 					});
 		}
@@ -203,6 +206,7 @@ public class MainActivity extends AppCompatActivity implements
 			if (query != null) {
 				Snackbar.make(getWindow().getDecorView(), "Searching " + query + "...", Snackbar.LENGTH_LONG).show(); //TODO TEMP
 			}
+			ctxFrag.clearSelection();
 		}
 	}
 

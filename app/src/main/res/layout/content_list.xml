@@ -4,7 +4,10 @@
 	xmlns:tools="http://schemas.android.com/tools"
 	android:layout_width="match_parent"
 	android:layout_height="match_parent"
-	android:orientation="vertical">
+	android:orientation="vertical"
+	app:layout_behavior="@string/appbar_scrolling_view_behavior"
+	tools:context=".MainActivity"
+	tools:showIn="@layout/activity_list">
 
 	<android.support.v7.widget.RecyclerView
 		android:id="@+id/recycler_list"
@@ -13,7 +16,6 @@
 		android:layout_marginBottom="@dimen/margin_normal"
 		android:layout_marginEnd="@dimen/margin_normal"
 		android:layout_marginStart="@dimen/margin_normal"
-		android:layout_marginTop="@dimen/fab_margin"
 		android:scrollbars="vertical"
 		app:layout_constraintBottom_toTopOf="@+id/separator1"
 		app:layout_constraintEnd_toEndOf="parent"

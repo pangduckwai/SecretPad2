@@ -45,6 +45,11 @@ public class ContextFragment extends Fragment implements
 		tagsAdaptor = new TagsAdaptor(this);
 	}
 
+	public final void clearSelection() {
+		adaptor.clearSelection();
+		datSelectionCleared();
+	}
+
 	/*=======================================================
 	 * Data maintenance APIs - query, insert, update, delete
 	 */

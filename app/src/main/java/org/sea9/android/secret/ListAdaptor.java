@@ -18,6 +18,10 @@ public class ListAdaptor<H extends RecyclerView.ViewHolder> extends RecyclerView
 		return (selectedPos == position);
 	}
 	public final int getSelectedPosition() { return selectedPos; }
+	public final void clearSelection() {
+		selectedPos = -1;
+		callback.datSelectionCleared();
+	}
 
 	public final void onItemInsert(int position) {
 		if (position >= 0) {
@@ -60,8 +64,7 @@ public class ListAdaptor<H extends RecyclerView.ViewHolder> extends RecyclerView
 			public void onClick(View v) {
 				int pos = recyclerView.getChildLayoutPosition(v);
 				if (pos == selectedPos) {
-					selectedPos = -1;
-					callback.datSelectionCleared();
+					clearSelection();
 				} else {
 					selectedPos = pos;
 					callback.datSelectionMade(pos);
