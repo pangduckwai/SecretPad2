@@ -1,7 +1,5 @@
 package org.sea9.android.secret.temp
 
-import org.sea9.android.secret.DataRecord
-
 class TempData {
 	companion object {
 		fun tags(): List<String> {
@@ -12,7 +10,7 @@ class TempData {
 
 		fun data(): List<DataRecord> {
 			return arrayListOf(
-					  DataRecord("1000", "56000", arrayListOf(1, 2, 3))
+					DataRecord("1000", "56000", arrayListOf(1, 2, 3))
 					, DataRecord("1001", "56001", arrayListOf(2, 3, 4))
 					, DataRecord("1002", "56002", arrayListOf(3, 4, 5))
 					, DataRecord("1003", "56003", arrayListOf(4, 5, 6))

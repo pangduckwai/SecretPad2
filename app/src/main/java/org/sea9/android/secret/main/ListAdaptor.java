@@ -1,4 +1,4 @@
-package org.sea9.android.secret;
+package org.sea9.android.secret.main;
 
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;

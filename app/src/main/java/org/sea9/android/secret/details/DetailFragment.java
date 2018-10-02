@@ -1,4 +1,4 @@
-package org.sea9.android.secret;
+package org.sea9.android.secret.details;
 
 import android.content.Context;
 import android.content.DialogInterface;
@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AlertDialog;
@@ -24,6 +23,10 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.EditText;
 import android.widget.ImageButton;
+
+import org.sea9.android.secret.ContextFragment;
+import org.sea9.android.secret.R;
+import org.sea9.android.secret.temp.DataRecord;
 
 import java.util.List;
 
@@ -179,7 +182,6 @@ public class DetailFragment extends DialogFragment implements ContextFragment.De
 				ctxFrag.setDetailListener(this);
 
 				if (ctxFrag.isFiltered()) {
-					tagList.setEnabled(false);
 					editTag.setEnabled(false);
 					bttnAdd.setEnabled(false);
 					bttnSav.setEnabled(false);

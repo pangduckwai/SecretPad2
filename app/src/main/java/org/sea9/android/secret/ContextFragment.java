@@ -9,6 +9,9 @@ import android.view.View;
 import android.widget.Filter;
 import android.widget.Filterable;
 
+import org.sea9.android.secret.details.TagsAdaptor;
+import org.sea9.android.secret.main.ListAdaptor;
+import org.sea9.android.secret.temp.DataRecord;
 import org.sea9.android.secret.temp.TempData;
 import org.sea9.android.secret.temp.TempViewHolder;
 
@@ -249,8 +252,8 @@ public class ContextFragment extends Fragment implements
 	}
 	//=======================================================
 
-	/*===================================================
-	 * @see org.sea9.android.secret.ListAdaptor.Listener
+	/*========================================================
+	 * @see org.sea9.android.secret.main.ListAdaptor.Listener
 	 */
 	private static final String EMPTY = "";
 	private static final String SPACE = " ";
@@ -300,10 +303,10 @@ public class ContextFragment extends Fragment implements
 	public void datSelectionCleared() {
 		callback.onRowSelectionCleared();
 	}
-	//===================================================
+	//========================================================
 
-	/*===================================================
-	 * @see org.sea9.android.secret.TagsAdaptor.Listener
+	/*===========================================================
+	 * @see org.sea9.android.secret.details.TagsAdaptor.Listener
 	 */
 	@Override
 	public String getTag(int position) {
@@ -319,7 +322,7 @@ public class ContextFragment extends Fragment implements
 	public void selectionChanged() {
 		detailUpdated();
 	}
-	//===================================================
+	//===========================================================
 
 	/*=========================================
 	 * Callback interface to the main activity

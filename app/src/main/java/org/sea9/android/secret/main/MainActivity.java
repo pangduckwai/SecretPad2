@@ -1,4 +1,4 @@
-package org.sea9.android.secret;
+package org.sea9.android.secret.main;
 
 import android.animation.LayoutTransition;
 import android.app.SearchManager;
@@ -22,6 +22,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.SearchView;
 import android.widget.TextView;
+
+import org.sea9.android.secret.ContextFragment;
+import org.sea9.android.secret.details.DetailFragment;
+import org.sea9.android.secret.R;
+import org.sea9.android.secret.temp.DataRecord;
 
 import java.util.List;
 import java.util.Locale;
@@ -273,8 +278,8 @@ public class MainActivity extends AppCompatActivity implements
 	}
 	//=======================================================
 
-	/*=======================================================
-	 * @see org.sea9.android.secret.DetailFragment.Listener
+	/*==============================================================
+	 * @see org.sea9.android.secret.details.DetailFragment.Listener
 	 */
 	@Override
 	public void onAdd(String t) {

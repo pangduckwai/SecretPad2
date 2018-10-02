@@ -1,4 +1,4 @@
-package org.sea9.android.secret;
+package org.sea9.android.secret.details;
 
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
@@ -7,6 +7,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
+import org.sea9.android.secret.R;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -18,7 +20,7 @@ public class TagsAdaptor extends RecyclerView.Adapter<TagsAdaptor.ViewHolder> {
 	private RecyclerView recyclerView;
 
 	private List<Integer> selectedPos = new ArrayList<>();
-	public final List<Integer> getSelectedPosition() {
+	final List<Integer> getSelectedPosition() {
 		List<Integer> ret = new ArrayList<>(selectedPos);
 		Collections.sort(ret);
 		return ret;
@@ -64,14 +66,16 @@ public class TagsAdaptor extends RecyclerView.Adapter<TagsAdaptor.ViewHolder> {
 		item.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				int pos = recyclerView.getChildLayoutPosition(v);
-				if (selectedPos.contains(pos)) {
-					selectedPos.remove(Integer.valueOf(pos));
-				} else {
-					selectedPos.add(pos);
+				if (!callback.isFiltered()) {
+					int pos = recyclerView.getChildLayoutPosition(v);
+					if (selectedPos.contains(pos)) {
+						selectedPos.remove(Integer.valueOf(pos));
+					} else {
+						selectedPos.add(pos);
+					}
+					callback.selectionChanged();
+					notifyDataSetChanged();
 				}
-				callback.selectionChanged();
-				notifyDataSetChanged();
 			}
 		});
 
@@ -100,6 +104,7 @@ public class TagsAdaptor extends RecyclerView.Adapter<TagsAdaptor.ViewHolder> {
 		String getTag(int position);
 		int getTagsCount();
 		void selectionChanged();
+		boolean isFiltered();
 	}
 	private TagsAdaptor.Listener callback;
 }
