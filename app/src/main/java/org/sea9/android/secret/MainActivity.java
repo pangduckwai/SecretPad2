@@ -60,7 +60,11 @@ public class MainActivity extends AppCompatActivity implements
 		fab.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View view) {
-				ctxFrag.prepareAdd();
+				if (!ctxFrag.isFiltered()) {
+					ctxFrag.prepareAdd();
+				} else {
+					Snackbar.make(view, getString(R.string.msg_filter_active), Snackbar.LENGTH_LONG).setAction("Action", null).show();
+				}
 			}
 		});
 
@@ -89,6 +93,8 @@ public class MainActivity extends AppCompatActivity implements
 
 			@Override
 			public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+				if (ctxFrag.isFiltered()) return;
+
 				final int position = viewHolder.getAdapterPosition();
 
 				AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
@@ -162,9 +168,7 @@ public class MainActivity extends AppCompatActivity implements
 						public void onClick(View v) {
 							searchView.setQuery(EMPTY, false);
 							searchView.setIconified(true);
-
-							int pos = ctxFrag.getAdaptor().getSelectedPosition();
-							if (pos >= 0) { recycler.smoothScrollToPosition(pos); }
+							ctxFrag.clearFilter();
 						}
 					});
 		}
@@ -207,10 +211,11 @@ public class MainActivity extends AppCompatActivity implements
 		if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
 			String query = intent.getStringExtra(SearchManager.QUERY);
 			if (query != null) {
-				Snackbar.make(getWindow().getDecorView(), "Searching " + query + "...", Snackbar.LENGTH_LONG).show(); //TODO TEMP
+				ctxFrag.applyFilter(query);
 			}
 			ctxFrag.clearSelection();
 			mainView.requestFocus();
+
 		}
 	}
 
@@ -260,6 +265,11 @@ public class MainActivity extends AppCompatActivity implements
 	@Override
 	public void onQueryDataCompleted(DataRecord record) {
 		DetailFragment.getInstance(false, record).show(getSupportFragmentManager(), DetailFragment.TAG);
+	}
+
+	@Override
+	public void onFilterCleared(int position) {
+		if (position >= 0) recycler.smoothScrollToPosition(position);
 	}
 	//=======================================================
 

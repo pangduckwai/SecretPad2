@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AlertDialog;
@@ -22,6 +23,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.EditText;
+import android.widget.ImageButton;
 
 import java.util.List;
 
@@ -36,6 +38,8 @@ public class DetailFragment extends DialogFragment implements ContextFragment.De
 	private EditText editKey;
 	private EditText editCtn;
 	private EditText editTag;
+	private ImageButton bttnAdd;
+	private ImageButton bttnSav;
 	private boolean isNew;
 
 	public static DetailFragment getInstance(boolean isNew, DataRecord record) {
@@ -64,6 +68,8 @@ public class DetailFragment extends DialogFragment implements ContextFragment.De
 		editKey = view.findViewById(R.id.edit_key);
 		editCtn = view.findViewById(R.id.edit_content);
 		editTag = view.findViewById(R.id.edit_tag);
+		bttnAdd = view.findViewById(R.id.tag_add);
+		bttnSav = view.findViewById(R.id.dtl_save);
 
 		Bundle args = getArguments();
 		if (args != null) {
@@ -103,7 +109,7 @@ public class DetailFragment extends DialogFragment implements ContextFragment.De
 			}
 		});
 
-		view.findViewById(R.id.tag_add).setOnClickListener(new View.OnClickListener() {
+		bttnAdd.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				Editable e = editTag.getText();
@@ -116,7 +122,7 @@ public class DetailFragment extends DialogFragment implements ContextFragment.De
 			}
 		});
 
-		view.findViewById(R.id.dtl_save).setOnClickListener(new View.OnClickListener() {
+		bttnSav.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				if ((ctxFrag != null) && ctxFrag.isUpdated() && (tagList.getAdapter() != null)) {
@@ -171,12 +177,26 @@ public class DetailFragment extends DialogFragment implements ContextFragment.De
 			if (ctxFrag != null) {
 				tagList.setAdapter(ctxFrag.getTagsAdaptor());
 				ctxFrag.setDetailListener(this);
+
+				if (ctxFrag.isFiltered()) {
+					tagList.setEnabled(false);
+					editTag.setEnabled(false);
+					bttnAdd.setEnabled(false);
+					bttnSav.setEnabled(false);
+					editCtn.setFilters(new InputFilter[] { new InputFilter() {
+						public CharSequence filter(CharSequence src, int start, int end, Spanned dst, int dstart, int dend) {
+							return dst.subSequence(dstart, dend);
+						}
+					}});
+				} else {
+					editCtn.setFilters(new InputFilter[] {});
+				}
 			}
 		}
 	}
 
 	private void close() {
-		if ((ctxFrag != null) && ctxFrag.isUpdated()) {//btn_okay
+		if ((ctxFrag != null) && !ctxFrag.isFiltered() && ctxFrag.isUpdated()) {
 			FragmentActivity activity = getActivity();
 			if (activity != null) {
 				AlertDialog.Builder builder = new AlertDialog.Builder(activity);

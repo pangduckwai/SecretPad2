@@ -22,6 +22,9 @@ public class ListAdaptor<H extends RecyclerView.ViewHolder> extends RecyclerView
 		selectedPos = -1;
 		callback.datSelectionCleared();
 	}
+	public final void selectRow(int position) {
+		selectedPos = position;
+	}
 
 	public final void onItemInsert(int position) {
 		if (position >= 0) {
@@ -44,6 +47,9 @@ public class ListAdaptor<H extends RecyclerView.ViewHolder> extends RecyclerView
 		this.callback = callback;
 	}
 
+	/*=====================================================
+	 * @see android.support.v7.widget.RecyclerView.Adapter
+	 */
 	@Override
 	public final void onAttachedToRecyclerView(@NonNull RecyclerView recycler) {
 		super.onAttachedToRecyclerView(recycler);
@@ -93,6 +99,7 @@ public class ListAdaptor<H extends RecyclerView.ViewHolder> extends RecyclerView
 	public int getItemCount() {
 		return callback.getItemCount();
 	}
+	//=====================================================
 
 	/*============================================
 	 * Callback interface to the context fragment

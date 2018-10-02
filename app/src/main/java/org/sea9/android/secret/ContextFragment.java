@@ -6,15 +6,20 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.View;
+import android.widget.Filter;
+import android.widget.Filterable;
 
 import org.sea9.android.secret.temp.TempData;
 import org.sea9.android.secret.temp.TempViewHolder;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ContextFragment extends Fragment implements
 		ListAdaptor.Listener<TempViewHolder>,
-		TagsAdaptor.Listener {
+		TagsAdaptor.Listener,
+		Filterable,
+		Filter.FilterListener {
 	public static final String TAG = "secret.ctx_frag";
 
 	@Override
@@ -26,6 +31,7 @@ public class ContextFragment extends Fragment implements
 	}
 
 	private List<DataRecord> dataList;
+	private List<DataRecord> filteredList;
 	private List<String> tagList;
 
 	private ListAdaptor<TempViewHolder> adaptor;
@@ -40,6 +46,7 @@ public class ContextFragment extends Fragment implements
 
 	private void init() {
 		dataList = TempData.Companion.data();
+		filteredList = null;
 		tagList = TempData.Companion.tags();
 		adaptor = new ListAdaptor<>(this);
 		tagsAdaptor = new TagsAdaptor(this);
@@ -49,6 +56,82 @@ public class ContextFragment extends Fragment implements
 		adaptor.clearSelection();
 		datSelectionCleared();
 	}
+
+	/*================================
+	 * @see android.widget.Filterable
+	 */
+	private List<DataRecord> getData() {
+		if (filteredList == null) {
+			return dataList;
+		} else {
+			return filteredList;
+		}
+	}
+	public boolean isFiltered() {
+		return (filteredList != null);
+	}
+	public void applyFilter(String query) {
+		getFilter().filter(query, this);
+	}
+	@Override
+	public void onFilterComplete(int count) {
+		adaptor.notifyDataSetChanged();
+	}
+	public void clearFilter() {
+		if (filteredList != null) {
+			int idx = -1, pos = getAdaptor().getSelectedPosition();
+			if (pos >= 0) {
+				String k = filteredList.get(pos).getKey();
+				for (int i = 0; i < dataList.size(); i ++) {
+					if (k.equals(dataList.get(i).getKey())) {
+						adaptor.selectRow(i);
+						idx = i;
+						break;
+					}
+				}
+			}
+			filteredList.clear();
+			filteredList = null;
+			adaptor.notifyDataSetChanged();
+			callback.onFilterCleared(idx);
+		}
+	}
+
+	@Override @SuppressWarnings("unchecked")
+	public Filter getFilter() {
+		return new Filter() {
+			@Override
+			protected FilterResults performFiltering(CharSequence constraint) {
+				FilterResults results = new FilterResults();
+				String query = constraint.toString().trim().toLowerCase();
+				if (query.length() <= 0) {
+					results.values = dataList;
+				} else {
+					List<DataRecord> rslt = new ArrayList<>();
+					for (DataRecord item : dataList) {
+						if (item.getKey().toLowerCase().contains(query) || item.getContent().toLowerCase().contains(query)) {
+							rslt.add(item);
+						} else {
+							for (Integer tag : item.getTags()) {
+								if (tagList.get(tag).toLowerCase().contains(query)) {
+									rslt.add(item);
+									break;
+								}
+							}
+						}
+					}
+					results.values = rslt;
+				}
+				return results;
+			}
+
+			@Override
+			protected void publishResults(CharSequence constraint, FilterResults results) {
+				filteredList = (List<DataRecord>) results.values;
+			}
+		};
+	}
+	//================================
 
 	/*=======================================================
 	 * Data maintenance APIs - query, insert, update, delete
@@ -65,8 +148,8 @@ public class ContextFragment extends Fragment implements
 
 	// TODO TEMP using memory, will use SQLite
 	public final void queryData(int position) {
-		if ((position >= 0) && (position < dataList.size())) {
-			DataRecord rec = dataList.get(position);
+		if ((position >= 0) && (position < getData().size())) {
+			DataRecord rec = getData().get(position);
 			tagsAdaptor.prepare(rec.getTags());
 			updated = false; // Reset detail dialog updated flag every time opening it
 			callback.onQueryDataCompleted(rec);
@@ -75,6 +158,7 @@ public class ContextFragment extends Fragment implements
 
 	// TODO TEMP using memory, will use SQLite
 	public final void insertData(String k, String c, List<Integer> t) {
+		if (isFiltered()) return;
 		int ret;
 		DataRecord rec = new DataRecord(k, c, t);
 		if (dataList.add(rec)) {
@@ -88,6 +172,7 @@ public class ContextFragment extends Fragment implements
 
 	// TODO TEMP using memory, will use SQLite
 	public final void updateData(String k, String c, List<Integer> t) {
+		if (isFiltered()) return;
 		DataRecord rec;
 		int ret = 0;
 		while (ret < dataList.size()) {
@@ -109,6 +194,7 @@ public class ContextFragment extends Fragment implements
 
 	// TODO TEMP using memory, will use SQLite
 	public final boolean deleteData(int position) {
+		if (isFiltered()) return true;
 		if ((position < 0) || (position >= dataList.size())) {
 			return false;
 		} else {
@@ -170,7 +256,7 @@ public class ContextFragment extends Fragment implements
 
 	@Override
 	public int getItemCount() {
-		return dataList.size();
+		return getData().size();
 	}
 
 	@Override
@@ -191,7 +277,7 @@ public class ContextFragment extends Fragment implements
 			holder.itemView.setSelected(false);
 		}
 
-		DataRecord rec = dataList.get(position);
+		DataRecord rec = getData().get(position);
 		List<Integer> tag = rec.getTags();
 		StringBuilder tags = new StringBuilder((tag.size() > 0) ? tagList.get(tag.get(0)) : EMPTY);
 		for (int i = 1; i < tag.size(); i ++)
@@ -203,7 +289,7 @@ public class ContextFragment extends Fragment implements
 	@Override
 	public void datSelectionMade(int index) {
 		if (index >= 0) {
-			callback.onRowSelectionMade(dataList.get(index).getContent());
+			callback.onRowSelectionMade(getData().get(index).getContent());
 		} else {
 			datSelectionCleared(); // Should not be possible to reach here
 		}
@@ -244,6 +330,7 @@ public class ContextFragment extends Fragment implements
 		void onInsertDataCompleted(int position);
 		void onUpdateDataCompleted(int position, String content);
 		void onQueryDataCompleted(DataRecord record);
+		void onFilterCleared(int position);
 	}
 	private Listener callback;
 
@@ -274,4 +361,5 @@ public class ContextFragment extends Fragment implements
 	}
 	private DetailListener detailListener;
 	public final void setDetailListener(DetailListener listener) { detailListener = listener; }
+	//=========================================
 }
