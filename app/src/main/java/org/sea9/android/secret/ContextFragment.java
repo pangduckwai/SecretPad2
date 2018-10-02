@@ -109,7 +109,8 @@ public class ContextFragment extends Fragment implements
 				} else {
 					List<DataRecord> rslt = new ArrayList<>();
 					for (DataRecord item : dataList) {
-						if (item.getKey().toLowerCase().contains(query) || item.getContent().toLowerCase().contains(query)) {
+						// Contents stay encrypted, so cannot be searched, keys are decrypted into memory
+						if (item.getKey().toLowerCase().contains(query)) {
 							rslt.add(item);
 						} else {
 							for (Integer tag : item.getTags()) {
