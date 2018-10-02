@@ -125,20 +125,26 @@ public class ContextFragment extends Fragment implements
 	 * Tag maintenance APIs - add, delete
 	 */
 	public final void addTag(String t) {
+		int index = -1;
+
 		// TODO TEMP using memory, will use SQLite
 		for (int i = 0; i < tagList.size(); i ++) {
 			if (t.toLowerCase().equals(tagList.get(i).toLowerCase())) {
-				if (detailListener != null) detailListener.onTagAddCompleted(i);
-				return;
+				index = i;
+				break;
 			}
 		}
 
-		// Tag not found, can add to list
-		if (tagList.add(t)) {
-			int idx = tagList.size() - 1;
-			tagsAdaptor.notifyItemInserted(idx);
-			if (detailListener != null) detailListener.onTagAddCompleted(idx);
+		if (index < 0) {
+			// Tag not found, can add to list
+			if (tagList.add(t)) {
+				index = tagList.size() - 1;
+				tagsAdaptor.notifyItemInserted(index);
+			}
 		}
+
+		tagsAdaptor.selectTag(index);
+		if (detailListener != null) detailListener.onTagAddCompleted(index);
 	}
 
 	/**

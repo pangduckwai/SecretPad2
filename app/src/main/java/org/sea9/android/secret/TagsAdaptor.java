@@ -23,6 +23,13 @@ public class TagsAdaptor extends RecyclerView.Adapter<TagsAdaptor.ViewHolder> {
 		Collections.sort(ret);
 		return ret;
 	}
+	public final void selectTag(int index) {
+		if ((index >= 0) && (index < getItemCount())) {
+			selectedPos.add(index);
+			callback.selectionChanged();
+			notifyDataSetChanged();
+		}
+	}
 
 	static class ViewHolder extends RecyclerView.ViewHolder {
 		TextView tag;
