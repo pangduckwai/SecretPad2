@@ -14,8 +14,9 @@ public final class SecretContract {
 	static final String TAG = "secret.db_contract";
 	private SecretContract() {}
 
-	// Common names
+	// Common
 	public static final String COL_MODF = "modified";
+	public static final String PKEY_SEL = BaseColumns._ID + " = ?";
 
 	public static class Tags implements BaseColumns {
 		public static final String TABLE = "Tags";
@@ -46,10 +47,12 @@ public final class SecretContract {
 						+ "(select 1 from " + NoteTags.TABLE + " as nt where nt.tagId = t." + _ID + ")";
 			SQLiteDatabase db = helper.getWritableDatabase();
 			Cursor cursor = db.rawQuery(SQL, null);
+			cursor.close();
 			return 1;
 		}
 	}
 
+	// TODO Add encryption!!!
 	public static class Notes implements BaseColumns {
 		public static final String TABLE = "Notes";
 		public static final String COL_NKEY = "noteKey";
@@ -57,17 +60,54 @@ public final class SecretContract {
 		public static final String COL_SLT1 = "salt1";
 		public static final String COL_SLT2 = "salt2";
 
-		public static final String[] COLS = { _ID, COL_SLT1, COL_NKEY, COL_SLT2, COL_CTNT, COL_MODF };
+		public static final String[] KEYS = {_ID, COL_SLT1, COL_NKEY, COL_MODF};
+		public static final String[] CTNT = {COL_SLT2, COL_CTNT};
 
 		public static final String SQL_CREATE =
 				"create table " + TABLE + " ( "
-					+ _ID + " integer primary key autoincrement, "
-					+ COL_SLT1 + " text not null, "
-					+ COL_NKEY + " text not null, "
-					+ COL_SLT2 + " text not null, "
-					+ COL_CTNT + " text not null, "
-					+ COL_MODF + " integer);";
+						+ _ID + " integer primary key autoincrement, "
+						+ COL_SLT1 + " text not null, "
+						+ COL_NKEY + " text not null, "
+						+ COL_SLT2 + " text not null, "
+						+ COL_CTNT + " text not null, "
+						+ COL_MODF + " integer);";
 
+		public static Cursor select(SQLiteOpenHelper helper) {//TODO maybe should not return a cursor because of encryption
+			// Sorting in here is useless, sort in memory after decryption
+			return helper.getReadableDatabase().query(TABLE, KEYS, null, null, null, null, null);
+		}
+
+		public static Cursor select(SQLiteOpenHelper helper, long nid) {//TODO maybe should not return a cursor because of encryption
+			String args[] = { Long.toString(nid) };
+			return helper.getReadableDatabase().query(TABLE, CTNT, PKEY_SEL, args, null, null, null);
+		}
+
+		public static long insert(SQLiteOpenHelper helper, String nodeKey, String content) {
+			ContentValues newRow = new ContentValues();
+			newRow.put(COL_SLT1, "Generate salt for key");
+			newRow.put(COL_NKEY, nodeKey);
+			newRow.put(COL_SLT2, "Generate salt for content");
+			newRow.put(COL_CTNT, content);
+			newRow.put(COL_MODF, (new Date()).getTime());
+			SQLiteDatabase db = helper.getWritableDatabase();
+			return db.insert(TABLE, null, newRow);
+		}
+
+		public static int update(SQLiteOpenHelper helper, long nid, String content) {
+			ContentValues newRow = new ContentValues();
+			newRow.put(COL_SLT2, "Generate salt for content");
+			newRow.put(COL_CTNT, content);
+			newRow.put(COL_MODF, (new Date()).getTime());
+			String args[] = { Long.toString(nid) };
+			SQLiteDatabase db = helper.getWritableDatabase();
+			return db.update(TABLE, newRow, PKEY_SEL, args);
+		}
+
+		public static int delete(SQLiteOpenHelper helper, long nid) {
+			String args[] = { Long.toString(nid) };
+			SQLiteDatabase db = helper.getWritableDatabase();
+			return db.delete(TABLE, PKEY_SEL, args);
+		}
 	}
 
 	public static class NoteTags implements BaseColumns {
@@ -83,6 +123,14 @@ public final class SecretContract {
 					+ COL_NID + " integer not null, "
 					+ COL_TID + " integer not null, "
 					+ COL_MODF + " integer);";
+
+		public static Cursor select(SQLiteOpenHelper helper, long nid) {
+			String where = COL_NID + " = ?";
+			String args[] = { Long.toString(nid) };
+			return helper.getReadableDatabase().query(TABLE, COLS, where, args, null, null, null);
+		}
+
+//		public static long insert()
 	}
 
 	static class DbHelper extends SQLiteOpenHelper {
