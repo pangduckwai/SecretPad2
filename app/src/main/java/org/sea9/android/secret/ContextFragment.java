@@ -9,6 +9,7 @@ import android.view.View;
 import android.widget.Filter;
 import android.widget.Filterable;
 
+import org.sea9.android.secret.data.DbHelper;
 import org.sea9.android.secret.details.TagsAdaptor;
 import org.sea9.android.secret.main.NotesAdaptor;
 import org.sea9.android.secret.temp.DataRecord;
@@ -25,14 +26,34 @@ public class ContextFragment extends Fragment implements
 		Filter.FilterListener {
 	public static final String TAG = "secret.ctx_frag";
 
+	private DbHelper dbHelper;
+
 	@Override
 	public void onCreate(@Nullable Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		Log.d(TAG, "onCreate");
 		setRetainInstance(true);
-		init();
+
+		Context context = getContext();
+		if (context != null) dbHelper = new DbHelper(context);
+		if (context != null) context.deleteDatabase("Secret.db");// TODO TEMP
+
+		test();
 	}
 
+	@Override
+	public void onDestroy() {
+		Log.d(TAG, "onDestroy");
+		dbHelper.close();
+		super.onDestroy();
+	}
+
+	public final void clearSelection() {
+		adaptor.clearSelection();
+		datSelectionCleared();
+	}
+
+	//TODO TEMP >>>>>>>>>>>>
 	private List<DataRecord> dataList;
 	private List<DataRecord> filteredList;
 	private List<String> tagList;
@@ -47,95 +68,24 @@ public class ContextFragment extends Fragment implements
 		return tagsAdaptor;
 	}
 
-	private void init() {
+	private void test() {
 		dataList = TempData.Companion.data();
 		filteredList = null;
 		tagList = TempData.Companion.tags();
 		adaptor = new NotesAdaptor<>(this);
 		tagsAdaptor = new TagsAdaptor(this);
-	}
 
-	public final void clearSelection() {
-		adaptor.clearSelection();
-		datSelectionCleared();
+		new org.sea9.android.secret.data.DbTest(dbHelper);
 	}
+	//TODO TEMP <<<<<<<<<<<<
 
-	/*================================
-	 * @see android.widget.Filterable
+	/*=========================================
+	 * DAO API
 	 */
-	private List<DataRecord> getData() {
-		if (filteredList == null) {
-			return dataList;
-		} else {
-			return filteredList;
-		}
-	}
-	public boolean isFiltered() {
-		return (filteredList != null);
-	}
-	public void applyFilter(String query) {
-		getFilter().filter(query, this);
-	}
-	@Override
-	public void onFilterComplete(int count) {
-		adaptor.notifyDataSetChanged();
-	}
-	public void clearFilter() {
-		if (filteredList != null) {
-			int idx = -1, pos = getAdaptor().getSelectedPosition();
-			if (pos >= 0) {
-				String k = filteredList.get(pos).getKey();
-				for (int i = 0; i < dataList.size(); i ++) {
-					if (k.equals(dataList.get(i).getKey())) {
-						adaptor.selectRow(i);
-						idx = i;
-						break;
-					}
-				}
-			}
-			filteredList.clear();
-			filteredList = null;
-			adaptor.notifyDataSetChanged();
-			callback.onFilterCleared(idx);
-		}
-	}
-
-	@Override @SuppressWarnings("unchecked")
-	public Filter getFilter() {
-		return new Filter() {
-			@Override
-			protected FilterResults performFiltering(CharSequence constraint) {
-				FilterResults results = new FilterResults();
-				String query = constraint.toString().trim().toLowerCase();
-				if (query.length() <= 0) {
-					results.values = dataList;
-				} else {
-					List<DataRecord> rslt = new ArrayList<>();
-					for (DataRecord item : dataList) {
-						// Contents stay encrypted, so cannot be searched, keys are decrypted into memory
-						if (item.getKey().toLowerCase().contains(query)) {
-							rslt.add(item);
-						} else {
-							for (Integer tag : item.getTags()) {
-								if (tagList.get(tag).toLowerCase().contains(query)) {
-									rslt.add(item);
-									break;
-								}
-							}
-						}
-					}
-					results.values = rslt;
-				}
-				return results;
-			}
-
-			@Override
-			protected void publishResults(CharSequence constraint, FilterResults results) {
-				filteredList = (List<DataRecord>) results.values;
-			}
-		};
-	}
-	//================================
+//	public final void retrieveNotes() {
+//		List<NoteRecord> main = DbContract.Notes.Companion.select(dbHelper);
+//	}
+	//=========================================
 
 	/*=======================================================
 	 * Data maintenance APIs - query, insert, update, delete
@@ -251,6 +201,83 @@ public class ContextFragment extends Fragment implements
 		return false;
 	}
 	//=======================================================
+
+	/*================================
+	 * @see android.widget.Filterable
+	 */
+	private List<DataRecord> getData() {
+		if (filteredList == null) {
+			return dataList;
+		} else {
+			return filteredList;
+		}
+	}
+	public boolean isFiltered() {
+		return (filteredList != null);
+	}
+	public void applyFilter(String query) {
+		getFilter().filter(query, this);
+	}
+	@Override
+	public void onFilterComplete(int count) {
+		adaptor.notifyDataSetChanged();
+	}
+	public void clearFilter() {
+		if (filteredList != null) {
+			int idx = -1, pos = getAdaptor().getSelectedPosition();
+			if (pos >= 0) {
+				String k = filteredList.get(pos).getKey();
+				for (int i = 0; i < dataList.size(); i ++) {
+					if (k.equals(dataList.get(i).getKey())) {
+						adaptor.selectRow(i);
+						idx = i;
+						break;
+					}
+				}
+			}
+			filteredList.clear();
+			filteredList = null;
+			adaptor.notifyDataSetChanged();
+			callback.onFilterCleared(idx);
+		}
+	}
+
+	@Override @SuppressWarnings("unchecked")
+	public Filter getFilter() {
+		return new Filter() {
+			@Override
+			protected FilterResults performFiltering(CharSequence constraint) {
+				FilterResults results = new FilterResults();
+				String query = constraint.toString().trim().toLowerCase();
+				if (query.length() <= 0) {
+					results.values = dataList;
+				} else {
+					List<DataRecord> rslt = new ArrayList<>();
+					for (DataRecord item : dataList) {
+						// Contents stay encrypted, so cannot be searched, keys are decrypted into memory
+						if (item.getKey().toLowerCase().contains(query)) {
+							rslt.add(item);
+						} else {
+							for (Integer tag : item.getTags()) {
+								if (tagList.get(tag).toLowerCase().contains(query)) {
+									rslt.add(item);
+									break;
+								}
+							}
+						}
+					}
+					results.values = rslt;
+				}
+				return results;
+			}
+
+			@Override
+			protected void publishResults(CharSequence constraint, FilterResults results) {
+				filteredList = (List<DataRecord>) results.values;
+			}
+		};
+	}
+	//================================
 
 	/*========================================================
 	 * @see org.sea9.android.secret.main.NotesAdaptor.Listener

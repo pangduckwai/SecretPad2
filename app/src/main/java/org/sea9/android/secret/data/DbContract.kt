@@ -7,25 +7,28 @@ import java.lang.IllegalStateException
 import java.util.*
 
 object DbContract {
-	const val _ID = BaseColumns._ID
+	const val DATABASE = "Secret.db"
+	const val PKEY = BaseColumns._ID
 	const val COMMON_MODF = "modified"
-	const val COMMON_PKEY = "$_ID = ?"
+	const val COMMON_PKEY = "$PKEY = ?"
 
 	class Tags : BaseColumns {
 		companion object {
-			const val TABLE = "Tags"
-			const val COL_TAG_NAME = "tagName"
+			private const val TABLE = "Tags"
+			private const val COL_TAG_NAME = "tagName"
 
-			val COLUMNS = arrayOf(_ID, COL_TAG_NAME, COMMON_MODF)
+			private val COLUMNS = arrayOf(PKEY, COL_TAG_NAME, COMMON_MODF)
 
 			const val SQL_CREATE =
 					"create table $TABLE (" +
-							"$_ID integer primary key autoincrement," +
+							"$PKEY integer primary key autoincrement," +
 							"$COL_TAG_NAME text not null," +
 							"$COMMON_MODF integer)"
-			const val SQL_DELETE =
+			const val SQL_DROP = "drop table if exists $TABLE"
+
+			private const val QUERY_DELETE =
 					"delete from $TABLE where not exists " +
-							"(select 1 from $TABLE as t left join ${NoteTags.TABLE} as nt on t.$_ID = nt.${NoteTags.COL_TID})"
+							"(select 1 from $TABLE as t left join ${NoteTags.TABLE} as nt on t.$PKEY = nt.${NoteTags.COL_TID})"
 
 			fun select(helper: SQLiteOpenHelper): List<TagRecord> {
 				val cursor = helper.readableDatabase
@@ -34,7 +37,7 @@ object DbContract {
 				val result = mutableListOf<TagRecord>()
 				with(cursor) {
 					while (moveToNext()) {
-						val pid = getLong(getColumnIndexOrThrow(_ID))
+						val pid = getLong(getColumnIndexOrThrow(PKEY))
 						val name = getString(getColumnIndexOrThrow(COL_TAG_NAME))
 						val modified = getLong(getColumnIndexOrThrow(COMMON_MODF))
 						val item = TagRecord(pid, name, modified)
@@ -61,7 +64,7 @@ object DbContract {
 			}
 
 			fun delete(helper: SQLiteOpenHelper): Int {
-				val cursor = helper.writableDatabase.rawQuery(SQL_DELETE, null)
+				val cursor = helper.writableDatabase.rawQuery(QUERY_DELETE, null)
 				//TODO do something here
 				cursor.close()
 				return 0
@@ -71,23 +74,24 @@ object DbContract {
 
 	class Notes : BaseColumns {
 		companion object {
-			const val TABLE = "Notes"
-			const val COL_KEY = "noteKey"
-			const val COL_KEY_SALT = "keySalt"
-			const val COL_CONTENT = "noteContent"
-			const val COL_CONTENT_SALT = "contentSalt"
+			private const val TABLE = "Notes"
+			private const val COL_KEY = "noteKey"
+			private const val COL_KEY_SALT = "keySalt"
+			private const val COL_CONTENT = "noteContent"
+			private const val COL_CONTENT_SALT = "contentSalt"
 
-			val KEYS = arrayOf(_ID, COL_KEY, COL_KEY_SALT, COMMON_MODF)
-			val COLUMNS = arrayOf(_ID, COL_CONTENT, COL_CONTENT_SALT, COMMON_MODF)
+			private val KEYS = arrayOf(PKEY, COL_KEY, COL_KEY_SALT, COMMON_MODF)
+			private val COLUMNS = arrayOf(PKEY, COL_CONTENT, COL_CONTENT_SALT, COMMON_MODF)
 
 			const val SQL_CREATE =
 					"create table $TABLE (" +
-							"$_ID integer primary key autoincrement," +
+							"$PKEY integer primary key autoincrement," +
 							"$COL_KEY_SALT text not null," +
 							"$COL_KEY text not null," +
 							"$COL_CONTENT_SALT text not null," +
 							"$COL_CONTENT text not null," +
 							"$COMMON_MODF integer)"
+			const val SQL_DROP = "drop table if exists $TABLE"
 
 			fun select(helper: SQLiteOpenHelper): List<NoteRecord> {
 				// Not using order-by in query because keys are encrypted as well
@@ -97,7 +101,7 @@ object DbContract {
 				val result = mutableSetOf<NoteRecord>()
 				with(cursor) {
 					while (moveToNext()) {
-						val pid = getLong((getColumnIndexOrThrow(_ID)))
+						val pid = getLong((getColumnIndexOrThrow(PKEY)))
 						val key = getString(getColumnIndexOrThrow(COL_KEY)) //TODO remember to decrypt...
 						val modified = getLong(getColumnIndexOrThrow(COMMON_MODF))
 						val item = NoteRecord(pid, key, null, null, modified)
@@ -170,17 +174,18 @@ object DbContract {
 	class NoteTags : BaseColumns {
 		companion object {
 			const val TABLE = "NoteTags"
-			const val COL_NID = "noteId"
 			const val COL_TID = "tagId"
+			private const val COL_NID = "noteId"
 
-			val COLUMNS = arrayOf(_ID, COL_NID, COL_TID, COMMON_MODF)
+			private val COLUMNS = arrayOf(PKEY, COL_NID, COL_TID, COMMON_MODF)
 
 			const val SQL_CREATE =
-					"create table $TABLE" +
-							"$_ID integer primary key autoincrement," +
+					"create table $TABLE (" +
+							"$PKEY integer primary key autoincrement," +
 							"$COL_NID integer not null," +
 							"$COL_TID integer not null," +
 							"$COMMON_MODF integer)"
+			const val SQL_DROP = "drop table if exists $TABLE"
 
 			fun select(helper: SQLiteOpenHelper, rec: NoteRecord): NoteRecord {
 				val args = arrayOf(rec.pid.toString())
