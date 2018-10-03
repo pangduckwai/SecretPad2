@@ -10,7 +10,7 @@ import android.widget.Filter;
 import android.widget.Filterable;
 
 import org.sea9.android.secret.details.TagsAdaptor;
-import org.sea9.android.secret.main.ListAdaptor;
+import org.sea9.android.secret.main.NotesAdaptor;
 import org.sea9.android.secret.temp.DataRecord;
 import org.sea9.android.secret.temp.TempData;
 import org.sea9.android.secret.temp.TempViewHolder;
@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ContextFragment extends Fragment implements
-		ListAdaptor.Listener<TempViewHolder>,
+		NotesAdaptor.Listener<TempViewHolder>,
 		TagsAdaptor.Listener,
 		Filterable,
 		Filter.FilterListener {
@@ -37,8 +37,8 @@ public class ContextFragment extends Fragment implements
 	private List<DataRecord> filteredList;
 	private List<String> tagList;
 
-	private ListAdaptor<TempViewHolder> adaptor;
-	public final ListAdaptor<TempViewHolder> getAdaptor() {
+	private NotesAdaptor<TempViewHolder> adaptor;
+	public final NotesAdaptor<TempViewHolder> getAdaptor() {
 		return adaptor;
 	}
 
@@ -51,7 +51,7 @@ public class ContextFragment extends Fragment implements
 		dataList = TempData.Companion.data();
 		filteredList = null;
 		tagList = TempData.Companion.tags();
-		adaptor = new ListAdaptor<>(this);
+		adaptor = new NotesAdaptor<>(this);
 		tagsAdaptor = new TagsAdaptor(this);
 	}
 
@@ -253,7 +253,7 @@ public class ContextFragment extends Fragment implements
 	//=======================================================
 
 	/*========================================================
-	 * @see org.sea9.android.secret.main.ListAdaptor.Listener
+	 * @see org.sea9.android.secret.main.NotesAdaptor.Listener
 	 */
 	private static final String EMPTY = "";
 	private static final String SPACE = " ";

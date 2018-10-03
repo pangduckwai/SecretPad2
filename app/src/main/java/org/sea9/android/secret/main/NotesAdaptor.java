@@ -8,7 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-public class ListAdaptor<H extends RecyclerView.ViewHolder> extends RecyclerView.Adapter<H> {
+public class NotesAdaptor<H extends RecyclerView.ViewHolder> extends RecyclerView.Adapter<H> {
 	private static final String TAG = "secret.list_adaptor";
 
 	private RecyclerView recyclerView;
@@ -43,7 +43,7 @@ public class ListAdaptor<H extends RecyclerView.ViewHolder> extends RecyclerView
 		}
 	}
 
-	public ListAdaptor(Listener<H> callback) {
+	public NotesAdaptor(Listener<H> callback) {
 		this.callback = callback;
 	}
 
