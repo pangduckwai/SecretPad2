@@ -27,8 +27,8 @@ object DbContract {
 			const val SQL_DROP = "drop table if exists $TABLE"
 
 			private const val QUERY_DELETE =
-					"delete from $TABLE where not exists " +
-							"(select 1 from $TABLE as t left join ${NoteTags.TABLE} as nt on t.$PKEY = nt.${NoteTags.COL_TID})"
+					"delete from $TABLE where $PKEY not in " +
+						"(select nt.${NoteTags.COL_TID} from ${NoteTags.TABLE} as nt inner join $TABLE as t on t.$PKEY = nt.${NoteTags.COL_TID})"
 
 			fun select(helper: SQLiteOpenHelper): List<TagRecord> {
 				val cursor = helper.readableDatabase
@@ -64,10 +64,7 @@ object DbContract {
 			}
 
 			fun delete(helper: SQLiteOpenHelper): Int {
-				val cursor = helper.writableDatabase.rawQuery(QUERY_DELETE, null)
-				//TODO do something here
-				cursor.close()
-				return 0
+				return helper.writableDatabase.compileStatement(QUERY_DELETE).executeUpdateDelete()
 			}
 		}
 	}
@@ -104,7 +101,7 @@ object DbContract {
 						val pid = getLong((getColumnIndexOrThrow(PKEY)))
 						val key = getString(getColumnIndexOrThrow(COL_KEY)) //TODO remember to decrypt...
 						val modified = getLong(getColumnIndexOrThrow(COMMON_MODF))
-						val item = NoteRecord(pid, key, null, null, modified)
+						val item = NoteRecord(pid, key, null, modified)
 						result.add(item)
 					}
 				}
@@ -113,19 +110,17 @@ object DbContract {
 				return result.sortedWith(compareBy { it.key }) // Sort here after decrypt
 			}
 
-			fun select(helper: SQLiteOpenHelper, rec: NoteRecord): NoteRecord {
+			fun select(helper: SQLiteOpenHelper, rec: NoteRecord): String? {
 				val args = arrayOf(rec.pid.toString())
 				val cursor = helper.readableDatabase
 						.query(TABLE, COLUMNS, COMMON_PKEY, args, null, null, null)
 
 				var rowCount = 0
+				var ctn: String? = null
 				with(cursor) {
 					while (moveToNext()) {
 						rowCount ++
-						val ctn = getString(getColumnIndexOrThrow(COL_CONTENT)) //TODO remember to decrypt...
-						val modified = getLong(getColumnIndexOrThrow(COMMON_MODF))
-						rec.content = ctn
-						rec.modified = modified
+						ctn = getString(getColumnIndexOrThrow(COL_CONTENT)) //TODO remember to decrypt...
 					}
 				}
 
@@ -133,7 +128,7 @@ object DbContract {
 				if (rowCount != 1) {
 					throw IllegalStateException("Corrupted database table")
 				} else {
-					return rec
+					return ctn
 				}
 			}
 
@@ -148,17 +143,17 @@ object DbContract {
 				}
 				val pid = helper.writableDatabase.insert(TABLE, null, newRow)
 				return if (pid >= 0) {
-					NoteRecord(pid, k, c, null, timestamp)
+					NoteRecord(pid, k,null, timestamp)
 				} else {
 					null
 				}
 			}
 
-			fun update(helper: SQLiteOpenHelper, rec: NoteRecord): Int {
+			fun update(helper: SQLiteOpenHelper, rec: NoteRecord, content: String): Int {
 				val args = arrayOf(rec.pid.toString())
 				val newRow = ContentValues().apply {
 					put(COL_CONTENT_SALT, "") // TODO Generate new salt
-					put(COL_CONTENT, rec.content) // TODO Remember to encrypt it
+					put(COL_CONTENT, content) // TODO Remember to encrypt it
 					put(COMMON_MODF, Date().time)
 				}
 				return helper.writableDatabase.update(TABLE, newRow, COMMON_PKEY, args)
@@ -190,7 +185,7 @@ object DbContract {
 			fun select(helper: SQLiteOpenHelper, rec: NoteRecord): NoteRecord {
 				val args = arrayOf(rec.pid.toString())
 				val cursor = helper.readableDatabase
-						.query(TABLE, COLUMNS, COMMON_PKEY, args, null, null, null)
+						.query(TABLE, COLUMNS, "$COL_NID = ?", args, null, null, null)
 
 				val result = mutableListOf<Long>()
 				with(cursor) {

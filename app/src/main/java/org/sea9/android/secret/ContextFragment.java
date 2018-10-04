@@ -9,7 +9,9 @@ import android.view.View;
 import android.widget.Filter;
 import android.widget.Filterable;
 
+import org.sea9.android.secret.data.DbContract;
 import org.sea9.android.secret.data.DbHelper;
+import org.sea9.android.secret.data.NoteRecord;
 import org.sea9.android.secret.details.TagsAdaptor;
 import org.sea9.android.secret.main.NotesAdaptor;
 import org.sea9.android.secret.temp.DataRecord;
@@ -36,7 +38,6 @@ public class ContextFragment extends Fragment implements
 
 		Context context = getContext();
 		if (context != null) dbHelper = new DbHelper(context);
-		if (context != null) context.deleteDatabase("Secret.db");// TODO TEMP
 
 		test();
 	}
@@ -75,16 +76,23 @@ public class ContextFragment extends Fragment implements
 		adaptor = new NotesAdaptor<>(this);
 		tagsAdaptor = new TagsAdaptor(this);
 
-		new org.sea9.android.secret.data.DbTest(dbHelper);
+		new org.sea9.android.secret.data.DbTest(getContext(), this, dbHelper, true);
 	}
 	//TODO TEMP <<<<<<<<<<<<
 
 	/*=========================================
 	 * DAO API
 	 */
-//	public final void retrieveNotes() {
-//		List<NoteRecord> main = DbContract.Notes.Companion.select(dbHelper);
-//	}
+	public final List<NoteRecord> retrieveNotes() {
+		List<NoteRecord> notes = DbContract.Notes.Companion.select(dbHelper);
+		for (NoteRecord note : notes) {
+			DbContract.NoteTags.Companion.select(dbHelper, note);
+		}
+		return notes;
+	}
+	public final String retrieveNote(NoteRecord rec) {
+		return DbContract.Notes.Companion.select(dbHelper, rec);
+	}
 	//=========================================
 
 	/*=======================================================
