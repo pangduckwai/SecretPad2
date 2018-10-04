@@ -24,9 +24,9 @@ import android.widget.SearchView;
 import android.widget.TextView;
 
 import org.sea9.android.secret.ContextFragment;
+import org.sea9.android.secret.data.NoteRecord;
 import org.sea9.android.secret.details.DetailFragment;
 import org.sea9.android.secret.R;
-import org.sea9.android.secret.temp.DataRecord;
 
 import java.util.List;
 import java.util.Locale;
@@ -268,7 +268,7 @@ public class MainActivity extends AppCompatActivity implements
 	}
 
 	@Override
-	public void onQueryDataCompleted(DataRecord record) {
+	public void onQueryDataCompleted(NoteRecord record) {
 		DetailFragment.getInstance(false, record).show(getSupportFragmentManager(), DetailFragment.TAG);
 	}
 

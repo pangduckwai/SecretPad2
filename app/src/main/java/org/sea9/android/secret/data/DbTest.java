@@ -7,27 +7,31 @@ import android.util.Log;
 
 import org.sea9.android.secret.ContextFragment;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class DbTest {
 	public DbTest(Context context, ContextFragment ctxFrag, DbHelper helper, boolean cleanUp) {
+//		prepare(helper);
+//		test1(ctxFrag);
+//		test2(helper);
+//		test3(helper);
+//		test4(helper);
+//		test2(helper);
+//		test1(ctxFrag);
 		if (cleanUp) {
+			helper.getWritableDatabase().execSQL(DbContract.NoteTags.SQL_DROP);
+			helper.getWritableDatabase().execSQL(DbContract.Notes.SQL_DROP);
+			helper.getWritableDatabase().execSQL(DbContract.Tags.SQL_DROP);
 			if (context != null) context.deleteDatabase("Secret.db");
-			prepare(helper);
 		}
-		test1(ctxFrag);
-		test2(helper);
-		test3(helper);
-		test4(helper);
-		test2(helper);
-		test1(ctxFrag);
 	}
 
 	private void prepare(DbHelper dbHelper) {
 		TagRecord tags[] = new TagRecord[5];
 		long cnt = DatabaseUtils.queryNumEntries(dbHelper.getReadableDatabase(), "Tags");
 		if (cnt > 0) {
-			Log.w("secret.db_test0", "Number of records in Tags: " + cnt);
+			Log.w("secret.db_test", "Number of records in Tags: " + cnt);
 		} else {
 			tags[0] = DbContract.Tags.Companion.insert(dbHelper, "ONE");
 			tags[1] = DbContract.Tags.Companion.insert(dbHelper, "TWO");
@@ -39,18 +43,18 @@ public class DbTest {
 		NoteRecord notes[] = new NoteRecord[5];
 		cnt = DatabaseUtils.queryNumEntries(dbHelper.getReadableDatabase(), "Notes");
 		if (cnt > 0) {
-			Log.w("secret.db_test0", "Number of records in Notes: " + cnt);
+			Log.w("secret.db_test", "Number of records in Notes: " + cnt);
 		} else {
-			notes[0] = DbContract.Notes.Companion.insert(dbHelper, "K0001", "NOTE0001");
-			notes[1] = DbContract.Notes.Companion.insert(dbHelper, "K0002", "NOTE0002");
-			notes[2] = DbContract.Notes.Companion.insert(dbHelper, "K0003", "NOTE0003");
+			notes[0] = DbContract.Notes.Companion.insert(dbHelper, "K0003", "NOTE0003");
+			notes[1] = DbContract.Notes.Companion.insert(dbHelper, "K0005", "NOTE0005");
+			notes[2] = DbContract.Notes.Companion.insert(dbHelper, "K0001", "NOTE0001");
 			notes[3] = DbContract.Notes.Companion.insert(dbHelper, "K0004", "NOTE0004");
-			notes[4] = DbContract.Notes.Companion.insert(dbHelper, "K0005", "NOTE0005");
+			notes[4] = DbContract.Notes.Companion.insert(dbHelper, "K0002", "NOTE0002");
 		}
 
 		cnt = DatabaseUtils.queryNumEntries(dbHelper.getReadableDatabase(), "NoteTags");
 		if (cnt > 0) {
-			Log.w("secret.db_test0", "Number of records in NoteTags: " + cnt);
+			Log.w("secret.db_test", "Number of records in NoteTags: " + cnt);
 		} else {
 			DbContract.NoteTags.Companion.insert(dbHelper, notes[0].getPid(), tags[0].getPid()); //ONE
 			DbContract.NoteTags.Companion.insert(dbHelper, notes[0].getPid(), tags[1].getPid()); //TWO
@@ -63,6 +67,13 @@ public class DbTest {
 			DbContract.NoteTags.Companion.insert(dbHelper, notes[4].getPid(), tags[4].getPid());
 			DbContract.NoteTags.Companion.insert(dbHelper, notes[4].getPid(), tags[0].getPid());
 		}
+	}
+
+	private void test0(ContextFragment ctxFrag) {
+		List<Integer> tags = new ArrayList<>();
+		tags.add(1);
+		NoteRecord x = ctxFrag.createNote("K9001", "NOTE9001", tags);
+		Log.w("secret.db_test0", x.getPid() + " " + x.getKey());
 	}
 
 	private void test1(ContextFragment ctxFrag) {
@@ -87,7 +98,7 @@ public class DbTest {
 		StringBuilder builder = new StringBuilder("x");
 		builder.append('\n');
 		for (TagRecord rec : result) {
-			builder.append(rec.getKey()).append('\n');
+			builder.append(rec.getTag()).append('\n');
 		}
 		Log.w("secret.db_test2", builder.toString());
 	}

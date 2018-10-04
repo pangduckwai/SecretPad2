@@ -12,23 +12,49 @@ import android.widget.Filterable;
 import org.sea9.android.secret.data.DbContract;
 import org.sea9.android.secret.data.DbHelper;
 import org.sea9.android.secret.data.NoteRecord;
+import org.sea9.android.secret.data.TagRecord;
 import org.sea9.android.secret.details.TagsAdaptor;
 import org.sea9.android.secret.main.NotesAdaptor;
 import org.sea9.android.secret.temp.DataRecord;
-import org.sea9.android.secret.temp.TempData;
-import org.sea9.android.secret.temp.TempViewHolder;
+import org.sea9.android.secret.main.NotesViewHolder;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class ContextFragment extends Fragment implements
-		NotesAdaptor.Listener<TempViewHolder>,
+		NotesAdaptor.Listener<NotesViewHolder>,
 		TagsAdaptor.Listener,
 		Filterable,
 		Filter.FilterListener {
 	public static final String TAG = "secret.ctx_frag";
 
 	private DbHelper dbHelper;
+
+	private List<NoteRecord> dataList;
+
+	private List<NoteRecord> filteredList;
+
+	private List<TagRecord> tagList;
+	public List<Integer> getSelectedTags(NoteRecord record) {
+		List<Integer> ret = new ArrayList<>();
+		List<Long> tags = record.getTags();
+		if (tags != null) {
+			for (int idx = 0; idx < tagList.size(); idx++) {
+				if (tags.contains(tagList.get(idx).getPid())) ret.add(idx);
+			}
+		}
+		return ret;
+	}
+
+	private NotesAdaptor<NotesViewHolder> adaptor;
+	public final NotesAdaptor<NotesViewHolder> getAdaptor() {
+		return adaptor;
+	}
+
+	private TagsAdaptor tagsAdaptor;
+	public final TagsAdaptor getTagsAdaptor() {
+		return tagsAdaptor;
+	}
 
 	@Override
 	public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -39,6 +65,12 @@ public class ContextFragment extends Fragment implements
 		Context context = getContext();
 		if (context != null) dbHelper = new DbHelper(context);
 
+		dataList = retrieveNotes();
+		filteredList = null;
+		tagList = retrieveTags();
+
+		adaptor = new NotesAdaptor<>(this);
+		tagsAdaptor = new TagsAdaptor(this);
 		test();
 	}
 
@@ -55,27 +87,7 @@ public class ContextFragment extends Fragment implements
 	}
 
 	//TODO TEMP >>>>>>>>>>>>
-	private List<DataRecord> dataList;
-	private List<DataRecord> filteredList;
-	private List<String> tagList;
-
-	private NotesAdaptor<TempViewHolder> adaptor;
-	public final NotesAdaptor<TempViewHolder> getAdaptor() {
-		return adaptor;
-	}
-
-	private TagsAdaptor tagsAdaptor;
-	public final TagsAdaptor getTagsAdaptor() {
-		return tagsAdaptor;
-	}
-
 	private void test() {
-		dataList = TempData.Companion.data();
-		filteredList = null;
-		tagList = TempData.Companion.tags();
-		adaptor = new NotesAdaptor<>(this);
-		tagsAdaptor = new TagsAdaptor(this);
-
 		new org.sea9.android.secret.data.DbTest(getContext(), this, dbHelper, true);
 	}
 	//TODO TEMP <<<<<<<<<<<<
@@ -93,6 +105,25 @@ public class ContextFragment extends Fragment implements
 	public final String retrieveNote(NoteRecord rec) {
 		return DbContract.Notes.Companion.select(dbHelper, rec);
 	}
+	public final List<TagRecord> retrieveTags() {
+		return DbContract.Tags.Companion.select(dbHelper);
+	}
+	public final NoteRecord createNote(String k, String c, List<Integer> t) {
+		NoteRecord added = DbContract.Notes.Companion.insert(dbHelper, k, c);
+		List<Long> tags = new ArrayList<>();
+		if (added != null) {
+			for (Integer idx : t) {
+				long tid = DbContract.NoteTags.Companion.insert(dbHelper, added.getPid(), tagList.get(idx).getPid());
+				if (tid >= 0) {
+					tags.add(tid);
+				} else {
+					return null;
+				}
+			}
+			added.setTags(tags);
+		}
+		return added;
+	}
 	//=========================================
 
 	/*=======================================================
@@ -108,69 +139,71 @@ public class ContextFragment extends Fragment implements
 		callback.onPrepareAddCompleted();
 	}
 
-	// TODO TEMP using memory, will use SQLite
 	public final void queryData(int position) {
 		if ((position >= 0) && (position < getData().size())) {
-			DataRecord rec = getData().get(position);
-			tagsAdaptor.prepare(rec.getTags());
+			NoteRecord rec = getData().get(position);
+			tagsAdaptor.prepare(getSelectedTags(rec));
 			updated = false; // Reset detail dialog updated flag every time opening it
 			callback.onQueryDataCompleted(rec);
 		}
 	}
 
-	// TODO TEMP using memory, will use SQLite
 	public final void insertData(String k, String c, List<Integer> t) {
 		if (isFiltered()) return;
-		int ret;
-		DataRecord rec = new DataRecord(k, c, t);
-		if (dataList.add(rec)) {
-			ret = dataList.size() - 1;
-			adaptor.onItemInsert(ret);
-		} else {
-			ret = -1;
+		NoteRecord rec = createNote(k, c, t);
+		int idx = -1;
+		if (rec != null) {
+			dataList = retrieveNotes();
+			for (idx = 0; idx < dataList.size(); idx ++) {
+				if (dataList.get(idx).getPid() == rec.getPid()) {
+					adaptor.onItemInsert(idx);
+					break;
+				}
+			}
+			if (idx >= dataList.size()) idx = -1;
 		}
-		callback.onInsertDataCompleted(ret);
+		callback.onInsertDataCompleted(idx);
 	}
 
 	// TODO TEMP using memory, will use SQLite
 	public final void updateData(String k, String c, List<Integer> t) {
-		if (isFiltered()) return;
-		DataRecord rec;
-		int ret = 0;
-		while (ret < dataList.size()) {
-			rec = dataList.get(ret);
-			if (rec.getKey().equals(k)) {
-				rec.setContent(c);
-				rec.getTags().clear();
-				rec.getTags().addAll(t);
-				if (dataList.set(ret, rec) != null) {
-					adaptor.notifyItemChanged(ret);
-					break;
-				}
-			}
-			ret ++;
-		}
-		if (ret >= dataList.size()) ret = -1;
-		callback.onUpdateDataCompleted(ret, c);
+//		if (isFiltered()) return;
+//		DataRecord rec;
+//		int ret = 0;
+//		while (ret < dataList.size()) {
+//			rec = dataList.get(ret);
+//			if (rec.getKey().equals(k)) {
+//				rec.setContent(c);
+//				rec.getTags().clear();
+//				rec.getTags().addAll(t);
+//				if (dataList.set(ret, rec) != null) {
+//					adaptor.notifyItemChanged(ret);
+//					break;
+//				}
+//			}
+//			ret ++;
+//		}
+//		if (ret >= dataList.size()) ret = -1;
+//		callback.onUpdateDataCompleted(ret, c);
 	}
 
 	// TODO TEMP using memory, will use SQLite
 	public final boolean deleteData(int position) {
-		if (isFiltered()) return true;
-		if ((position < 0) || (position >= dataList.size())) {
-			return false;
-		} else {
-			if (adaptor.isSelected(position)) {
-				datSelectionCleared();
-			}
-			if (dataList.remove(position) != null) {
-				adaptor.onItemDeleted(position);
-				return true;
-			} else {
-				adaptor.notifyDataSetChanged();
+//		if (isFiltered()) return true;
+//		if ((position < 0) || (position >= dataList.size())) {
+//			return false;
+//		} else {
+//			if (adaptor.isSelected(position)) {
+//				datSelectionCleared();
+//			}
+//			if (dataList.remove(position) != null) {
+//				adaptor.onItemDeleted(position);
+//				return true;
+//			} else {
+//				adaptor.notifyDataSetChanged();
 				return false;
-			}
-		}
+//			}
+//		}
 	}
 	//=======================================================
 
@@ -182,22 +215,22 @@ public class ContextFragment extends Fragment implements
 
 		// TODO TEMP using memory, will use SQLite
 		for (int i = 0; i < tagList.size(); i ++) {
-			if (t.toLowerCase().equals(tagList.get(i).toLowerCase())) {
+			if (t.toLowerCase().equals(tagList.get(i).getTag().toLowerCase())) {
 				index = i;
 				break;
 			}
 		}
 
-		if (index < 0) {
-			// Tag not found, can add to list
-			if (tagList.add(t)) {
-				index = tagList.size() - 1;
-				tagsAdaptor.notifyItemInserted(index);
-			}
-		}
-
-		tagsAdaptor.selectTag(index);
-		if (detailListener != null) detailListener.onTagAddCompleted(index);
+//		if (index < 0) {
+//			// Tag not found, can add to list
+//			if (tagList.add(t)) {
+//				index = tagList.size() - 1;
+//				tagsAdaptor.notifyItemInserted(index);
+//			}
+//		}
+//
+//		tagsAdaptor.selectTag(index);
+//		if (detailListener != null) detailListener.onTagAddCompleted(index);
 	}
 
 	/**
@@ -213,7 +246,7 @@ public class ContextFragment extends Fragment implements
 	/*================================
 	 * @see android.widget.Filterable
 	 */
-	private List<DataRecord> getData() {
+	private List<NoteRecord> getData() {
 		if (filteredList == null) {
 			return dataList;
 		} else {
@@ -257,31 +290,31 @@ public class ContextFragment extends Fragment implements
 			protected FilterResults performFiltering(CharSequence constraint) {
 				FilterResults results = new FilterResults();
 				String query = constraint.toString().trim().toLowerCase();
-				if (query.length() <= 0) {
-					results.values = dataList;
-				} else {
-					List<DataRecord> rslt = new ArrayList<>();
-					for (DataRecord item : dataList) {
-						// Contents stay encrypted, so cannot be searched, keys are decrypted into memory
-						if (item.getKey().toLowerCase().contains(query)) {
-							rslt.add(item);
-						} else {
-							for (Integer tag : item.getTags()) {
-								if (tagList.get(tag).toLowerCase().contains(query)) {
-									rslt.add(item);
-									break;
-								}
-							}
-						}
-					}
-					results.values = rslt;
-				}
+//				if (query.length() <= 0) {
+//					results.values = dataList;
+//				} else {
+//					List<NoteRecord> rslt = new ArrayList<>();
+//					for (NoteRecord item : dataList) {
+//						// Contents stay encrypted, so cannot be searched, keys are decrypted into memory
+//						if (item.getKey().toLowerCase().contains(query)) {
+//							rslt.add(item);
+//						} else {
+//							for (Long tag : item.getTags()) {
+//								if (tagList.get(tag).getTag().toLowerCase().contains(query)) {
+//									rslt.add(item);
+//									break;
+//								}
+//							}
+//						}
+//					}
+//					results.values = rslt;
+//				}
 				return results;
 			}
 
 			@Override
 			protected void publishResults(CharSequence constraint, FilterResults results) {
-				filteredList = (List<DataRecord>) results.values;
+				filteredList = (List<NoteRecord>) results.values;
 			}
 		};
 	}
@@ -304,31 +337,32 @@ public class ContextFragment extends Fragment implements
 	}
 
 	@Override
-	public TempViewHolder getHolder(View view) {
-		return new TempViewHolder(view);
+	public NotesViewHolder getHolder(View view) {
+		return new NotesViewHolder(view);
 	}
 
 	@Override
-	public void populateList(TempViewHolder holder, int position) {
+	public void populateList(NotesViewHolder holder, int position) {
 		if (adaptor.isSelected(position)) {
 			holder.itemView.setSelected(true);
 		} else {
 			holder.itemView.setSelected(false);
 		}
 
-		DataRecord rec = getData().get(position);
-		List<Integer> tag = rec.getTags();
-		StringBuilder tags = new StringBuilder((tag.size() > 0) ? tagList.get(tag.get(0)) : EMPTY);
-		for (int i = 1; i < tag.size(); i ++)
-			tags.append(SPACE).append(tagList.get(tag.get(i)));
+		NoteRecord rec = getData().get(position);
+		List<Long> tag = rec.getTags();
+//		StringBuilder tags = new StringBuilder((tag.size() > 0) ? tagList.get(tag.get(0)) : EMPTY);
+//		for (int i = 1; i < tag.size(); i ++)
+//			tags.append(SPACE).append(tagList.get(tag.get(i)));
 		holder.key.setText(rec.getKey());
-		holder.tag.setText(tags.toString());
+//		holder.tag.setText(tags.toString());
 	}
 
 	@Override
 	public void datSelectionMade(int index) {
 		if (index >= 0) {
-			callback.onRowSelectionMade(getData().get(index).getContent());
+//			callback.onRowSelectionMade(getData().get(index).getContent());
+			callback.onRowSelectionMade("");
 		} else {
 			datSelectionCleared(); // Should not be possible to reach here
 		}
@@ -345,7 +379,7 @@ public class ContextFragment extends Fragment implements
 	 */
 	@Override
 	public String getTag(int position) {
-		return tagList.get(position);
+		return tagList.get(position).getTag();
 	}
 
 	@Override
@@ -368,7 +402,7 @@ public class ContextFragment extends Fragment implements
 		void onPrepareAddCompleted();
 		void onInsertDataCompleted(int position);
 		void onUpdateDataCompleted(int position, String content);
-		void onQueryDataCompleted(DataRecord record);
+		void onQueryDataCompleted(NoteRecord record);
 		void onFilterCleared(int position);
 	}
 	private Listener callback;

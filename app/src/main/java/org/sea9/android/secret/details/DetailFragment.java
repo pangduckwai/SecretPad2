@@ -26,7 +26,7 @@ import android.widget.ImageButton;
 
 import org.sea9.android.secret.ContextFragment;
 import org.sea9.android.secret.R;
-import org.sea9.android.secret.temp.DataRecord;
+import org.sea9.android.secret.data.NoteRecord;
 
 import java.util.List;
 
@@ -45,7 +45,7 @@ public class DetailFragment extends DialogFragment implements ContextFragment.De
 	private ImageButton bttnSav;
 	private boolean isNew;
 
-	public static DetailFragment getInstance(boolean isNew, DataRecord record) {
+	public static DetailFragment getInstance(boolean isNew, NoteRecord record) {
 		DetailFragment dialog = new DetailFragment();
 		dialog.setCancelable(false);
 
@@ -53,7 +53,7 @@ public class DetailFragment extends DialogFragment implements ContextFragment.De
 		args.putBoolean(TAG, isNew);
 		if (record != null) {
 			args.putString(KEY, record.getKey());
-			args.putString(CTN, record.getContent());
+			args.putString(CTN, ""); //TODO Get content from db
 		}
 		dialog.setArguments(args);
 
