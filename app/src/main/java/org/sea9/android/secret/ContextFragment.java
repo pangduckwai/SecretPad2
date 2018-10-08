@@ -15,7 +15,6 @@ import org.sea9.android.secret.data.NoteRecord;
 import org.sea9.android.secret.data.TagRecord;
 import org.sea9.android.secret.details.TagsAdaptor;
 import org.sea9.android.secret.main.NotesAdaptor;
-import org.sea9.android.secret.temp.DataRecord;
 import org.sea9.android.secret.main.NotesViewHolder;
 
 import java.util.ArrayList;
@@ -30,8 +29,6 @@ public class ContextFragment extends Fragment implements
 
 	private DbHelper dbHelper;
 
-	private List<NoteRecord> dataList;
-
 	private List<NoteRecord> filteredList;
 
 	private List<TagRecord> tagList;
@@ -44,11 +41,6 @@ public class ContextFragment extends Fragment implements
 			}
 		}
 		return ret;
-	}
-
-	private NotesAdaptor<NotesViewHolder> adaptor;
-	public final NotesAdaptor<NotesViewHolder> getAdaptor() {
-		return adaptor;
 	}
 
 	private TagsAdaptor tagsAdaptor;
@@ -69,7 +61,7 @@ public class ContextFragment extends Fragment implements
 		filteredList = null;
 		tagList = retrieveTags();
 
-		adaptor = new NotesAdaptor<>(this);
+		adaptor = new NotesAdaptor(this);
 		tagsAdaptor = new TagsAdaptor(this);
 		test();
 	}
@@ -83,7 +75,7 @@ public class ContextFragment extends Fragment implements
 
 	public final void clearSelection() {
 		adaptor.clearSelection();
-		datSelectionCleared();
+		clearRvRow();
 	}
 
 	//TODO TEMP >>>>>>>>>>>>
@@ -95,13 +87,13 @@ public class ContextFragment extends Fragment implements
 	/*=========================================
 	 * DAO API
 	 */
-	public final List<NoteRecord> retrieveNotes() {
-		List<NoteRecord> notes = DbContract.Notes.Companion.select(dbHelper);
-		for (NoteRecord note : notes) {
-			DbContract.NoteTags.Companion.select(dbHelper, note);
-		}
-		return notes;
-	}
+//	public final List<NoteRecord> retrieveNotes() {
+//		List<NoteRecord> notes = DbContract.Notes.Companion.select(dbHelper);
+//		for (NoteRecord note : notes) {
+//			DbContract.NoteTags.Companion.select(dbHelper, note);
+//		}
+//		return notes;
+//	}
 	public final String retrieveNote(NoteRecord rec) {
 		return DbContract.Notes.Companion.select(dbHelper, rec);
 	}
@@ -156,7 +148,7 @@ public class ContextFragment extends Fragment implements
 			dataList = retrieveNotes();
 			for (idx = 0; idx < dataList.size(); idx ++) {
 				if (dataList.get(idx).getPid() == rec.getPid()) {
-					adaptor.onItemInsert(idx);
+					adaptor.onItemInsert(idx, rec.getPid());
 					break;
 				}
 			}
@@ -194,7 +186,7 @@ public class ContextFragment extends Fragment implements
 //			return false;
 //		} else {
 //			if (adaptor.isSelected(position)) {
-//				datSelectionCleared();
+//				clearRvRow();
 //			}
 //			if (dataList.remove(position) != null) {
 //				adaptor.onItemDeleted(position);
@@ -326,50 +318,54 @@ public class ContextFragment extends Fragment implements
 	private static final String EMPTY = "";
 	private static final String SPACE = " ";
 
+	private List<NoteRecord> dataList;
+	private NotesAdaptor adaptor;
+	public final NotesAdaptor getAdaptor() {
+		return adaptor;
+	}
+
+	/*
+	 * Prepare initial data for the recyclerView, retrieved from the database.
+	 */
 	@Override
-	public int getItemCount() {
+	public void prepareRvData() {
+		dataList = DbContract.Notes.Companion.select(dbHelper);
+		for (NoteRecord note : dataList) {
+			DbContract.NoteTags.Companion.select(dbHelper, note);
+		}
+	}
+
+	@Override
+	public int getRvItemCount() {
 		return getData().size();
 	}
 
 	@Override
-	public int getListItemLayoutId() {
-		return R.layout.list_item;
-	}
+	public void populateRv(NotesViewHolder holder, int position) {
+		NoteRecord rec = dataList.get(position);
+//		holder.itemView.setSelected(isSelected);
 
-	@Override
-	public NotesViewHolder getHolder(View view) {
-		return new NotesViewHolder(view);
-	}
-
-	@Override
-	public void populateList(NotesViewHolder holder, int position) {
-		if (adaptor.isSelected(position)) {
-			holder.itemView.setSelected(true);
-		} else {
-			holder.itemView.setSelected(false);
-		}
-
-		NoteRecord rec = getData().get(position);
-		List<Long> tag = rec.getTags();
+//		NoteRecord rec = getData().get(position);
+//		List<Long> tag = rec.getTags();
 //		StringBuilder tags = new StringBuilder((tag.size() > 0) ? tagList.get(tag.get(0)) : EMPTY);
 //		for (int i = 1; i < tag.size(); i ++)
 //			tags.append(SPACE).append(tagList.get(tag.get(i)));
-		holder.key.setText(rec.getKey());
+//		holder.key.setText(rec.getKey());
 //		holder.tag.setText(tags.toString());
 	}
 
 	@Override
-	public void datSelectionMade(int index) {
-		if (index >= 0) {
-//			callback.onRowSelectionMade(getData().get(index).getContent());
-			callback.onRowSelectionMade("");
+	public void selectRvRow(int position, long pid) {
+		if (position >= 0) {
+			String content = DbContract.Notes.Companion.select(dbHelper, pid);
+			callback.onRowSelectionMade((content != null) ? content : EMPTY);
 		} else {
-			datSelectionCleared(); // Should not be possible to reach here
+			clearRvRow(); // Should not be possible to reach here
 		}
 	}
 
 	@Override
-	public void datSelectionCleared() {
+	public void clearRvRow() {
 		callback.onRowSelectionCleared();
 	}
 	//========================================================

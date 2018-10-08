@@ -143,7 +143,7 @@ public class MainActivity extends AppCompatActivity implements
 		int pos = ctxFrag.getAdaptor().getSelectedPosition();
 		if (pos >= 0) {
 			recycler.smoothScrollToPosition(pos); // Scroll list to the selected row
-			ctxFrag.datSelectionMade(pos);
+			ctxFrag.selectRvRow(pos);
 		}
 	}
 

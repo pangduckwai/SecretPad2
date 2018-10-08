@@ -14,8 +14,8 @@ object DbContract {
 
 	class Tags : BaseColumns {
 		companion object {
-			private const val TABLE = "Tags"
-			private const val COL_TAG_NAME = "tagName"
+			const val TABLE = "Tags"
+			const val COL_TAG_NAME = "tagName"
 
 			private val COLUMNS = arrayOf(PKEY, COL_TAG_NAME, COMMON_MODF)
 
@@ -110,8 +110,8 @@ object DbContract {
 				return result.sortedWith(compareBy { it.key }) // Sort here after decrypt
 			}
 
-			fun select(helper: SQLiteOpenHelper, rec: NoteRecord): String? {
-				val args = arrayOf(rec.pid.toString())
+			fun select(helper: SQLiteOpenHelper, pid: Long): String? {
+				val args = arrayOf(pid.toString())
 				val cursor = helper.readableDatabase
 						.query(TABLE, COLUMNS, COMMON_PKEY, args, null, null, null)
 
@@ -172,8 +172,6 @@ object DbContract {
 			const val COL_TID = "tagId"
 			private const val COL_NID = "noteId"
 
-			private val COLUMNS = arrayOf(PKEY, COL_NID, COL_TID, COMMON_MODF)
-
 			const val SQL_CREATE =
 					"create table $TABLE (" +
 							"$PKEY integer primary key autoincrement," +
@@ -182,16 +180,24 @@ object DbContract {
 							"$COMMON_MODF integer)"
 			const val SQL_DROP = "drop table if exists $TABLE"
 
+			private const val QUERY_JOIN =
+					"select nt.$PKEY, nt.$COL_NID, nt.$COL_TID, t.${Tags.COL_TAG_NAME}, nt.$COMMON_MODF" +
+					"  from $TABLE as nt inner join ${Tags.TABLE} as t" +
+					"    on nt.$COL_TID = t.$PKEY" +
+					" where nt.$COL_NID = ?" +
+					" order by t.${Tags.COL_TAG_NAME}"
+
 			fun select(helper: SQLiteOpenHelper, rec: NoteRecord): NoteRecord {
 				val args = arrayOf(rec.pid.toString())
-				val cursor = helper.readableDatabase
-						.query(TABLE, COLUMNS, "$COL_NID = ?", args, null, null, null)
+				val cursor = helper.readableDatabase.rawQuery(QUERY_JOIN, args)
 
-				val result = mutableListOf<Long>()
+				val result = mutableListOf<TagRecord>()
 				with(cursor) {
 					while (moveToNext()) {
 						val tid = getLong(getColumnIndexOrThrow(COL_TID))
-						result.add(tid)
+						val tag = getString(getColumnIndexOrThrow(Tags.COL_TAG_NAME))
+						val mod = getLong(getColumnIndexOrThrow(COMMON_MODF))
+						result.add(TagRecord(tid, tag, mod))
 					}
 				}
 
