@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ContextFragment extends Fragment implements
-		NotesAdaptor.Listener<NotesViewHolder>,
+		NotesAdaptor.Listener,
 		TagsAdaptor.Listener,
 		Filterable,
 		Filter.FilterListener {
@@ -34,10 +34,10 @@ public class ContextFragment extends Fragment implements
 	private List<TagRecord> tagList;
 	public List<Integer> getSelectedTags(NoteRecord record) {
 		List<Integer> ret = new ArrayList<>();
-		List<Long> tags = record.getTags();
+		List<TagRecord> tags = record.getTags();
 		if (tags != null) {
 			for (int idx = 0; idx < tagList.size(); idx++) {
-				if (tags.contains(tagList.get(idx).getPid())) ret.add(idx);
+				if (tags.contains(tagList.get(idx))) ret.add(idx);
 			}
 		}
 		return ret;
@@ -95,19 +95,19 @@ public class ContextFragment extends Fragment implements
 //		return notes;
 //	}
 	public final String retrieveNote(NoteRecord rec) {
-		return DbContract.Notes.Companion.select(dbHelper, rec);
+		return DbContract.Notes.Companion.select(dbHelper, rec.getPid());
 	}
 	public final List<TagRecord> retrieveTags() {
 		return DbContract.Tags.Companion.select(dbHelper);
 	}
 	public final NoteRecord createNote(String k, String c, List<Integer> t) {
 		NoteRecord added = DbContract.Notes.Companion.insert(dbHelper, k, c);
-		List<Long> tags = new ArrayList<>();
+		List<TagRecord> tags = new ArrayList<>();
 		if (added != null) {
 			for (Integer idx : t) {
 				long tid = DbContract.NoteTags.Companion.insert(dbHelper, added.getPid(), tagList.get(idx).getPid());
 				if (tid >= 0) {
-					tags.add(tid);
+					tags.add(new TagRecord(tid, ));
 				} else {
 					return null;
 				}
@@ -355,10 +355,13 @@ public class ContextFragment extends Fragment implements
 	}
 
 	@Override
-	public void selectRvRow(int position, long pid) {
+	public void selectRvRow(int position) {
 		if (position >= 0) {
-			String content = DbContract.Notes.Companion.select(dbHelper, pid);
-			callback.onRowSelectionMade((content != null) ? content : EMPTY);
+			long pid = adaptor.getAdapterPositionId(position);
+			if (pid >= 0) {
+				String content = DbContract.Notes.Companion.select(dbHelper, pid);
+				callback.onRowSelectionMade((content != null) ? content : EMPTY);
+			}
 		} else {
 			clearRvRow(); // Should not be possible to reach here
 		}
