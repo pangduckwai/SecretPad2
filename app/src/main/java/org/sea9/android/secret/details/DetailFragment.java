@@ -45,7 +45,7 @@ public class DetailFragment extends DialogFragment implements ContextFragment.De
 	private ImageButton bttnSav;
 	private boolean isNew;
 
-	public static DetailFragment getInstance(boolean isNew, NoteRecord record) {
+	public static DetailFragment getInstance(boolean isNew, NoteRecord record, String content) {
 		DetailFragment dialog = new DetailFragment();
 		dialog.setCancelable(false);
 
@@ -53,7 +53,7 @@ public class DetailFragment extends DialogFragment implements ContextFragment.De
 		args.putBoolean(TAG, isNew);
 		if (record != null) {
 			args.putString(KEY, record.getKey());
-			args.putString(CTN, ""); //TODO Get content from db
+			args.putString(CTN, content);
 		}
 		dialog.setArguments(args);
 
@@ -91,7 +91,7 @@ public class DetailFragment extends DialogFragment implements ContextFragment.De
 			@Override
 			public void onTextChanged(CharSequence s, int start, int before, int count) {
 				if ((before != 0) || (count != 0)) {
-					if (ctxFrag != null) ctxFrag.detailUpdated();
+					if (ctxFrag != null) ctxFrag.dataUpdated();
 				}
 			}
 
@@ -108,7 +108,7 @@ public class DetailFragment extends DialogFragment implements ContextFragment.De
 
 			@Override
 			public void afterTextChanged(Editable s) {
-				if (ctxFrag != null) ctxFrag.detailUpdated();
+				if (ctxFrag != null) ctxFrag.dataUpdated();
 			}
 		});
 

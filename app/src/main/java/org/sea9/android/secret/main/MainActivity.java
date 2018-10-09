@@ -82,10 +82,13 @@ public class MainActivity extends AppCompatActivity implements
 		content.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				int pos = ctxFrag.getAdaptor().getSelectedPosition();
-				if (pos >= 0) {
-					recycler.smoothScrollToPosition(pos); // Scroll list to the selected row
-					ctxFrag.queryData(pos);
+				int position = ctxFrag.getAdaptor().getSelectedPosition();
+				if (position >= 0) {
+					recycler.smoothScrollToPosition(position); // Scroll list to the selected row
+					NoteRecord record = ctxFrag.getAdaptor().getRecord(position);
+					if (record != null)
+						DetailFragment.getInstance(false, record, ((TextView) v).getText().toString())
+								.show(getSupportFragmentManager(), DetailFragment.TAG);
 				}
 			}
 		});
@@ -109,7 +112,8 @@ public class MainActivity extends AppCompatActivity implements
 					@Override public void onClick(DialogInterface arg0, int arg1) {
 						Snackbar.make(recycler,
 								String.format(Locale.getDefault(),
-										getString(ctxFrag.deleteData(position) ? R.string.msg_delete_okay : R.string.msg_delete_fail),
+										//getString(ctxFrag.deleteData(position) ? R.string.msg_delete_okay : R.string.msg_delete_fail),
+										"Hello :P %s", //TODO HERE!!!
 										Integer.toString(position+1)),
 								Snackbar.LENGTH_LONG).show();
 					}
@@ -143,7 +147,7 @@ public class MainActivity extends AppCompatActivity implements
 		int pos = ctxFrag.getAdaptor().getSelectedPosition();
 		if (pos >= 0) {
 			recycler.smoothScrollToPosition(pos); // Scroll list to the selected row
-			ctxFrag.selectRvRow(pos);
+			ctxFrag.getAdaptor().onSelectRvRow(pos);
 		}
 	}
 
@@ -159,23 +163,23 @@ public class MainActivity extends AppCompatActivity implements
 
 		SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
 		if (searchManager != null) {
-			searchView = (SearchView) menu.findItem(R.id.menu_search).getActionView();
-			searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
+//			searchView = (SearchView) menu.findItem(R.id.menu_search).getActionView();
+//			searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
+//
+//			LayoutTransition transit = new LayoutTransition();
+//			transit.setDuration(LayoutTransition.CHANGE_APPEARING, 0);
+//			((ViewGroup) searchView.findViewById(searchView.getContext().getResources().getIdentifier("android:id/search_bar", null, null)))
+//					.setLayoutTransition(transit);
 
-			LayoutTransition transit = new LayoutTransition();
-			transit.setDuration(LayoutTransition.CHANGE_APPEARING, 0);
-			((ViewGroup) searchView.findViewById(searchView.getContext().getResources().getIdentifier("android:id/search_bar", null, null)))
-					.setLayoutTransition(transit);
-
-			searchView.findViewById(searchView.getContext().getResources().getIdentifier("android:id/search_close_btn", null, null))
-					.setOnClickListener(new View.OnClickListener() {
-						@Override
-						public void onClick(View v) {
-							searchView.setQuery(EMPTY, false);
-							searchView.setIconified(true);
-							ctxFrag.clearFilter();
-						}
-					});
+//			searchView.findViewById(searchView.getContext().getResources().getIdentifier("android:id/search_close_btn", null, null))
+//					.setOnClickListener(new View.OnClickListener() {
+//						@Override
+//						public void onClick(View v) {
+//							searchView.setQuery(EMPTY, false);
+//							searchView.setIconified(true);
+//							ctxFrag.clearFilter();
+//						}
+//					});
 		}
 
 		return true;
@@ -190,7 +194,8 @@ public class MainActivity extends AppCompatActivity implements
 			builder.setPositiveButton(R.string.btn_okay, new DialogInterface.OnClickListener() {
 				@Override public void onClick(DialogInterface arg0, int arg1) {
 					Snackbar.make(recycler,
-							getString(ctxFrag.deleteTags() ? R.string.msg_delete_tags_okay : R.string.msg_delete_tags_fail),
+//							getString(ctxFrag.deleteTags() ? R.string.msg_delete_tags_okay : R.string.msg_delete_tags_fail),
+							"Hello :]", //TODO HERE!!!
 							Snackbar.LENGTH_LONG).show();
 				}
 			});
@@ -213,15 +218,15 @@ public class MainActivity extends AppCompatActivity implements
 	}
 
 	private void handleIntent(Intent intent) {
-		if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
-			String query = intent.getStringExtra(SearchManager.QUERY);
-			if (query != null) {
-				ctxFrag.applyFilter(query);
-			}
-			ctxFrag.clearSelection();
-			mainView.requestFocus();
-
-		}
+//		if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
+//			String query = intent.getStringExtra(SearchManager.QUERY);
+//			if (query != null) {
+//				ctxFrag.applyFilter(query);
+//			}
+//			ctxFrag.clearSelection();
+//			mainView.requestFocus();
+//
+//		}
 	}
 
 	/*=======================================================
@@ -241,41 +246,41 @@ public class MainActivity extends AppCompatActivity implements
 
 	@Override
 	public void onPrepareAddCompleted() {
-		DetailFragment.getInstance(true, null).show(getSupportFragmentManager(), DetailFragment.TAG);
+		DetailFragment.getInstance(true, null, null).show(getSupportFragmentManager(), DetailFragment.TAG);
 	}
 
-	@Override
-	public void onInsertDataCompleted(int position) {
-		if (position >= 0) recycler.smoothScrollToPosition(position);
-		Snackbar.make(recycler,
-				String.format(
-						Locale.getDefault(),
-						getString((position >= 0) ? R.string.msg_insert_okay : R.string.msg_insert_fail),
-						Integer.toString(position+1)),
-				Snackbar.LENGTH_LONG).show();
-	}
+//	@Override
+//	public void onInsertDataCompleted(int position) {
+//		if (position >= 0) recycler.smoothScrollToPosition(position);
+//		Snackbar.make(recycler,
+//				String.format(
+//						Locale.getDefault(),
+//						getString((position >= 0) ? R.string.msg_insert_okay : R.string.msg_insert_fail),
+//						Integer.toString(position+1)),
+//				Snackbar.LENGTH_LONG).show();
+//	}
 
-	@Override
-	public void onUpdateDataCompleted(int position, String content) {
-		if (position >= 0) recycler.smoothScrollToPosition(position);
-		Snackbar.make(recycler,
-				String.format(
-						Locale.getDefault(),
-						getString((position >= 0) ? R.string.msg_update_okay : R.string.msg_update_fail),
-						Integer.toString(position+1)),
-				Snackbar.LENGTH_LONG).show();
-		onRowSelectionMade(content);
-	}
+//	@Override
+//	public void onUpdateDataCompleted(int position, String content) {
+//		if (position >= 0) recycler.smoothScrollToPosition(position);
+//		Snackbar.make(recycler,
+//				String.format(
+//						Locale.getDefault(),
+//						getString((position >= 0) ? R.string.msg_update_okay : R.string.msg_update_fail),
+//						Integer.toString(position+1)),
+//				Snackbar.LENGTH_LONG).show();
+//		onRowSelectionMade(content);
+//	}
 
-	@Override
-	public void onQueryDataCompleted(NoteRecord record) {
-		DetailFragment.getInstance(false, record).show(getSupportFragmentManager(), DetailFragment.TAG);
-	}
+//	@Override
+//	public void onQueryDataCompleted(NoteRecord record) {
+//		DetailFragment.getInstance(false, record).show(getSupportFragmentManager(), DetailFragment.TAG);
+//	}
 
-	@Override
-	public void onFilterCleared(int position) {
-		if (position >= 0) recycler.smoothScrollToPosition(position);
-	}
+//	@Override
+//	public void onFilterCleared(int position) {
+//		if (position >= 0) recycler.smoothScrollToPosition(position);
+//	}
 	//=======================================================
 
 	/*==============================================================
@@ -283,15 +288,15 @@ public class MainActivity extends AppCompatActivity implements
 	 */
 	@Override
 	public void onAdd(String t) {
-		ctxFrag.addTag(t);
+//		ctxFrag.addTag(t);
 	}
 
 	@Override
 	public void onSave(boolean isNew, String k, String c, List<Integer> t) {
-		if (isNew) {
-			ctxFrag.insertData(k, c, t);
-		} else {
-			ctxFrag.updateData(k, c, t);
-		}
+//		if (isNew) {
+//			ctxFrag.insertData(k, c, t);
+//		} else {
+//			ctxFrag.updateData(k, c, t);
+//		}
 	}
 }

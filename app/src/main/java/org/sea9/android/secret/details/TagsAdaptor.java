@@ -9,6 +9,9 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import org.sea9.android.secret.R;
+import org.sea9.android.secret.data.DbContract;
+import org.sea9.android.secret.data.DbHelper;
+import org.sea9.android.secret.data.TagRecord;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -28,33 +31,41 @@ public class TagsAdaptor extends RecyclerView.Adapter<TagsAdaptor.ViewHolder> {
 	public final void selectTag(int index) {
 		if ((index >= 0) && (index < getItemCount())) {
 			selectedPos.add(index);
-			callback.selectionChanged();
+			callback.dataUpdated();
 			notifyDataSetChanged();
 		}
 	}
-
-	static class ViewHolder extends RecyclerView.ViewHolder {
-		TextView tag;
-		ViewHolder(TextView v) {
-			super(v);
-			tag = v;
-		}
-	}
-
-	public TagsAdaptor(TagsAdaptor.Listener callback) {
-		this.callback = callback;
-	}
-
-	public void prepare(List<Integer> sel) {
+	public void refreshSelection(List<Integer> sel) {
 		selectedPos.clear();
 		if (sel != null) selectedPos.addAll(sel);
 	}
 
+	private List<TagRecord> dataset;
+
+//	public final TagRecord getAdapterPositionRecord(int position) {
+//		ViewHolder holder = (ViewHolder) recyclerView.findViewHolderForAdapterPosition(position);
+//		if (holder != null) {
+//			return new TagRecord(holder.pid, holder.tag.getText().toString(), -1);
+//		} else {
+//			return null;
+//		}
+//	}
+
+	public TagsAdaptor(TagsAdaptor.Listener ctx) {
+		callback = ctx;
+		dataset = new ArrayList<>();
+	}
+
+	/*=====================================================
+	 * @see android.support.v7.widget.RecyclerView.Adapter
+	 */
 	@Override
 	public final void onAttachedToRecyclerView(@NonNull RecyclerView recycler) {
 		super.onAttachedToRecyclerView(recycler);
 		Log.d(TAG, "onAttachedToRecyclerView");
 		recyclerView = recycler;
+
+		onInit();
 	}
 
 	@Override @NonNull
@@ -73,7 +84,7 @@ public class TagsAdaptor extends RecyclerView.Adapter<TagsAdaptor.ViewHolder> {
 					} else {
 						selectedPos.add(pos);
 					}
-					callback.selectionChanged();
+					callback.dataUpdated();
 					notifyDataSetChanged();
 				}
 			}
@@ -89,22 +100,46 @@ public class TagsAdaptor extends RecyclerView.Adapter<TagsAdaptor.ViewHolder> {
 		} else {
 			holder.itemView.setSelected(false);
 		}
-		holder.tag.setText(callback.getTag(position));
+
+		holder.tag.setText(dataset.get(position).getTag());
 	}
 
 	@Override
 	public int getItemCount() {
-		return callback.getTagsCount();
+		return dataset.size();
 	}
+	//=====================================================
+
+	/*=====================================================================
+	 * Data access methods. TODO: maybe need to move to a separate thread?
+	 */
+	private void onInit() {
+		dataset = DbContract.Tags.Companion.select(callback.getDbHelper());
+	}
+	//=====================================================================
+
+	/*=============
+	 * View holder
+	 */
+	static class ViewHolder extends RecyclerView.ViewHolder {
+		TextView tag;
+		ViewHolder(TextView v) {
+			super(v);
+			tag = v;
+		}
+	}
+	//=============
 
 	/*============================================
 	 * Callback interface to the context fragment
 	 */
 	public interface Listener {
-		String getTag(int position);
-		int getTagsCount();
-		void selectionChanged();
+		DbHelper getDbHelper();
+//		TagRecord getTag(int position);
+//		int getTagsCount();
+//		void selectionChanged();
 		boolean isFiltered();
+		void dataUpdated();
 	}
 	private TagsAdaptor.Listener callback;
 }

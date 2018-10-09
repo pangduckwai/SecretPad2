@@ -52,6 +52,9 @@ object DbContract {
 				return result
 			}
 
+			/**
+			 * Insert a tag.
+			 */
 			fun insert(helper: SQLiteOpenHelper, tagName: String): TagRecord? {
 				val timestamp = Date().time
 				val newRow = ContentValues().apply {
@@ -144,6 +147,9 @@ object DbContract {
 				}
 			}
 
+			/**
+			 * Insert one note.
+			 */
 			fun insert(helper: SQLiteOpenHelper, k: String, c: String): NoteRecord? {
 				val timestamp = Date().time
 				val newRow = ContentValues().apply {
@@ -161,6 +167,9 @@ object DbContract {
 				}
 			}
 
+			/**
+			 * Update the content of a note by the note ID.
+			 */
 			fun update(helper: SQLiteOpenHelper, nid: Long, content: String): Int {
 				val args = arrayOf(nid.toString())
 				val newRow = ContentValues().apply {
@@ -171,6 +180,9 @@ object DbContract {
 				return helper.writableDatabase.update(TABLE, newRow, COMMON_PKEY, args)
 			}
 
+			/**
+			 * Delete one note by its ID.
+			 */
 			fun delete(helper: SQLiteOpenHelper, nid: Long): Int {
 				val args = arrayOf(nid.toString())
 				return helper.writableDatabase.delete(TABLE, COMMON_PKEY, args)
@@ -193,15 +205,16 @@ object DbContract {
 			const val SQL_DROP = "drop table if exists $TABLE"
 
 			private const val QUERY_JOIN =
-					"select n.$PKEY,  nt.$COL_NID, nt.$COL_TID, t.${Tags.COL_TAG_NAME}, nt.$COMMON_MODF" +
+					"select nt.$COL_NID, nt.$COL_TID, t.${Tags.COL_TAG_NAME}, nt.$COMMON_MODF" +
 					"  from $TABLE as nt" +
-					" inner join ${Tags.TABLE} as t" +
-					" inner join ${Notes.TABLE} as n" +
-					"    on nt.$COL_TID = t.$PKEY" +
+					" inner join ${Tags.TABLE} as t on nt.$COL_NID = t.$PKEY" +
 					" where nt.$COL_NID = ?" +
 					" order by t.${Tags.COL_TAG_NAME}"
 
-			fun select(helper: SQLiteOpenHelper, nid: Long): NoteRecord {
+			/**
+			 * Select one note by its ID and return all tags associate with it.
+			 */
+			fun select(helper: SQLiteOpenHelper, nid: Long): List<TagRecord> {
 				val args = arrayOf(nid.toString())
 				val cursor = helper.readableDatabase.rawQuery(QUERY_JOIN, args)
 
@@ -216,10 +229,12 @@ object DbContract {
 				}
 
 				cursor.close()
-				rec.tags = result
-				return rec
+				return result
 			}
 
+			/**
+			 * Add a note/tag relationship.
+			 */
 			fun insert(helper: SQLiteOpenHelper, nid: Long, tid: Long): Long {
 				val newRow = ContentValues().apply {
 					put(COL_NID, nid)
@@ -229,6 +244,9 @@ object DbContract {
 				return helper.writableDatabase.insert(TABLE, null, newRow)
 			}
 
+			/**
+			 * Delete one note/tag relationship by the node ID and tag ID.
+			 */
 			fun delete(helper: SQLiteOpenHelper, nid: Long, tid: Long): Int {
 				val where = "$COL_NID = ? and $COL_TID = ?"
 				val args = arrayOf(nid.toString(), tid.toString())

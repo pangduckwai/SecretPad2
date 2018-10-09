@@ -12,7 +12,8 @@ import java.util.List;
 
 public class DbTest {
 	public DbTest(Context context, ContextFragment ctxFrag, DbHelper helper, boolean cleanUp) {
-//		prepare(helper);
+		prepare(helper);
+		test(helper);
 //		test1(ctxFrag);
 //		test2(helper);
 //		test3(helper);
@@ -69,27 +70,59 @@ public class DbTest {
 		}
 	}
 
-	private void test0(ContextFragment ctxFrag) {
-		List<Integer> tags = new ArrayList<>();
-		tags.add(1);
-		NoteRecord x = ctxFrag.createNote("K9001", "NOTE9001", tags);
-		Log.w("secret.db_test0", x.getPid() + " " + x.getKey());
+	public static void cleanup(Context context, DbHelper helper) {
+		helper.getWritableDatabase().execSQL(DbContract.NoteTags.SQL_DROP);
+		helper.getWritableDatabase().execSQL(DbContract.Notes.SQL_DROP);
+		helper.getWritableDatabase().execSQL(DbContract.Tags.SQL_DROP);
+		if (context != null) context.deleteDatabase("Secret.db");
 	}
 
-	private void test1(ContextFragment ctxFrag) {
-		List<NoteRecord> list = ctxFrag.retrieveNotes();
+	private void test(DbHelper helper) {
+		String SQL =
+				"select n.noteKey, n.noteContent, t.tagName" +
+				"  from NoteTags as nt" +
+				" inner join Notes as n on n._id = nt.noteId" +
+				" inner join Tags  as t on t._id = nt.tagId";
+
+		Cursor cursor = helper.getReadableDatabase().rawQuery(SQL, null);
 		StringBuilder builder = new StringBuilder("x");
 		builder.append('\n');
-		for (NoteRecord rec : list) {
-			builder.append(rec.getKey()).append('\t');
-			for (Long tag : rec.getTags()) {
-				builder.append(tag).append('/');
+		String cols[] = cursor.getColumnNames();
+		for (String col : cols) {
+			builder.append(col).append('\t');
+		}
+		builder.append('\n');
+		while (cursor.moveToNext()) {
+			for (int i = 0; i < cols.length; i ++) {
+				builder.append(cursor.getString(i)).append('\t');
 			}
 			builder.append('\n');
 		}
-		builder.append("\n").append(list.get(0).getKey()).append('\t').append(ctxFrag.retrieveNote(list.get(0)));
-		Log.w("secret.db_test1", builder.toString());
+		cursor.close();
+		Log.w("secret.db_test", builder.toString());
 	}
+
+//	private void test0(ContextFragment ctxFrag) {
+//		List<Integer> tags = new ArrayList<>();
+//		tags.add(1);
+//		NoteRecord x = ctxFrag.createNote("K9001", "NOTE9001", tags);
+//		Log.w("secret.db_test0", x.getPid() + " " + x.getKey());
+//	}
+//
+//	private void test1(ContextFragment ctxFrag) {
+//		List<NoteRecord> list = ctxFrag.retrieveNotes();
+//		StringBuilder builder = new StringBuilder("x");
+//		builder.append('\n');
+//		for (NoteRecord rec : list) {
+//			builder.append(rec.getKey()).append('\t');
+//			for (Long tag : rec.getTags()) {
+//				builder.append(tag).append('/');
+//			}
+//			builder.append('\n');
+//		}
+//		builder.append("\n").append(list.get(0).getKey()).append('\t').append(ctxFrag.retrieveNote(list.get(0)));
+//		Log.w("secret.db_test1", builder.toString());
+//	}
 
 	private void test2(DbHelper helper) {
 		Log.w("secret.db_test2", "Deleted " + DbContract.Tags.Companion.delete(helper) + " rows");
