@@ -329,10 +329,10 @@ public class ContextFragment extends Fragment implements
 	 */
 	@Override
 	public void prepareRvData() {
-		dataList = DbContract.Notes.Companion.select(dbHelper);
-		for (NoteRecord note : dataList) {
-			DbContract.NoteTags.Companion.select(dbHelper, note);
-		}
+//		dataList = DbContract.Notes.Companion.select(dbHelper);
+//		for (NoteRecord note : dataList) {
+//			DbContract.NoteTags.Companion.select(dbHelper, note);
+//		}
 	}
 
 	@Override

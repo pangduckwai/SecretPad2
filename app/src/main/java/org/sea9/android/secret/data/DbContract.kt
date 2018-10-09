@@ -30,6 +30,9 @@ object DbContract {
 					"delete from $TABLE where $PKEY not in " +
 						"(select nt.${NoteTags.COL_TID} from ${NoteTags.TABLE} as nt inner join $TABLE as t on t.$PKEY = nt.${NoteTags.COL_TID})"
 
+			/**
+			 * Select all tags.
+			 */
 			fun select(helper: SQLiteOpenHelper): List<TagRecord> {
 				val cursor = helper.readableDatabase
 						.query(TABLE, COLUMNS, null, null, null, null, COL_TAG_NAME)
@@ -63,6 +66,9 @@ object DbContract {
 				}
 			}
 
+			/**
+			 * Delete any unused tags.
+			 */
 			fun delete(helper: SQLiteOpenHelper): Int {
 				return helper.writableDatabase.compileStatement(QUERY_DELETE).executeUpdateDelete()
 			}
@@ -71,7 +77,7 @@ object DbContract {
 
 	class Notes : BaseColumns {
 		companion object {
-			private const val TABLE = "Notes"
+			const val TABLE = "Notes"
 			private const val COL_KEY = "noteKey"
 			private const val COL_KEY_SALT = "keySalt"
 			private const val COL_CONTENT = "noteContent"
@@ -90,6 +96,9 @@ object DbContract {
 							"$COMMON_MODF integer)"
 			const val SQL_DROP = "drop table if exists $TABLE"
 
+			/**
+			 * Select all notes.
+			 */
 			fun select(helper: SQLiteOpenHelper): List<NoteRecord> {
 				// Not using order-by in query because keys are encrypted as well
 				val cursor = helper.readableDatabase
@@ -110,8 +119,11 @@ object DbContract {
 				return result.sortedWith(compareBy { it.key }) // Sort here after decrypt
 			}
 
-			fun select(helper: SQLiteOpenHelper, pid: Long): String? {
-				val args = arrayOf(pid.toString())
+			/**
+			 * Select one note by its ID, returns only the content.
+			 */
+			fun select(helper: SQLiteOpenHelper, nid: Long): String? {
+				val args = arrayOf(nid.toString())
 				val cursor = helper.readableDatabase
 						.query(TABLE, COLUMNS, COMMON_PKEY, args, null, null, null)
 
@@ -149,8 +161,8 @@ object DbContract {
 				}
 			}
 
-			fun update(helper: SQLiteOpenHelper, rec: NoteRecord, content: String): Int {
-				val args = arrayOf(rec.pid.toString())
+			fun update(helper: SQLiteOpenHelper, nid: Long, content: String): Int {
+				val args = arrayOf(nid.toString())
 				val newRow = ContentValues().apply {
 					put(COL_CONTENT_SALT, "") // TODO Generate new salt
 					put(COL_CONTENT, content) // TODO Remember to encrypt it
@@ -159,8 +171,8 @@ object DbContract {
 				return helper.writableDatabase.update(TABLE, newRow, COMMON_PKEY, args)
 			}
 
-			fun delete(helper: SQLiteOpenHelper, rec: NoteRecord): Int {
-				val args = arrayOf(rec.pid.toString())
+			fun delete(helper: SQLiteOpenHelper, nid: Long): Int {
+				val args = arrayOf(nid.toString())
 				return helper.writableDatabase.delete(TABLE, COMMON_PKEY, args)
 			}
 		}
@@ -181,14 +193,16 @@ object DbContract {
 			const val SQL_DROP = "drop table if exists $TABLE"
 
 			private const val QUERY_JOIN =
-					"select nt.$PKEY, nt.$COL_NID, nt.$COL_TID, t.${Tags.COL_TAG_NAME}, nt.$COMMON_MODF" +
-					"  from $TABLE as nt inner join ${Tags.TABLE} as t" +
+					"select n.$PKEY,  nt.$COL_NID, nt.$COL_TID, t.${Tags.COL_TAG_NAME}, nt.$COMMON_MODF" +
+					"  from $TABLE as nt" +
+					" inner join ${Tags.TABLE} as t" +
+					" inner join ${Notes.TABLE} as n" +
 					"    on nt.$COL_TID = t.$PKEY" +
 					" where nt.$COL_NID = ?" +
 					" order by t.${Tags.COL_TAG_NAME}"
 
-			fun select(helper: SQLiteOpenHelper, rec: NoteRecord): NoteRecord {
-				val args = arrayOf(rec.pid.toString())
+			fun select(helper: SQLiteOpenHelper, nid: Long): NoteRecord {
+				val args = arrayOf(nid.toString())
 				val cursor = helper.readableDatabase.rawQuery(QUERY_JOIN, args)
 
 				val result = mutableListOf<TagRecord>()
