@@ -22,34 +22,32 @@ public class TagsAdaptor extends RecyclerView.Adapter<TagsAdaptor.ViewHolder> {
 
 	private RecyclerView recyclerView;
 
-	private List<Integer> selectedPos = new ArrayList<>();
-	final List<Integer> getSelectedPosition() {
-		List<Integer> ret = new ArrayList<>(selectedPos);
-		Collections.sort(ret);
-		return ret;
+	private List<Long> selectedIds = new ArrayList<>();
+	final List<Long> getSelectedTags() {
+		return new ArrayList<>(selectedIds);
+		//Collections.sort(ret);
+		//return ret;
 	}
-	public final void selectTag(int index) {
-		if ((index >= 0) && (index < getItemCount())) {
-			selectedPos.add(index);
-			callback.dataUpdated();
-			notifyDataSetChanged();
+	private boolean isSelected(int position) {
+		return (selectedIds.contains(dataset.get(position).getPid()));
+	}
+	public void selectTags(List<TagRecord> list) {
+		selectedIds.clear();
+		if (list != null) {
+			for (TagRecord tag : list) {
+				selectedIds.add(tag.getPid());
+			}
 		}
 	}
-	public void refreshSelection(List<Integer> sel) {
-		selectedPos.clear();
-		if (sel != null) selectedPos.addAll(sel);
-	}
-
-	private List<TagRecord> dataset;
-
-//	public final TagRecord getAdapterPositionRecord(int position) {
-//		ViewHolder holder = (ViewHolder) recyclerView.findViewHolderForAdapterPosition(position);
-//		if (holder != null) {
-//			return new TagRecord(holder.pid, holder.tag.getText().toString(), -1);
-//		} else {
-//			return null;
+//	public final void selectTag(int index) {
+//		if ((index >= 0) && (index < getItemCount())) {
+//			selectedPos.add(index);
+//			callback.dataUpdated();
+//			notifyDataSetChanged();
 //		}
 //	}
+
+	private List<TagRecord> dataset;
 
 	public TagsAdaptor(TagsAdaptor.Listener ctx) {
 		callback = ctx;
@@ -78,11 +76,11 @@ public class TagsAdaptor extends RecyclerView.Adapter<TagsAdaptor.ViewHolder> {
 			@Override
 			public void onClick(View v) {
 				if (!callback.isFiltered()) {
-					int pos = recyclerView.getChildLayoutPosition(v);
-					if (selectedPos.contains(pos)) {
-						selectedPos.remove(Integer.valueOf(pos));
+					int position = recyclerView.getChildLayoutPosition(v);
+					if (isSelected(position)) {
+						selectedIds.remove(position);
 					} else {
-						selectedPos.add(pos);
+						selectedIds.add(dataset.get(position).getPid());
 					}
 					callback.dataUpdated();
 					notifyDataSetChanged();
@@ -95,7 +93,7 @@ public class TagsAdaptor extends RecyclerView.Adapter<TagsAdaptor.ViewHolder> {
 
 	@Override
 	public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-		if (selectedPos.contains(position)) {
+		if (isSelected(position)) {
 			holder.itemView.setSelected(true);
 		} else {
 			holder.itemView.setSelected(false);

@@ -86,9 +86,12 @@ public class MainActivity extends AppCompatActivity implements
 				if (position >= 0) {
 					recycler.smoothScrollToPosition(position); // Scroll list to the selected row
 					NoteRecord record = ctxFrag.getAdaptor().getRecord(position);
-					if (record != null)
-						DetailFragment.getInstance(false, record, ((TextView) v).getText().toString())
-								.show(getSupportFragmentManager(), DetailFragment.TAG);
+					String content = ((TextView) v).getText().toString();
+					if (record != null) {
+						ctxFrag.getTagsAdaptor().selectTags(record.getTags());
+						ctxFrag.clearUpdated();
+						DetailFragment.getInstance(false, record, content).show(getSupportFragmentManager(), DetailFragment.TAG);
+					}
 				}
 			}
 		});
@@ -292,7 +295,7 @@ public class MainActivity extends AppCompatActivity implements
 	}
 
 	@Override
-	public void onSave(boolean isNew, String k, String c, List<Integer> t) {
+	public void onSave(boolean isNew, String k, String c, List<Long> t) {
 //		if (isNew) {
 //			ctxFrag.insertData(k, c, t);
 //		} else {

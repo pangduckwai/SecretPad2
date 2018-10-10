@@ -14,7 +14,6 @@ import org.sea9.android.secret.data.NoteRecord;
 import org.sea9.android.secret.data.TagRecord;
 import org.sea9.android.secret.details.TagsAdaptor;
 import org.sea9.android.secret.main.NotesAdaptor;
-import org.sea9.android.secret.main.NotesViewHolder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -82,11 +81,12 @@ public class ContextFragment extends Fragment
 	 */
 	private boolean updated = false;
 	public final boolean isUpdated() { return updated; }
+	public final void clearUpdated() {  updated = false; }
 	@Override public final void dataUpdated() { updated = true; }
 
 	public final void prepareAdd() {
 		updated = false;
-		tagsAdaptor.refreshSelection(null);
+//		tagsAdaptor.refreshSelection(null);
 		callback.onPrepareAddCompleted();
 	}
 

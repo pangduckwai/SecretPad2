@@ -207,7 +207,7 @@ object DbContract {
 			private const val QUERY_JOIN =
 					"select nt.$COL_NID, nt.$COL_TID, t.${Tags.COL_TAG_NAME}, nt.$COMMON_MODF" +
 					"  from $TABLE as nt" +
-					" inner join ${Tags.TABLE} as t on nt.$COL_NID = t.$PKEY" +
+					" inner join ${Tags.TABLE} as t on nt.$COL_TID = t.$PKEY" +
 					" where nt.$COL_NID = ?" +
 					" order by t.${Tags.COL_TAG_NAME}"
 

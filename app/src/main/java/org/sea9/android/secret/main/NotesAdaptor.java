@@ -142,9 +142,7 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 		List<TagRecord> tags = record.getTags();
 		if ((tags != null) && tags.size() > 0) {
 			StringBuilder buff = new StringBuilder(tags.get(0).getTag());
-			Log.w(TAG, "################ " + tags.get(0).getTag());
 			for (int i = 1; i < tags.size(); i ++) {
-				Log.w(TAG, "!!!!!!!!!!!!!!!! " + tags.get(i).getTag());
 				buff.append(SPACE).append(tags.get(i).getTag());
 			}
 			holder.tag.setText(buff.toString());

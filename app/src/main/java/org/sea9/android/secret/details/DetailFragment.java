@@ -131,7 +131,7 @@ public class DetailFragment extends DialogFragment implements ContextFragment.De
 				if ((ctxFrag != null) && ctxFrag.isUpdated() && (tagList.getAdapter() != null)) {
 					String k = (editKey.getText() != null) ? editKey.getText().toString() : EMPTY;
 					String c = (editCtn.getText() != null) ? editCtn.getText().toString() : EMPTY;
-					callback.onSave(isNew, k, c, ((TagsAdaptor) tagList.getAdapter()).getSelectedPosition());
+					callback.onSave(isNew, k, c, ((TagsAdaptor) tagList.getAdapter()).getSelectedTags());
 				}
 				dismiss();
 			}
@@ -149,6 +149,8 @@ public class DetailFragment extends DialogFragment implements ContextFragment.De
 		getDialog().setOnKeyListener(new DialogInterface.OnKeyListener() {
 			@Override
 			public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
+				if (event.getAction() != KeyEvent.ACTION_DOWN) return true;
+
 				if (keyCode == KeyEvent.KEYCODE_BACK) {
 					close();
 					return true;
@@ -185,13 +187,13 @@ public class DetailFragment extends DialogFragment implements ContextFragment.De
 					editTag.setEnabled(false);
 					bttnAdd.setEnabled(false);
 					bttnSav.setEnabled(false);
-					editCtn.setFilters(new InputFilter[] { new InputFilter() {
+					editCtn.setFilters(new InputFilter[]{new InputFilter() {
 						public CharSequence filter(CharSequence src, int start, int end, Spanned dst, int dstart, int dend) {
 							return dst.subSequence(dstart, dend);
 						}
 					}});
 				} else {
-					editCtn.setFilters(new InputFilter[] {});
+					editCtn.setFilters(new InputFilter[]{});
 				}
 			}
 		}
@@ -223,7 +225,7 @@ public class DetailFragment extends DialogFragment implements ContextFragment.De
 	 */
 	public interface Listener {
 		void onAdd(String t);
-		void onSave(boolean isNew, String k, String c, List<Integer> t);
+		void onSave(boolean isNew, String k, String c, List<Long> t);
 	}
 	private Listener callback;
 
