@@ -196,9 +196,11 @@ public class MainActivity extends AppCompatActivity implements
 			builder.setMessage(getString(R.string.msg_confirm_delete_tags));
 			builder.setPositiveButton(R.string.btn_okay, new DialogInterface.OnClickListener() {
 				@Override public void onClick(DialogInterface arg0, int arg1) {
-					Snackbar.make(recycler,
-							getString(ctxFrag.deleteTags() ? R.string.msg_delete_tags_okay : R.string.msg_delete_tags_fail),
-							Snackbar.LENGTH_LONG).show();
+					int del = ctxFrag.getTagsAdaptor().delete();
+					String msg = (del < 0) ?
+							getString(R.string.msg_delete_tags_fail) :
+							String.format(Locale.getDefault(), getString(R.string.msg_delete_tags_okay), Integer.toString(del));
+					Snackbar.make(recycler, msg, Snackbar.LENGTH_LONG).show();
 				}
 			});
 			builder.setNegativeButton(R.string.btn_cancel, new DialogInterface.OnClickListener() {

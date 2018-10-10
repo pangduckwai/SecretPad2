@@ -21,7 +21,7 @@
 	<string name="msg_discard_changes">Confirm to discard changes?</string>
 	<string name="msg_confirm_delete">Confirm to delete item %s?</string>
 	<string name="msg_confirm_delete_tags">Confirm to delete unused tags?</string>
-	<string name="msg_delete_tags_okay">Unused tags deleted successfully</string>
+	<string name="msg_delete_tags_okay">%s unused tags deleted successfully</string>
 	<string name="msg_delete_tags_fail">Delete unused tags failed</string>
 	<string name="msg_delete_tags_cancel">Delete unused tags Cancelled</string>
 	<string name="msg_filter_active">Function disabled, filter is active</string>
