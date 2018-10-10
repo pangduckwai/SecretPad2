@@ -1,5 +1,6 @@
 package org.sea9.android.secret.details;
 
+import android.database.SQLException;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -14,7 +15,6 @@ import org.sea9.android.secret.data.DbHelper;
 import org.sea9.android.secret.data.TagRecord;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class TagsAdaptor extends RecyclerView.Adapter<TagsAdaptor.ViewHolder> {
@@ -63,7 +63,7 @@ public class TagsAdaptor extends RecyclerView.Adapter<TagsAdaptor.ViewHolder> {
 		Log.d(TAG, "onAttachedToRecyclerView");
 		recyclerView = recycler;
 
-		onInit();
+		refresh();
 	}
 
 	@Override @NonNull
@@ -111,8 +111,47 @@ public class TagsAdaptor extends RecyclerView.Adapter<TagsAdaptor.ViewHolder> {
 	/*=====================================================================
 	 * Data access methods. TODO: maybe need to move to a separate thread?
 	 */
-	private void onInit() {
+	private void refresh() {
 		dataset = DbContract.Tags.Companion.select(callback.getDbHelper());
+	}
+
+	public final int create(String txt) {
+		List<Long> tags = DbContract.Tags.Companion.search(callback.getDbHelper(), txt);
+		long pid = -1;
+		if (tags.size() > 0) {
+			pid = tags.get(0);
+		} else {
+			TagRecord tag = DbContract.Tags.Companion.insert(callback.getDbHelper(), txt);
+			if (tag != null) {
+				pid = tag.getPid();
+			}
+			refresh();
+		}
+
+		int position = -1;
+		if (pid >= 0) {
+			for (int i = 0; i < dataset.size(); i ++) {
+				if (dataset.get(i).getPid() == pid) {
+					position = i;
+					break;
+				}
+			}
+
+			if ((position >= 0) && !isSelected(position)) { //Something wrong it position < 0...
+				selectedIds.add(pid);
+				callback.dataUpdated();
+			}
+			notifyDataSetChanged();
+		}
+		return position;
+	}
+
+	public final int delete() {
+		try {
+			return DbContract.Tags.Companion.delete(callback.getDbHelper());
+		} catch (SQLException e) {
+			return -1;
+		}
 	}
 	//=====================================================================
 

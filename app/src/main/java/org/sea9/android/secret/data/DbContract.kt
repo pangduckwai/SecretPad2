@@ -26,6 +26,9 @@ object DbContract {
 							"$COMMON_MODF integer)"
 			const val SQL_DROP = "drop table if exists $TABLE"
 
+			private const val QUERY_SEARCH =
+					"select $PKEY from $TABLE where $COL_TAG_NAME = ? COLLATE NOCASE"
+
 			private const val QUERY_DELETE =
 					"delete from $TABLE where $PKEY not in " +
 						"(select nt.${NoteTags.COL_TID} from ${NoteTags.TABLE} as nt inner join $TABLE as t on t.$PKEY = nt.${NoteTags.COL_TID})"
@@ -50,6 +53,22 @@ object DbContract {
 
 				cursor.close()
 				return result
+			}
+
+			fun search(helper: SQLiteOpenHelper, tagName: String): List<Long> {
+				val args = arrayOf(tagName)
+				val cursor = helper.readableDatabase.rawQuery(QUERY_SEARCH, args)
+
+				val ret = mutableListOf<Long>()
+				with(cursor) {
+					while (moveToNext()) {
+						val pid = getLong(getColumnIndexOrThrow(PKEY))
+						ret.add(pid)
+					}
+				}
+
+				cursor.close()
+				return ret
 			}
 
 			/**

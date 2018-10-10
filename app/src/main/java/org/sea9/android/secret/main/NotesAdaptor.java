@@ -91,7 +91,7 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 		Log.d(TAG, "onAttachedToRecyclerView");
 		recyclerView = recycler;
 
-		onInit();
+		refresh();
 	}
 
 	@Override @NonNull
@@ -158,7 +158,7 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 	/*=====================================================================
 	 * Data access methods. TODO: maybe need to move to a separate thread?
 	 */
-	private void onInit() {
+	private void refresh() {
 		dataset = DbContract.Notes.Companion.select(callback.getDbHelper());
 		for (NoteRecord record : dataset) {
 			List<TagRecord> tags = DbContract.NoteTags.Companion.select(callback.getDbHelper(), record.getPid());

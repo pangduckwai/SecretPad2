@@ -1,6 +1,5 @@
 package org.sea9.android.secret.main;
 
-import android.animation.LayoutTransition;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -19,7 +18,6 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.SearchView;
 import android.widget.TextView;
 
@@ -66,7 +64,9 @@ public class MainActivity extends AppCompatActivity implements
 			@Override
 			public void onClick(View view) {
 				if (!ctxFrag.isFiltered()) {
-					ctxFrag.prepareAdd();
+					ctxFrag.getTagsAdaptor().selectTags(null);
+					ctxFrag.clearUpdated();
+					DetailFragment.getInstance(true, null, null).show(getSupportFragmentManager(), DetailFragment.TAG);
 				} else {
 					Snackbar.make(view, getString(R.string.msg_filter_active), Snackbar.LENGTH_LONG).setAction("Action", null).show();
 				}
@@ -197,8 +197,7 @@ public class MainActivity extends AppCompatActivity implements
 			builder.setPositiveButton(R.string.btn_okay, new DialogInterface.OnClickListener() {
 				@Override public void onClick(DialogInterface arg0, int arg1) {
 					Snackbar.make(recycler,
-//							getString(ctxFrag.deleteTags() ? R.string.msg_delete_tags_okay : R.string.msg_delete_tags_fail),
-							"Hello :]", //TODO HERE!!!
+							getString(ctxFrag.deleteTags() ? R.string.msg_delete_tags_okay : R.string.msg_delete_tags_fail),
 							Snackbar.LENGTH_LONG).show();
 				}
 			});
@@ -247,10 +246,10 @@ public class MainActivity extends AppCompatActivity implements
 		fab.show();
 	}
 
-	@Override
-	public void onPrepareAddCompleted() {
-		DetailFragment.getInstance(true, null, null).show(getSupportFragmentManager(), DetailFragment.TAG);
-	}
+//	@Override
+//	public void onPrepareAddCompleted() {
+//		DetailFragment.getInstance(true, null, null).show(getSupportFragmentManager(), DetailFragment.TAG);
+//	}
 
 //	@Override
 //	public void onInsertDataCompleted(int position) {
@@ -291,7 +290,13 @@ public class MainActivity extends AppCompatActivity implements
 	 */
 	@Override
 	public void onAdd(String t) {
-//		ctxFrag.addTag(t);
+		int position = ctxFrag.getTagsAdaptor().create(t);
+		if (position >= 0) {
+			DetailFragment fragment = (DetailFragment) getSupportFragmentManager().findFragmentByTag(DetailFragment.TAG);
+			if (fragment != null) {
+				fragment.onTagAddCompleted(position);
+			}
+		}
 	}
 
 	@Override

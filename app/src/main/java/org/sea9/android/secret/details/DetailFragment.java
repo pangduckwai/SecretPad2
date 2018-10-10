@@ -30,7 +30,7 @@ import org.sea9.android.secret.data.NoteRecord;
 
 import java.util.List;
 
-public class DetailFragment extends DialogFragment implements ContextFragment.DetailListener {
+public class DetailFragment extends DialogFragment {//implements ContextFragment.DetailListener {
 	public static final String TAG = "secret.dialog_frag";
 	public static final String KEY = "secret.key";
 	public static final String CTN = "secret.content";
@@ -149,10 +149,8 @@ public class DetailFragment extends DialogFragment implements ContextFragment.De
 		getDialog().setOnKeyListener(new DialogInterface.OnKeyListener() {
 			@Override
 			public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
-				if (event.getAction() != KeyEvent.ACTION_DOWN) return true;
-
 				if (keyCode == KeyEvent.KEYCODE_BACK) {
-					close();
+					if (event.getAction() == KeyEvent.ACTION_UP) close();
 					return true;
 				} else {
 					return false;
@@ -181,7 +179,7 @@ public class DetailFragment extends DialogFragment implements ContextFragment.De
 			ctxFrag = (ContextFragment) manager.findFragmentByTag(ContextFragment.TAG);
 			if (ctxFrag != null) {
 				tagList.setAdapter(ctxFrag.getTagsAdaptor());
-				ctxFrag.setDetailListener(this);
+//				ctxFrag.setDetailListener(this);
 
 				if (ctxFrag.isFiltered()) {
 					editTag.setEnabled(false);
@@ -248,10 +246,6 @@ public class DetailFragment extends DialogFragment implements ContextFragment.De
 	}
 	//=========================================
 
-	/*=============================================================
-	 * @see org.sea9.android.secret.ContextFragment.DetailListener
-	 */
-	@Override
 	public void onTagAddCompleted(int position) {
 		editTag.setText(EMPTY);
 		tagList.smoothScrollToPosition(position);

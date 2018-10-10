@@ -84,11 +84,11 @@ public class ContextFragment extends Fragment
 	public final void clearUpdated() {  updated = false; }
 	@Override public final void dataUpdated() { updated = true; }
 
-	public final void prepareAdd() {
-		updated = false;
+//	public final void prepareAdd() {
+//		updated = false;
 //		tagsAdaptor.refreshSelection(null);
-		callback.onPrepareAddCompleted();
-	}
+//		callback.onPrepareAddCompleted();
+//	}
 
 	/*================================
 	 * @see android.widget.Filterable
@@ -185,7 +185,7 @@ public class ContextFragment extends Fragment
 	public interface Listener {
 		void onRowSelectionMade(String content);
 		void onRowSelectionCleared();
-		void onPrepareAddCompleted();
+//		void onPrepareAddCompleted();
 //		void onInsertDataCompleted(int position);
 //		void onUpdateDataCompleted(int position, String content);
 //		void onQueryDataCompleted(NoteRecord record);
@@ -212,13 +212,13 @@ public class ContextFragment extends Fragment
 	}
 	//=========================================
 
-	/*=========================================
-	 * Callback interface to the detail dialog
-	 */
-	public interface DetailListener {
-		void onTagAddCompleted(int position);
-	}
-	private DetailListener detailListener;
-	public final void setDetailListener(DetailListener listener) { detailListener = listener; }
-	//=========================================
+//	/*=========================================
+//	 * Callback interface to the detail dialog
+//	 */
+//	public interface DetailListener {
+//		void onTagAddCompleted(int position);
+//	}
+//	private DetailListener detailListener;
+//	public final void setDetailListener(DetailListener listener) { detailListener = listener; }
+//	//=========================================
 }
