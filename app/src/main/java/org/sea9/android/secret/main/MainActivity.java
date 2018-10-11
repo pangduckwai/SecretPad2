@@ -62,16 +62,13 @@ public class MainActivity extends AppCompatActivity implements
 		mainView = findViewById(R.id.main_view);
 
 		fab = findViewById(R.id.fab);
-		fab.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View view) {
-				if (!ctxFrag.isFiltered()) {
-					ctxFrag.getTagsAdaptor().selectTags(null);
-					ctxFrag.clearUpdated();
-					DetailFragment.getInstance(true, null, null).show(getSupportFragmentManager(), DetailFragment.TAG);
-				} else {
-					Snackbar.make(view, getString(R.string.msg_filter_active), Snackbar.LENGTH_LONG).setAction("Action", null).show();
-				}
+		fab.setOnClickListener(view -> {
+			if (!ctxFrag.isFiltered()) {
+				ctxFrag.getTagsAdaptor().selectTags(null);
+				ctxFrag.clearUpdated();
+				DetailFragment.getInstance(true, null, null).show(getSupportFragmentManager(), DetailFragment.TAG);
+			} else {
+				Snackbar.make(view, getString(R.string.msg_filter_active), Snackbar.LENGTH_LONG).setAction("Action", null).show();
 			}
 		});
 
@@ -81,19 +78,16 @@ public class MainActivity extends AppCompatActivity implements
 		recycler.setHasFixedSize(true); // improve performance since content changes do not affect layout size of the RecyclerView
 		recycler.setLayoutManager(new LinearLayoutManager(this)); // use a linear layout manager
 
-		content.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				int position = ctxFrag.getAdaptor().getSelectedPosition();
-				if (position >= 0) {
-					recycler.smoothScrollToPosition(position); // Scroll list to the selected row
-					NoteRecord record = ctxFrag.getAdaptor().getRecord(position);
-					String content = ((TextView) v).getText().toString();
-					if (record != null) {
-						ctxFrag.getTagsAdaptor().selectTags(record.getTags());
-						ctxFrag.clearUpdated();
-						DetailFragment.getInstance(false, record, content).show(getSupportFragmentManager(), DetailFragment.TAG);
-					}
+		content.setOnClickListener(view -> {
+			int position = ctxFrag.getAdaptor().getSelectedPosition();
+			if (position >= 0) {
+				recycler.smoothScrollToPosition(position); // Scroll list to the selected row
+				NoteRecord record = ctxFrag.getAdaptor().getRecord(position);
+				String content = ((TextView) view).getText().toString();
+				if (record != null) {
+					ctxFrag.getTagsAdaptor().selectTags(record.getTags());
+					ctxFrag.clearUpdated();
+					DetailFragment.getInstance(false, record, content).show(getSupportFragmentManager(), DetailFragment.TAG);
 				}
 			}
 		});
@@ -111,23 +105,20 @@ public class MainActivity extends AppCompatActivity implements
 				final int position = viewHolder.getAdapterPosition();
 
 				AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-				builder.setMessage(String.format(Locale.getDefault(),
-						getString(R.string.msg_confirm_delete), Integer.toString(position+1)));
-				builder.setPositiveButton(R.string.btn_okay, new DialogInterface.OnClickListener() {
-					@Override public void onClick(DialogInterface arg0, int arg1) {
-						Snackbar.make(recycler,
-								String.format(Locale.getDefault(),
-										//getString(ctxFrag.deleteData(position) ? R.string.msg_delete_okay : R.string.msg_delete_fail),
-										"Hello :P %s", //TODO HERE!!!
-										Integer.toString(position+1)),
-								Snackbar.LENGTH_LONG).show();
-					}
+				builder.setMessage(
+						String.format(Locale.getDefault(), getString(R.string.msg_confirm_delete), Integer.toString(position+1)));
+				builder.setPositiveButton(R.string.btn_okay, (dialog, which) -> {
+					int del = ctxFrag.getAdaptor().delete(position);
+					String msg = (del >= 0) ?
+							getString(R.string.msg_delete_okay) :
+							getString(R.string.msg_delete_fail);
+					Snackbar.make(recycler,
+							String.format(Locale.getDefault(), msg, Integer.toString(position+1)),
+							Snackbar.LENGTH_LONG).show();
 				});
-				builder.setNegativeButton(R.string.btn_cancel, new DialogInterface.OnClickListener() {
-					@Override public void onClick(DialogInterface arg0, int arg1) {
-						if (recycler.getAdapter() != null)
-							recycler.getAdapter().notifyDataSetChanged();
-					}
+				builder.setNegativeButton(R.string.btn_cancel, (dialog, which) -> {
+					if (recycler.getAdapter() != null)
+						recycler.getAdapter().notifyDataSetChanged();
 				});
 				(builder.create()).show();
 
@@ -173,11 +164,13 @@ public class MainActivity extends AppCompatActivity implements
 
 			LayoutTransition transit = new LayoutTransition();
 			transit.setDuration(LayoutTransition.CHANGE_APPEARING, 0);
-			((ViewGroup) searchView.findViewById(searchView.getContext().getResources().getIdentifier("android:id/search_bar", null, null)))
+			((ViewGroup) searchView.findViewById(searchView.getContext().getResources()
+					.getIdentifier("android:id/search_bar", null, null)))
 					.setLayoutTransition(transit);
 
-			searchView.findViewById(searchView.getContext().getResources().getIdentifier("android:id/search_close_btn", null, null))
-					.setOnClickListener(v -> {
+			searchView.findViewById(searchView.getContext().getResources()
+					.getIdentifier("android:id/search_close_btn", null, null))
+					.setOnClickListener(view -> {
 						searchView.setQuery(EMPTY, false);
 						searchView.setIconified(true);
 						ctxFrag.clearFilter();
@@ -193,20 +186,14 @@ public class MainActivity extends AppCompatActivity implements
 		case R.id.action_cleanup:
 			AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
 			builder.setMessage(getString(R.string.msg_confirm_delete_tags));
-			builder.setPositiveButton(R.string.btn_okay, new DialogInterface.OnClickListener() {
-				@Override public void onClick(DialogInterface arg0, int arg1) {
-					int del = ctxFrag.getTagsAdaptor().delete();
-					String msg = (del < 0) ?
-							getString(R.string.msg_delete_tags_fail) :
-							String.format(Locale.getDefault(), getString(R.string.msg_delete_tags_okay), Integer.toString(del));
-					Snackbar.make(recycler, msg, Snackbar.LENGTH_LONG).show();
-				}
+			builder.setPositiveButton(R.string.btn_okay, (dialog, which) -> {
+				int del = ctxFrag.getTagsAdaptor().delete();
+				String msg = (del < 0) ?
+						getString(R.string.msg_delete_tags_fail) :
+						String.format(Locale.getDefault(), getString(R.string.msg_delete_tags_okay), Integer.toString(del));
+				Snackbar.make(recycler, msg, Snackbar.LENGTH_LONG).show();
 			});
-			builder.setNegativeButton(R.string.btn_cancel, new DialogInterface.OnClickListener() {
-				@Override public void onClick(DialogInterface arg0, int arg1) {
-					Snackbar.make(recycler, getString(R.string.msg_delete_tags_cancel), Snackbar.LENGTH_LONG).show();
-				}
-			});
+			builder.setNegativeButton(R.string.btn_cancel, (dialog, which) -> Snackbar.make(recycler, getString(R.string.msg_delete_tags_cancel), Snackbar.LENGTH_LONG).show());
 			(builder.create()).show();
 			break;
 		case R.id.action_settings:

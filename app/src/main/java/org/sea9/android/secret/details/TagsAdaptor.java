@@ -25,8 +25,6 @@ public class TagsAdaptor extends RecyclerView.Adapter<TagsAdaptor.ViewHolder> {
 	private List<Long> selectedIds = new ArrayList<>();
 	final List<Long> getSelectedTags() {
 		return new ArrayList<>(selectedIds);
-		//Collections.sort(ret);
-		//return ret;
 	}
 	private boolean isSelected(int position) {
 		return (selectedIds.contains(dataset.get(position).getPid()));
@@ -39,13 +37,6 @@ public class TagsAdaptor extends RecyclerView.Adapter<TagsAdaptor.ViewHolder> {
 			}
 		}
 	}
-//	public final void selectTag(int index) {
-//		if ((index >= 0) && (index < getItemCount())) {
-//			selectedPos.add(index);
-//			callback.dataUpdated();
-//			notifyDataSetChanged();
-//		}
-//	}
 
 	private List<TagRecord> dataset;
 
@@ -72,19 +63,16 @@ public class TagsAdaptor extends RecyclerView.Adapter<TagsAdaptor.ViewHolder> {
 
 		TextView item = (TextView) LayoutInflater.from(parent.getContext()).inflate(R.layout.tag_item, parent, false);
 
-		item.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				if (!callback.isFiltered()) {
-					int position = recyclerView.getChildLayoutPosition(v);
-					if (isSelected(position)) {
-						selectedIds.remove(position);
-					} else {
-						selectedIds.add(dataset.get(position).getPid());
-					}
-					callback.dataUpdated();
-					notifyDataSetChanged();
+		item.setOnClickListener(view -> {
+			if (!callback.isFiltered()) {
+				int position = recyclerView.getChildLayoutPosition(view);
+				if (isSelected(position)) {
+					selectedIds.remove(position);
+				} else {
+					selectedIds.add(dataset.get(position).getPid());
 				}
+				callback.dataUpdated();
+				notifyDataSetChanged();
 			}
 		});
 
@@ -172,9 +160,6 @@ public class TagsAdaptor extends RecyclerView.Adapter<TagsAdaptor.ViewHolder> {
 	 */
 	public interface Listener {
 		DbHelper getDbHelper();
-//		TagRecord getTag(int position);
-//		int getTagsCount();
-//		void selectionChanged();
 		boolean isFiltered();
 		void dataUpdated();
 	}

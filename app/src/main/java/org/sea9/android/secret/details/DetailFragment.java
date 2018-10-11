@@ -1,7 +1,6 @@
 package org.sea9.android.secret.details;
 
 import android.content.Context;
-import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -13,7 +12,6 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.InputFilter;
-import android.text.Spanned;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -112,49 +110,35 @@ public class DetailFragment extends DialogFragment {//implements ContextFragment
 			}
 		});
 
-		bttnAdd.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				Editable e = editTag.getText();
-				if (e != null) {
-					String t = e.toString();
-					if (t.trim().length() > 0) {
-						callback.onAdd(t);
-					}
+		bttnAdd.setOnClickListener(v -> {
+			Editable e = editTag.getText();
+			if (e != null) {
+				String t = e.toString();
+				if (t.trim().length() > 0) {
+					callback.onAdd(t);
 				}
 			}
 		});
 
-		bttnSav.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				if ((ctxFrag != null) && ctxFrag.isUpdated() && (tagList.getAdapter() != null)) {
-					String k = (editKey.getText() != null) ? editKey.getText().toString() : EMPTY;
-					String c = (editCtn.getText() != null) ? editCtn.getText().toString() : EMPTY;
-					callback.onSave(isNew, k, c, ((TagsAdaptor) tagList.getAdapter()).getSelectedTags());
-				}
-				dismiss();
+		bttnSav.setOnClickListener(v -> {
+			if ((ctxFrag != null) && ctxFrag.isUpdated() && (tagList.getAdapter() != null)) {
+				String k = (editKey.getText() != null) ? editKey.getText().toString() : EMPTY;
+				String c = (editCtn.getText() != null) ? editCtn.getText().toString() : EMPTY;
+				callback.onSave(isNew, k, c, ((TagsAdaptor) tagList.getAdapter()).getSelectedTags());
 			}
+			dismiss();
 		});
 
-		view.findViewById(R.id.dtl_cancel).setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				close();
-			}
-		});
+		view.findViewById(R.id.dtl_cancel).setOnClickListener(v -> close());
 
 		Window w = getDialog().getWindow();
 		if (w != null) w.requestFeature(Window.FEATURE_NO_TITLE);
-		getDialog().setOnKeyListener(new DialogInterface.OnKeyListener() {
-			@Override
-			public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
-				if (keyCode == KeyEvent.KEYCODE_BACK) {
-					if (event.getAction() == KeyEvent.ACTION_UP) close();
-					return true;
-				} else {
-					return false;
-				}
+		getDialog().setOnKeyListener((dialog, keyCode, event) -> {
+			if (keyCode == KeyEvent.KEYCODE_BACK) {
+				if (event.getAction() == KeyEvent.ACTION_UP) close();
+				return true;
+			} else {
+				return false;
 			}
 		});
 
@@ -167,11 +151,7 @@ public class DetailFragment extends DialogFragment {//implements ContextFragment
 		Log.d(TAG, "onResume");
 
 		if (!isNew) {
-			editKey.setFilters(new InputFilter[] { new InputFilter() {
-				public CharSequence filter(CharSequence src, int start, int end, Spanned dst, int dstart, int dend) {
-					return dst.subSequence(dstart, dend);
-				}
-			}});
+			editKey.setFilters(new InputFilter[] {(src, start, end, dst, dstart, dend) -> dst.subSequence(dstart, dend)});
 		}
 
 		FragmentManager manager = getFragmentManager();
@@ -179,17 +159,12 @@ public class DetailFragment extends DialogFragment {//implements ContextFragment
 			ctxFrag = (ContextFragment) manager.findFragmentByTag(ContextFragment.TAG);
 			if (ctxFrag != null) {
 				tagList.setAdapter(ctxFrag.getTagsAdaptor());
-//				ctxFrag.setDetailListener(this);
 
 				if (ctxFrag.isFiltered()) {
 					editTag.setEnabled(false);
 					bttnAdd.setEnabled(false);
 					bttnSav.setEnabled(false);
-					editCtn.setFilters(new InputFilter[]{new InputFilter() {
-						public CharSequence filter(CharSequence src, int start, int end, Spanned dst, int dstart, int dend) {
-							return dst.subSequence(dstart, dend);
-						}
-					}});
+					editCtn.setFilters(new InputFilter[]{(src, start, end, dst, dstart, dend) -> dst.subSequence(dstart, dend)});
 				} else {
 					editCtn.setFilters(new InputFilter[]{});
 				}
@@ -203,14 +178,8 @@ public class DetailFragment extends DialogFragment {//implements ContextFragment
 			if (activity != null) {
 				AlertDialog.Builder builder = new AlertDialog.Builder(activity);
 				builder.setMessage(R.string.msg_discard_changes);
-				builder.setPositiveButton(R.string.btn_okay, new DialogInterface.OnClickListener() {
-					@Override public void onClick(DialogInterface arg0, int arg1) {
-						dismiss();
-					}
-				});
-				builder.setNegativeButton(R.string.btn_cancel, new DialogInterface.OnClickListener() {
-					@Override public void onClick(DialogInterface arg0, int arg1) { }
-				});
+				builder.setPositiveButton(R.string.btn_okay, (dialog, which) -> dismiss());
+				builder.setNegativeButton(R.string.btn_cancel, (dialog, which) -> { });
 				(builder.create()).show();
 			}
 		} else {

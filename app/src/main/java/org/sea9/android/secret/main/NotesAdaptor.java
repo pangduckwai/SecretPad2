@@ -125,25 +125,19 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 		View item = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_item, parent, false);
 
 		// Click listener
-		item.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View view) {
-				int position = recyclerView.getChildLayoutPosition(view);
-				if (position == selectedPos) {
-					clearSelection();
-				} else {
-					selectRow(position);
-				}
-				notifyDataSetChanged();
+		item.setOnClickListener(view -> {
+			int position = recyclerView.getChildLayoutPosition(view);
+			if (position == selectedPos) {
+				clearSelection();
+			} else {
+				selectRow(position);
 			}
+			notifyDataSetChanged();
 		});
 
-		item.setOnLongClickListener(new View.OnLongClickListener() {
-			@Override
-			public boolean onLongClick(View v) {
-				Snackbar.make(parent, "Long pressed...", Snackbar.LENGTH_LONG).show(); //TODO TEMP
-				return false;
-			}
+		item.setOnLongClickListener(view -> {
+			Snackbar.make(parent, "Long pressed...", Snackbar.LENGTH_LONG).show(); //TODO TEMP
+			return false;
 		});
 
 		return new ViewHolder(item);
@@ -187,14 +181,23 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 		}
 	}
 
+	public int delete(int position) {
+		if ((position >= 0) && (position < dataset.size())) {
+			return DbContract.Notes.Companion.delete(callback.getDbHelper(), dataset.get(position).getPid());
+		}
+		return -1;
+	}
+
 	/**
 	 * Retrieve detail of the selected row.
 	 * @param position position selected on the recyclerView.
 	 */
 	public void onRowSelected(int position) {
-		String content = DbContract.Notes.Companion.select(callback.getDbHelper(), dataset.get(position).getPid());
-		if (content != null) {
-			callback.updateContent(content);
+		if ((position >= 0) && (position < dataset.size())) {
+			String content = DbContract.Notes.Companion.select(callback.getDbHelper(), dataset.get(position).getPid());
+			if (content != null) {
+				callback.updateContent(content);
+			}
 		}
 	}
 	//=====================================================================
