@@ -8,23 +8,16 @@ import android.util.Log;
 import android.widget.Filter;
 import android.widget.Filterable;
 
-import org.sea9.android.secret.data.DbContract;
 import org.sea9.android.secret.data.DbHelper;
 import org.sea9.android.secret.data.NoteRecord;
-import org.sea9.android.secret.data.TagRecord;
 import org.sea9.android.secret.details.TagsAdaptor;
 import org.sea9.android.secret.main.NotesAdaptor;
 
-import java.util.ArrayList;
-import java.util.List;
-
-public class ContextFragment extends Fragment
-		implements
+public class ContextFragment extends Fragment implements
 		NotesAdaptor.Listener,
-		TagsAdaptor.Listener
-//		Filterable,
-//		Filter.FilterListener
-{
+		TagsAdaptor.Listener,
+		Filterable,
+		Filter.FilterListener {
 	public static final String TAG = "secret.ctx_frag";
 	private static final String EMPTY = "";
 
@@ -54,7 +47,11 @@ public class ContextFragment extends Fragment
 
 		adaptor = new NotesAdaptor(this);
 		tagsAdaptor = new TagsAdaptor(this);
-		test();
+
+		updated = false;
+		filtered = false;
+
+		test(); //TODO remove
 	}
 
 	@Override
@@ -65,25 +62,20 @@ public class ContextFragment extends Fragment
 		super.onDestroy();
 	}
 
-//	public final void clearSelection() {
-//		adaptor.clearSelection();
-//		clearRvRow();
-//	}
-
 	//TODO TEMP >>>>>>>>>>>>
 	private void test() {
 		new org.sea9.android.secret.data.DbTest(getContext(), this, dbHelper, false);
 	}
 	//TODO TEMP <<<<<<<<<<<<
 
-	/*=======================================================
-	 * Data maintenance APIs - query, insert, update, delete
-	 */
-	private boolean updated = false;
+	private boolean updated;
 	public final boolean isUpdated() { return updated; }
 	public final void clearUpdated() {  updated = false; }
 	@Override public final void dataUpdated() { updated = true; }
 
+	/*=======================================================
+	 * Data maintenance APIs - query, insert, update, delete
+	 */
 //	public final void prepareAdd() {
 //		updated = false;
 //		tagsAdaptor.refreshSelection(null);
@@ -93,85 +85,64 @@ public class ContextFragment extends Fragment
 	/*================================
 	 * @see android.widget.Filterable
 	 */
-//	private List<NoteRecord> getData() {
-//		if (filteredList == null) {
-//			return dataList;
-//		} else {
-//			return filteredList;
-//		}
-//	}
+	private boolean filtered;
+
 	@Override public boolean isFiltered() {
-//		return (filteredList != null);
-		return false;
+		return filtered;
 	}
-//	public void applyFilter(String query) {
-//		getFilter().filter(query, this);
-//	}
-//	@Override
-//	public void onFilterComplete(int count) {
-//		adaptor.notifyDataSetChanged();
-//	}
-//	public void clearFilter() {
-//		if (filteredList != null) {
-//			int idx = -1, pos = getAdaptor().getSelectedPosition();
-//			if (pos >= 0) {
-//				String k = filteredList.get(pos).getKey();
-//				for (int i = 0; i < dataList.size(); i ++) {
-//					if (k.equals(dataList.get(i).getKey())) {
-//						adaptor.selectRow(i);
-//						idx = i;
-//						break;
-//					}
-//				}
-//			}
-//			filteredList.clear();
-//			filteredList = null;
-//			adaptor.notifyDataSetChanged();
-//			callback.onFilterCleared(idx);
-//		}
-//	}
-//
-//	@Override @SuppressWarnings("unchecked")
-//	public Filter getFilter() {
-//		return new Filter() {
-//			@Override
-//			protected FilterResults performFiltering(CharSequence constraint) {
-//				FilterResults results = new FilterResults();
-//				String query = constraint.toString().trim().toLowerCase();
-////				if (query.length() <= 0) {
-////					results.values = dataList;
-////				} else {
-////					List<NoteRecord> rslt = new ArrayList<>();
-////					for (NoteRecord item : dataList) {
-////						// Contents stay encrypted, so cannot be searched, keys are decrypted into memory
-////						if (item.getKey().toLowerCase().contains(query)) {
-////							rslt.add(item);
-////						} else {
-////							for (Long tag : item.getTags()) {
-////								if (tagList.get(tag).getTag().toLowerCase().contains(query)) {
-////									rslt.add(item);
-////									break;
-////								}
-////							}
-////						}
-////					}
-////					results.values = rslt;
-////				}
-//				return results;
-//			}
-//
-//			@Override
-//			protected void publishResults(CharSequence constraint, FilterResults results) {
-//				filteredList = (List<NoteRecord>) results.values;
-//			}
-//		};
-//	}
+
+	@Override
+	public void onFilterComplete(int count) {
+		adaptor.notifyDataSetChanged();
+	}
+
+	public void applyFilter(String query) {
+		getFilter().filter(query, this);
+	}
+
+	public void clearFilter() {
+		if (isFiltered()) {
+			NoteRecord r = null;
+			int pos = adaptor.getSelectedPosition();
+			if (pos >= 0) r = adaptor.getRecord(pos);
+
+			filtered = false;
+			adaptor.refresh();
+			adaptor.notifyDataSetChanged();
+			if (r != null) {
+				callback.onFilterCleared(adaptor.selectRow(r.getKey()));
+			}
+		}
+	}
+
+	@Override @SuppressWarnings("unchecked")
+	public Filter getFilter() {
+		return new Filter() {
+			@Override
+			protected FilterResults performFiltering(CharSequence constraint) {
+				FilterResults results = new FilterResults();
+				String query = constraint.toString().trim().toLowerCase();
+				if (query.length() <= 0) {
+					results.values = EMPTY;
+				} else {
+					results.values = query;
+				}
+				return results;
+			}
+
+			@Override
+			protected void publishResults(CharSequence constraint, FilterResults results) {
+				adaptor.filterRecord((String) results.values);
+				filtered = true;
+			}
+		};
+	}
 	//================================
 
 	/*================================================
 	 * @see org.sea9.android.secret.main.NotesAdaptor
 	 */
-	public void selectRvRow(String content) {
+	public void updateContent(String content) {
 		if (content != null)
 			callback.onRowSelectionMade(content);
 		else
@@ -189,7 +160,7 @@ public class ContextFragment extends Fragment
 //		void onInsertDataCompleted(int position);
 //		void onUpdateDataCompleted(int position, String content);
 //		void onQueryDataCompleted(NoteRecord record);
-//		void onFilterCleared(int position);
+		void onFilterCleared(int position);
 	}
 	private Listener callback;
 

@@ -1,5 +1,6 @@
 package org.sea9.android.secret.main;
 
+import android.animation.LayoutTransition;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -18,6 +19,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.SearchView;
 import android.widget.TextView;
 
@@ -150,7 +152,7 @@ public class MainActivity extends AppCompatActivity implements
 		int pos = ctxFrag.getAdaptor().getSelectedPosition();
 		if (pos >= 0) {
 			recycler.smoothScrollToPosition(pos); // Scroll list to the selected row
-			ctxFrag.getAdaptor().onSelectRvRow(pos);
+			ctxFrag.getAdaptor().onRowSelected(pos);
 		}
 	}
 
@@ -166,23 +168,20 @@ public class MainActivity extends AppCompatActivity implements
 
 		SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
 		if (searchManager != null) {
-//			searchView = (SearchView) menu.findItem(R.id.menu_search).getActionView();
-//			searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
-//
-//			LayoutTransition transit = new LayoutTransition();
-//			transit.setDuration(LayoutTransition.CHANGE_APPEARING, 0);
-//			((ViewGroup) searchView.findViewById(searchView.getContext().getResources().getIdentifier("android:id/search_bar", null, null)))
-//					.setLayoutTransition(transit);
+			searchView = (SearchView) menu.findItem(R.id.menu_search).getActionView();
+			searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
 
-//			searchView.findViewById(searchView.getContext().getResources().getIdentifier("android:id/search_close_btn", null, null))
-//					.setOnClickListener(new View.OnClickListener() {
-//						@Override
-//						public void onClick(View v) {
-//							searchView.setQuery(EMPTY, false);
-//							searchView.setIconified(true);
-//							ctxFrag.clearFilter();
-//						}
-//					});
+			LayoutTransition transit = new LayoutTransition();
+			transit.setDuration(LayoutTransition.CHANGE_APPEARING, 0);
+			((ViewGroup) searchView.findViewById(searchView.getContext().getResources().getIdentifier("android:id/search_bar", null, null)))
+					.setLayoutTransition(transit);
+
+			searchView.findViewById(searchView.getContext().getResources().getIdentifier("android:id/search_close_btn", null, null))
+					.setOnClickListener(v -> {
+						searchView.setQuery(EMPTY, false);
+						searchView.setIconified(true);
+						ctxFrag.clearFilter();
+					});
 		}
 
 		return true;
@@ -222,15 +221,15 @@ public class MainActivity extends AppCompatActivity implements
 	}
 
 	private void handleIntent(Intent intent) {
-//		if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
-//			String query = intent.getStringExtra(SearchManager.QUERY);
-//			if (query != null) {
-//				ctxFrag.applyFilter(query);
-//			}
-//			ctxFrag.clearSelection();
-//			mainView.requestFocus();
-//
-//		}
+		if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
+			String query = intent.getStringExtra(SearchManager.QUERY);
+			if (query != null) {
+				ctxFrag.applyFilter(query);
+			}
+			ctxFrag.getAdaptor().clearSelection();
+			mainView.requestFocus();
+
+		}
 	}
 
 	/*=======================================================
@@ -281,10 +280,10 @@ public class MainActivity extends AppCompatActivity implements
 //		DetailFragment.getInstance(false, record).show(getSupportFragmentManager(), DetailFragment.TAG);
 //	}
 
-//	@Override
-//	public void onFilterCleared(int position) {
-//		if (position >= 0) recycler.smoothScrollToPosition(position);
-//	}
+	@Override
+	public void onFilterCleared(int position) {
+		if (position >= 0) recycler.smoothScrollToPosition(position);
+	}
 	//=======================================================
 
 	/*==============================================================

@@ -99,7 +99,7 @@ object DbContract {
 
 	class Notes : BaseColumns {
 		companion object {
-			const val TABLE = "Notes"
+			private const val TABLE = "Notes"
 			private const val COL_KEY = "noteKey"
 			private const val COL_KEY_SALT = "keySalt"
 			private const val COL_CONTENT = "noteContent"
@@ -223,7 +223,7 @@ object DbContract {
 							"$COMMON_MODF integer)"
 			const val SQL_DROP = "drop table if exists $TABLE"
 
-			private const val QUERY_JOIN =
+			private const val QUERY_CONTENT =
 					"select nt.$COL_NID, nt.$COL_TID, t.${Tags.COL_TAG_NAME}, nt.$COMMON_MODF" +
 					"  from $TABLE as nt" +
 					" inner join ${Tags.TABLE} as t on nt.$COL_TID = t.$PKEY" +
@@ -235,7 +235,7 @@ object DbContract {
 			 */
 			fun select(helper: SQLiteOpenHelper, nid: Long): List<TagRecord> {
 				val args = arrayOf(nid.toString())
-				val cursor = helper.readableDatabase.rawQuery(QUERY_JOIN, args)
+				val cursor = helper.readableDatabase.rawQuery(QUERY_CONTENT, args)
 
 				val result = mutableListOf<TagRecord>()
 				with(cursor) {

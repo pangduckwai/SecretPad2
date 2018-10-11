@@ -41,7 +41,7 @@ public class DbTest {
 			tags[4] = DbContract.Tags.Companion.insert(dbHelper, "TEN");
 		}
 
-		NoteRecord notes[] = new NoteRecord[5];
+		NoteRecord notes[] = new NoteRecord[15];
 		cnt = DatabaseUtils.queryNumEntries(dbHelper.getReadableDatabase(), "Notes");
 		if (cnt > 0) {
 			Log.w("secret.db_test", "Number of records in Notes: " + cnt);
@@ -51,6 +51,16 @@ public class DbTest {
 			notes[2] = DbContract.Notes.Companion.insert(dbHelper, "K0001", "NOTE0001");
 			notes[3] = DbContract.Notes.Companion.insert(dbHelper, "K0004", "NOTE0004");
 			notes[4] = DbContract.Notes.Companion.insert(dbHelper, "K0002", "NOTE0002");
+			notes[5] = DbContract.Notes.Companion.insert(dbHelper, "K0007", "NOTE0007");
+			notes[6] = DbContract.Notes.Companion.insert(dbHelper, "K0008", "NOTE0008");
+			notes[7] = DbContract.Notes.Companion.insert(dbHelper, "K0006", "NOTE0006");
+			notes[8] = DbContract.Notes.Companion.insert(dbHelper, "K0010", "NOTE0010");
+			notes[9] = DbContract.Notes.Companion.insert(dbHelper, "K0009", "NOTE0009");
+			notes[10] = DbContract.Notes.Companion.insert(dbHelper, "K0015", "NOTE0015");
+			notes[11] = DbContract.Notes.Companion.insert(dbHelper, "K0014", "NOTE0014");
+			notes[12] = DbContract.Notes.Companion.insert(dbHelper, "K0013", "NOTE0013");
+			notes[13] = DbContract.Notes.Companion.insert(dbHelper, "K0012", "NOTE0012");
+			notes[14] = DbContract.Notes.Companion.insert(dbHelper, "K0011", "NOTE0011");
 		}
 
 		cnt = DatabaseUtils.queryNumEntries(dbHelper.getReadableDatabase(), "NoteTags");
@@ -65,8 +75,28 @@ public class DbTest {
 			DbContract.NoteTags.Companion.insert(dbHelper, notes[2].getPid(), tags[0].getPid());
 			DbContract.NoteTags.Companion.insert(dbHelper, notes[3].getPid(), tags[1].getPid());
 			DbContract.NoteTags.Companion.insert(dbHelper, notes[3].getPid(), tags[2].getPid());
+			DbContract.NoteTags.Companion.insert(dbHelper, notes[4].getPid(), tags[3].getPid());
 			DbContract.NoteTags.Companion.insert(dbHelper, notes[4].getPid(), tags[4].getPid());
-			DbContract.NoteTags.Companion.insert(dbHelper, notes[4].getPid(), tags[0].getPid());
+			DbContract.NoteTags.Companion.insert(dbHelper, notes[5].getPid(), tags[0].getPid());
+			DbContract.NoteTags.Companion.insert(dbHelper, notes[5].getPid(), tags[1].getPid());
+			DbContract.NoteTags.Companion.insert(dbHelper, notes[6].getPid(), tags[2].getPid());
+			DbContract.NoteTags.Companion.insert(dbHelper, notes[6].getPid(), tags[3].getPid());
+			DbContract.NoteTags.Companion.insert(dbHelper, notes[7].getPid(), tags[4].getPid());
+			DbContract.NoteTags.Companion.insert(dbHelper, notes[7].getPid(), tags[0].getPid());
+			DbContract.NoteTags.Companion.insert(dbHelper, notes[8].getPid(), tags[1].getPid());
+			DbContract.NoteTags.Companion.insert(dbHelper, notes[8].getPid(), tags[2].getPid());
+			DbContract.NoteTags.Companion.insert(dbHelper, notes[9].getPid(), tags[3].getPid());
+			DbContract.NoteTags.Companion.insert(dbHelper, notes[9].getPid(), tags[4].getPid());
+			DbContract.NoteTags.Companion.insert(dbHelper, notes[10].getPid(), tags[0].getPid());
+			DbContract.NoteTags.Companion.insert(dbHelper, notes[10].getPid(), tags[1].getPid());
+			DbContract.NoteTags.Companion.insert(dbHelper, notes[11].getPid(), tags[2].getPid());
+			DbContract.NoteTags.Companion.insert(dbHelper, notes[11].getPid(), tags[3].getPid());
+			DbContract.NoteTags.Companion.insert(dbHelper, notes[12].getPid(), tags[4].getPid());
+			DbContract.NoteTags.Companion.insert(dbHelper, notes[12].getPid(), tags[0].getPid());
+			DbContract.NoteTags.Companion.insert(dbHelper, notes[13].getPid(), tags[1].getPid());
+			DbContract.NoteTags.Companion.insert(dbHelper, notes[13].getPid(), tags[2].getPid());
+			DbContract.NoteTags.Companion.insert(dbHelper, notes[14].getPid(), tags[3].getPid());
+			DbContract.NoteTags.Companion.insert(dbHelper, notes[14].getPid(), tags[4].getPid());
 		}
 	}
 

@@ -17,6 +17,7 @@ import org.sea9.android.secret.data.TagRecord;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> {
 	private static final String TAG = "secret.list_adaptor";
@@ -29,13 +30,26 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 		return (selectedPos == position);
 	}
 	public final int getSelectedPosition() { return selectedPos; }
-//	public final void clearSelection() {
-//		selectedPos = -1;
-//		callback.clearRvRow();
-//	}
-//	public final void selectRow(int position) {
-//		selectedPos = position;
-//	}
+	public final void clearSelection() {
+		selectedPos = -1;
+		callback.updateContent(null);
+	}
+
+	public final void selectRow(int position) {
+		selectedPos = position;
+		onRowSelected(position);
+	}
+	public final int selectRow(String key) {
+		int idx = -1;
+		for (int i = 0; i < dataset.size(); i ++) {
+			if (key.equals(dataset.get(i).getKey())) {
+				selectRow(i);
+				idx = i;
+				break;
+			}
+		}
+		return idx;
+	}
 
 	private List<NoteRecord> dataset;
 	public final NoteRecord getRecord(int position) {
@@ -44,15 +58,24 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 		else
 			return null;
 	}
+	public final void filterRecord(String query) {
+		refresh();
 
-//	public final long getAdapterPositionId(int position) {
-//		NotesViewHolder holder = (NotesViewHolder) recyclerView.findViewHolderForAdapterPosition(position);
-//		if (holder != null) {
-//			return holder.pid;
-//		} else {
-//			return -1;
-//		}
-//	}
+		// Do this since using removeif() got an UnsupportedOperationException
+		List<NoteRecord> filtered = dataset.stream().filter(p -> {
+			if (p.getKey().toLowerCase().contains(query)) {
+				return true;
+			} else if (p.getTags() != null) {
+				for (TagRecord tag : p.getTags()) {
+					if (tag.getTag().toLowerCase().contains(query)) return true;
+				}
+			}
+			return false;
+		}).collect(Collectors.toList());
+		if (filtered != null) {
+			dataset = filtered;
+		}
+	}
 
 	/*
 	 * Call notify the recyclerView for the newly inserted row, remember the current row, and
@@ -64,7 +87,7 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 //		if (position >= 0) {
 //			notifyItemInserted(position);
 //			selectedPos = position;
-//			callback.selectRvRow(position);
+//			callback.updateContent(position);
 //		}
 //	}
 //
@@ -107,11 +130,9 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 			public void onClick(View view) {
 				int position = recyclerView.getChildLayoutPosition(view);
 				if (position == selectedPos) {
-					selectedPos = -1;
-					callback.selectRvRow(null);
+					clearSelection();
 				} else {
-					selectedPos = position;
-					onSelectRvRow(position);
+					selectRow(position);
 				}
 				notifyDataSetChanged();
 			}
@@ -158,7 +179,7 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 	/*=====================================================================
 	 * Data access methods. TODO: maybe need to move to a separate thread?
 	 */
-	private void refresh() {
+	public void refresh() {
 		dataset = DbContract.Notes.Companion.select(callback.getDbHelper());
 		for (NoteRecord record : dataset) {
 			List<TagRecord> tags = DbContract.NoteTags.Companion.select(callback.getDbHelper(), record.getPid());
@@ -166,10 +187,14 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 		}
 	}
 
-	public void onSelectRvRow(int position) {
+	/**
+	 * Retrieve detail of the selected row.
+	 * @param position position selected on the recyclerView.
+	 */
+	public void onRowSelected(int position) {
 		String content = DbContract.Notes.Companion.select(callback.getDbHelper(), dataset.get(position).getPid());
 		if (content != null) {
-			callback.selectRvRow(content);
+			callback.updateContent(content);
 		}
 	}
 	//=====================================================================
@@ -178,8 +203,8 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 	 * View holder
 	 */
 	static class ViewHolder extends RecyclerView.ViewHolder {
-		public TextView key;
-		public TextView tag;
+		TextView key;
+		TextView tag;
 		ViewHolder(View v) {
 			super(v);
 			key = v.findViewById(R.id.item_name);
@@ -192,11 +217,8 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 	 * Callback interface to the context fragment
 	 */
 	public interface Listener {
-//		void retrieveRvData();
-//		int getRvItemCount();
-//		void populateRv(ViewHolder holder, int position);
 		DbHelper getDbHelper();
-		void selectRvRow(String content);
+		void updateContent(String content);
 	}
 	private Listener callback;
 }
