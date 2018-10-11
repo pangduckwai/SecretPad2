@@ -16,6 +16,7 @@ object DbContract {
 		companion object {
 			const val TABLE = "Tags"
 			const val COL_TAG_NAME = "tagName"
+			private const val IDX_TAG = "idxTag"
 
 			private val COLUMNS = arrayOf(PKEY, COL_TAG_NAME, COMMON_MODF)
 
@@ -24,7 +25,9 @@ object DbContract {
 							"$PKEY integer primary key autoincrement," +
 							"$COL_TAG_NAME text not null," +
 							"$COMMON_MODF integer)"
+			const val SQL_CREATE_IDX = "create unique index $IDX_TAG on $TABLE ($COL_TAG_NAME)"
 			const val SQL_DROP = "drop table if exists $TABLE"
+			const val SQL_DROP_IDX = "drop index if exists $IDX_TAG"
 
 			private const val QUERY_SEARCH =
 					"select $PKEY from $TABLE where $COL_TAG_NAME = ? COLLATE NOCASE"

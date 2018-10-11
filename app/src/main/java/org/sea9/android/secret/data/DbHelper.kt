@@ -14,6 +14,7 @@ class DbHelper(context: Context): SQLiteOpenHelper(context, DB_NAME, null, DB_VE
 
 	override fun onCreate(db: SQLiteDatabase) {
 		db.execSQL(DbContract.Tags.SQL_CREATE)
+		db.execSQL(DbContract.Tags.SQL_CREATE_IDX)
 		db.execSQL(DbContract.Notes.SQL_CREATE)
 		db.execSQL(DbContract.NoteTags.SQL_CREATE)
 	}
@@ -22,6 +23,7 @@ class DbHelper(context: Context): SQLiteOpenHelper(context, DB_NAME, null, DB_VE
 		Log.i(TAG, "Upgrading database from version $oldVersion to $newVersion, which will destroy all old data")
 		db.execSQL(DbContract.NoteTags.SQL_DROP)
 		db.execSQL(DbContract.Notes.SQL_DROP)
+		db.execSQL(DbContract.Tags.SQL_DROP_IDX)
 		db.execSQL(DbContract.Tags.SQL_DROP)
 		onCreate(db)
 	}

@@ -7,19 +7,21 @@ import android.util.Log;
 
 import org.sea9.android.secret.ContextFragment;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class DbTest {
-	public DbTest(Context context, ContextFragment ctxFrag, DbHelper helper, boolean cleanUp) {
+//	public DbTest() {
+//
+//	}
+
+	public void run(Context context, ContextFragment ctxFrag, DbHelper helper, boolean cleanUp) {
 		prepare(helper);
-		test(helper);
-//		test1(ctxFrag);
+		test0(helper);
+		test1(helper);
 //		test2(helper);
 //		test3(helper);
 //		test4(helper);
 //		test2(helper);
-//		test1(ctxFrag);
 		if (cleanUp) {
 			helper.getWritableDatabase().execSQL(DbContract.NoteTags.SQL_DROP);
 			helper.getWritableDatabase().execSQL(DbContract.Notes.SQL_DROP);
@@ -107,7 +109,7 @@ public class DbTest {
 		if (context != null) context.deleteDatabase("Secret.db");
 	}
 
-	private void test(DbHelper helper) {
+	private void test0(DbHelper helper) {
 		String SQL =
 				"select n.noteKey, n.noteContent, t.tagName" +
 				"  from NoteTags as nt" +
@@ -129,30 +131,16 @@ public class DbTest {
 			builder.append('\n');
 		}
 		cursor.close();
-		Log.w("secret.db_test", builder.toString());
+		Log.w("secret.db_test0", builder.toString());
 	}
 
-//	private void test0(ContextFragment ctxFrag) {
-//		List<Integer> tags = new ArrayList<>();
-//		tags.add(1);
-//		NoteRecord x = ctxFrag.createNote("K9001", "NOTE9001", tags);
-//		Log.w("secret.db_test0", x.getPid() + " " + x.getKey());
-//	}
-//
-//	private void test1(ContextFragment ctxFrag) {
-//		List<NoteRecord> list = ctxFrag.retrieveNotes();
-//		StringBuilder builder = new StringBuilder("x");
-//		builder.append('\n');
-//		for (NoteRecord rec : list) {
-//			builder.append(rec.getKey()).append('\t');
-//			for (Long tag : rec.getTags()) {
-//				builder.append(tag).append('/');
-//			}
-//			builder.append('\n');
-//		}
-//		builder.append("\n").append(list.get(0).getKey()).append('\t').append(ctxFrag.retrieveNote(list.get(0)));
-//		Log.w("secret.db_test1", builder.toString());
-//	}
+	private void test1(DbHelper helper) {
+		try {
+			TagRecord dup = DbContract.Tags.Companion.insert(helper, "NINE");
+		} catch (RuntimeException e) {
+			Log.w("secret.db_test1", e.getMessage());
+		}
+	}
 
 	private void test2(DbHelper helper) {
 		Log.w("secret.db_test2", "Deleted " + DbContract.Tags.Companion.delete(helper) + " rows");

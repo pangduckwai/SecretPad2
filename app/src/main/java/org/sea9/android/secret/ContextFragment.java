@@ -64,7 +64,7 @@ public class ContextFragment extends Fragment implements
 
 	//TODO TEMP >>>>>>>>>>>>
 	private void test() {
-		new org.sea9.android.secret.data.DbTest(getContext(), this, dbHelper, false);
+		(new org.sea9.android.secret.data.DbTest()).run(getContext(), this, dbHelper, false);
 	}
 	//TODO TEMP <<<<<<<<<<<<
 

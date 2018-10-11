@@ -182,9 +182,9 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 	}
 
 	public int delete(int position) {
-		if ((position >= 0) && (position < dataset.size())) {
-			return DbContract.Notes.Companion.delete(callback.getDbHelper(), dataset.get(position).getPid());
-		}
+//		if ((position >= 0) && (position < dataset.size())) {
+//			return DbContract.Notes.Companion.delete(callback.getDbHelper(), dataset.get(position).getPid());
+//		}
 		return -1;
 	}
 
