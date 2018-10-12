@@ -11,6 +11,7 @@ object DbContract {
 	const val PKEY = BaseColumns._ID
 	const val COMMON_MODF = "modified"
 	const val COMMON_PKEY = "$PKEY = ?"
+	const val SQL_CONFIG = "PRAGMA foreign_keys=ON"
 
 	class Tags : BaseColumns {
 		companion object {
@@ -22,19 +23,19 @@ object DbContract {
 
 			const val SQL_CREATE =
 					"create table $TABLE (" +
-							"$PKEY integer primary key autoincrement," +
-							"$COL_TAG_NAME text not null," +
-							"$COMMON_MODF integer)"
+					"$PKEY integer primary key autoincrement," +
+					"$COL_TAG_NAME text not null COLLATE NOCASE," +
+					"$COMMON_MODF integer)"
 			const val SQL_CREATE_IDX = "create unique index $IDX_TAG on $TABLE ($COL_TAG_NAME)"
 			const val SQL_DROP = "drop table if exists $TABLE"
 			const val SQL_DROP_IDX = "drop index if exists $IDX_TAG"
 
 			private const val QUERY_SEARCH =
-					"select $PKEY from $TABLE where $COL_TAG_NAME = ? COLLATE NOCASE"
+					"select $PKEY from $TABLE where $COL_TAG_NAME = ?"
 
 			private const val QUERY_DELETE =
 					"delete from $TABLE where $PKEY not in " +
-						"(select nt.${NoteTags.COL_TID} from ${NoteTags.TABLE} as nt inner join $TABLE as t on t.$PKEY = nt.${NoteTags.COL_TID})"
+					"(select nt.${NoteTags.COL_TID} from ${NoteTags.TABLE} as nt inner join $TABLE as t on t.$PKEY = nt.${NoteTags.COL_TID})"
 
 			/**
 			 * Select all tags.
@@ -83,7 +84,7 @@ object DbContract {
 					put(COL_TAG_NAME, tagName)
 					put(COMMON_MODF, timestamp)
 				}
-				val pid = helper.writableDatabase.insert(TABLE, null, newRow)
+				val pid = helper.writableDatabase.insertOrThrow(TABLE, null, newRow)
 				return if (pid >= 0) {
 					TagRecord(pid, tagName, timestamp)
 				} else {
@@ -102,7 +103,7 @@ object DbContract {
 
 	class Notes : BaseColumns {
 		companion object {
-			private const val TABLE = "Notes"
+			const val TABLE = "Notes"
 			private const val COL_KEY = "noteKey"
 			private const val COL_KEY_SALT = "keySalt"
 			private const val COL_CONTENT = "noteContent"
@@ -113,12 +114,12 @@ object DbContract {
 
 			const val SQL_CREATE =
 					"create table $TABLE (" +
-							"$PKEY integer primary key autoincrement," +
-							"$COL_KEY_SALT text not null," +
-							"$COL_KEY text not null," +
-							"$COL_CONTENT_SALT text not null," +
-							"$COL_CONTENT text not null," +
-							"$COMMON_MODF integer)"
+					"$PKEY integer primary key autoincrement," +
+					"$COL_KEY_SALT text not null," +
+					"$COL_KEY text not null," +
+					"$COL_CONTENT_SALT text not null," +
+					"$COL_CONTENT text not null," +
+					"$COMMON_MODF integer)"
 			const val SQL_DROP = "drop table if exists $TABLE"
 
 			/**
@@ -181,7 +182,7 @@ object DbContract {
 					put(COL_CONTENT, c) // TODO Remember to encrypt it
 					put(COMMON_MODF, timestamp)
 				}
-				val pid = helper.writableDatabase.insert(TABLE, null, newRow)
+				val pid = helper.writableDatabase.insertOrThrow(TABLE, null, newRow)
 				return if (pid >= 0) {
 					NoteRecord(pid, k,null, timestamp)
 				} else {
@@ -220,10 +221,12 @@ object DbContract {
 
 			const val SQL_CREATE =
 					"create table $TABLE (" +
-							"$PKEY integer primary key autoincrement," +
-							"$COL_NID integer not null," +
-							"$COL_TID integer not null," +
-							"$COMMON_MODF integer)"
+					"$PKEY integer primary key autoincrement," +
+					"$COL_NID integer not null," +
+					"$COL_TID integer not null," +
+					"$COMMON_MODF integer," +
+					"foreign key($COL_NID) references ${Notes.TABLE}($PKEY)," +
+					"foreign key($COL_TID) references ${Tags.TABLE}($PKEY))"
 			const val SQL_DROP = "drop table if exists $TABLE"
 
 			private const val QUERY_CONTENT =
@@ -263,7 +266,7 @@ object DbContract {
 					put(COL_TID, tid)
 					put(COMMON_MODF, Date().time)
 				}
-				return helper.writableDatabase.insert(TABLE, null, newRow)
+				return helper.writableDatabase.insertOrThrow(TABLE, null, newRow)
 			}
 
 			/**

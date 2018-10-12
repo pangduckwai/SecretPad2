@@ -8,6 +8,7 @@ import android.util.Log;
 import android.widget.Filter;
 import android.widget.Filterable;
 
+import org.sea9.android.secret.data.DbContract;
 import org.sea9.android.secret.data.DbHelper;
 import org.sea9.android.secret.data.NoteRecord;
 import org.sea9.android.secret.details.TagsAdaptor;
@@ -43,7 +44,10 @@ public class ContextFragment extends Fragment implements
 		setRetainInstance(true);
 
 		Context context = getContext();
-		if (context != null) dbHelper = new DbHelper(context);
+		if (context != null) {
+			dbHelper = new DbHelper(context);
+			dbHelper.getWritableDatabase().execSQL(DbContract.SQL_CONFIG);
+		}
 
 		adaptor = new NotesAdaptor(this);
 		tagsAdaptor = new TagsAdaptor(this);
@@ -64,7 +68,7 @@ public class ContextFragment extends Fragment implements
 
 	//TODO TEMP >>>>>>>>>>>>
 	private void test() {
-		(new org.sea9.android.secret.data.DbTest()).run(getContext(), this, dbHelper, false);
+		(new org.sea9.android.secret.data.DbTest()).run(getContext(), this, false);
 	}
 	//TODO TEMP <<<<<<<<<<<<
 

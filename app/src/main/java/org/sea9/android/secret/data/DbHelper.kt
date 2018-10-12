@@ -17,6 +17,7 @@ class DbHelper(context: Context): SQLiteOpenHelper(context, DB_NAME, null, DB_VE
 		db.execSQL(DbContract.Tags.SQL_CREATE_IDX)
 		db.execSQL(DbContract.Notes.SQL_CREATE)
 		db.execSQL(DbContract.NoteTags.SQL_CREATE)
+		Log.i(TAG, "Database version $DB_VERN created")
 	}
 
 	override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
