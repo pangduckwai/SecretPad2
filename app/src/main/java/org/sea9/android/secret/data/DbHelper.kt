@@ -5,7 +5,7 @@ import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
 
-class DbHelper(context: Context): SQLiteOpenHelper(context, DB_NAME, null, DB_VERN) {
+class DbHelper(private val callback: Listener): SQLiteOpenHelper(callback.getContext(), DB_NAME, null, DB_VERN) {
 	companion object {
 		const val TAG = "secret.db_contract"
 		const val DB_NAME = DbContract.DATABASE
@@ -27,5 +27,18 @@ class DbHelper(context: Context): SQLiteOpenHelper(context, DB_NAME, null, DB_VE
 		db.execSQL(DbContract.Tags.SQL_DROP_IDX)
 		db.execSQL(DbContract.Tags.SQL_DROP)
 		onCreate(db)
+	}
+
+	var ready: Boolean = false
+
+	override fun onOpen(db: SQLiteDatabase?) {
+		super.onOpen(db)
+		ready = true
+		callback.onReady()
+	}
+
+	interface Listener {
+		fun getContext(): Context?
+		fun onReady()
 	}
 }

@@ -1,6 +1,7 @@
 package org.sea9.android.secret;
 
 import android.content.Context;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -15,6 +16,7 @@ import org.sea9.android.secret.details.TagsAdaptor;
 import org.sea9.android.secret.main.NotesAdaptor;
 
 public class ContextFragment extends Fragment implements
+		DbHelper.Listener,
 		NotesAdaptor.Listener,
 		TagsAdaptor.Listener,
 		Filterable,
@@ -24,6 +26,7 @@ public class ContextFragment extends Fragment implements
 
 	private DbHelper dbHelper;
 	@Override public final DbHelper getDbHelper() {
+		if ((dbHelper == null) || !dbHelper.getReady()) throw new RuntimeException("Database not ready");
 		return dbHelper;
 	}
 
@@ -43,39 +46,44 @@ public class ContextFragment extends Fragment implements
 		Log.d(TAG, "onCreate");
 		setRetainInstance(true);
 
-		Context context = getContext();
-		if (context != null) {
-			dbHelper = new DbHelper(context);
-			dbHelper.getWritableDatabase().execSQL(DbContract.SQL_CONFIG);
-		}
-
 		adaptor = new NotesAdaptor(this);
 		tagsAdaptor = new TagsAdaptor(this);
 
 		updated = false;
 		filtered = false;
 
-		test(); //TODO remove
+		//TODO TEMP >>>>>>>>>>>>
+		dbHelper = new DbHelper(this);
+		dbHelper.getWritableDatabase().execSQL(DbContract.SQL_CONFIG);
+		(new org.sea9.android.secret.data.DbTest()).run(this);
+		//TODO TEMP <<<<<<<<<<<<
+		new DbInitTask().execute(this); //Initial DB async since the first call to getXxxDatabase() can be slow
 	}
 
 	@Override
 	public void onDestroy() {
 		Log.d(TAG, "onDestroy");
-		org.sea9.android.secret.data.DbTest.cleanup(getContext(), dbHelper);
+		//TODO TEMP >>>>>>>>>>>>
+		org.sea9.android.secret.data.DbTest.cleanup(this);
+		//TODO TEMP <<<<<<<<<<<<
 		dbHelper.close();
 		super.onDestroy();
 	}
-
-	//TODO TEMP >>>>>>>>>>>>
-	private void test() {
-		(new org.sea9.android.secret.data.DbTest()).run(getContext(), this, false);
-	}
-	//TODO TEMP <<<<<<<<<<<<
 
 	private boolean updated;
 	public final boolean isUpdated() { return updated; }
 	public final void clearUpdated() {  updated = false; }
 	@Override public final void dataUpdated() { updated = true; }
+
+	/*=====================================================
+	 * @see org.sea9.android.secret.data.DbHelper.Listener
+	 */
+	@Override
+	public void onReady() {
+		Log.d(TAG, "DbHelper.Listener.onReady");
+		new AppInitTask().execute(this);
+	}
+	//=====================================================
 
 	/*=======================================================
 	 * Data maintenance APIs - query, insert, update, delete
@@ -186,6 +194,27 @@ public class ContextFragment extends Fragment implements
 		callback = null;
 	}
 	//=========================================
+
+	static class DbInitTask extends AsyncTask<ContextFragment, Void, Void> {
+		@Override
+		protected Void doInBackground(ContextFragment... fragments) {
+			if ((fragments.length > 0) && (fragments[0].getContext() != null)) {
+				fragments[0].dbHelper = new DbHelper(fragments[0]);
+				fragments[0].dbHelper.getWritableDatabase().execSQL(DbContract.SQL_CONFIG);
+			}
+			return null;
+		}
+	}
+
+	static class AppInitTask extends AsyncTask<ContextFragment, Void, Void> {
+		@Override
+		protected Void doInBackground(ContextFragment... fragments) {
+			if ((fragments.length > 0) && (fragments[0].getContext() != null)) {
+				fragments[0].getAdaptor().refresh();
+			}
+			return null;
+		}
+	}
 
 //	/*=========================================
 //	 * Callback interface to the detail dialog

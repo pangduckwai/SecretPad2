@@ -41,8 +41,8 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 	}
 	public final int selectRow(String key) {
 		int idx = -1;
-		for (int i = 0; i < dataset.size(); i ++) {
-			if (key.equals(dataset.get(i).getKey())) {
+		for (int i = 0; i < cache.size(); i ++) {
+			if (key.equals(cache.get(i).getKey())) {
 				selectRow(i);
 				idx = i;
 				break;
@@ -51,10 +51,10 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 		return idx;
 	}
 
-	private List<NoteRecord> dataset;
+	private List<NoteRecord> cache;
 	public final NoteRecord getRecord(int position) {
-		if ((position >= 0) && (position < dataset.size()))
-			return dataset.get(position);
+		if ((position >= 0) && (position < cache.size()))
+			return cache.get(position);
 		else
 			return null;
 	}
@@ -62,7 +62,7 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 		refresh();
 
 		// Do this since using removeif() got an UnsupportedOperationException
-		List<NoteRecord> filtered = dataset.stream().filter(p -> {
+		List<NoteRecord> filtered = cache.stream().filter(p -> {
 			if (p.getKey().toLowerCase().contains(query)) {
 				return true;
 			} else if (p.getTags() != null) {
@@ -73,7 +73,7 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 			return false;
 		}).collect(Collectors.toList());
 		if (filtered != null) {
-			dataset = filtered;
+			cache = filtered;
 		}
 	}
 
@@ -93,7 +93,7 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 
 	public NotesAdaptor(Listener ctx) {
 		callback = ctx;
-		dataset = new ArrayList<>();
+		cache = new ArrayList<>();
 	}
 
 	/*=====================================================
@@ -104,8 +104,6 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 		super.onAttachedToRecyclerView(recycler);
 		Log.d(TAG, "onAttachedToRecyclerView");
 		recyclerView = recycler;
-
-		refresh();
 	}
 
 	@Override @NonNull
@@ -142,7 +140,7 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 			holder.itemView.setSelected(false);
 		}
 
-		NoteRecord record = dataset.get(position);
+		NoteRecord record = cache.get(position);
 		holder.key.setText(record.getKey());
 
 		List<TagRecord> tags = record.getTags();
@@ -157,7 +155,7 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 
 	@Override
 	public int getItemCount() {
-		return dataset.size();
+		return cache.size();
 	}
 	//=====================================================
 
@@ -165,8 +163,8 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 	 * Data access methods.
 	 */
 	public void refresh() {
-		dataset = DbContract.Notes.Companion.select(callback.getDbHelper());
-		for (NoteRecord record : dataset) {
+		cache = DbContract.Notes.Companion.select(callback.getDbHelper());
+		for (NoteRecord record : cache) {
 			List<TagRecord> tags = DbContract.NoteTags.Companion.select(callback.getDbHelper(), record.getPid());
 			record.setTags(tags);
 		}
@@ -174,9 +172,9 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 
 	public int update(String k, String c, List<Long> t) {
 		int position = 0, ret = -1;
-		while (position < dataset.size()) {
-			if (dataset.get(position).getKey().equals(k)) {
-				ret = DbContract.Notes.Companion.update(callback.getDbHelper(), dataset.get(position).getPid(), c, t);
+		while (position < cache.size()) {
+			if (cache.get(position).getKey().equals(k)) {
+				ret = DbContract.Notes.Companion.update(callback.getDbHelper(), cache.get(position).getPid(), c, t);
 				break;
 			}
 			position ++;
@@ -193,12 +191,12 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 
 	int delete(int position) {
 		int ret = -1;
-		if ((position >= 0) && (position < dataset.size())) {
+		if ((position >= 0) && (position < cache.size())) {
 			if (isSelected(position)) {
 				clearSelection();
 			}
 
-			ret = DbContract.Notes.Companion.delete(callback.getDbHelper(), dataset.get(position).getPid());
+			ret = DbContract.Notes.Companion.delete(callback.getDbHelper(), cache.get(position).getPid());
 			if (ret >= 0) {
 				refresh();
 				notifyItemRemoved(position);
@@ -217,8 +215,8 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 	 * @param position position selected on the recyclerView.
 	 */
 	void onRowSelected(int position) {
-		if ((position >= 0) && (position < dataset.size())) {
-			String content = DbContract.Notes.Companion.select(callback.getDbHelper(), dataset.get(position).getPid());
+		if ((position >= 0) && (position < cache.size())) {
+			String content = DbContract.Notes.Companion.select(callback.getDbHelper(), cache.get(position).getPid());
 			if (content != null) {
 				callback.updateContent(content);
 			}

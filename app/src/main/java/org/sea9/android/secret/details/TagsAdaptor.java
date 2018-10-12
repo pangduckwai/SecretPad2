@@ -26,7 +26,7 @@ public class TagsAdaptor extends RecyclerView.Adapter<TagsAdaptor.ViewHolder> {
 		return new ArrayList<>(selectedIds);
 	}
 	private boolean isSelected(int position) {
-		return (selectedIds.contains(dataset.get(position).getPid()));
+		return (selectedIds.contains(cache.get(position).getPid()));
 	}
 	public void selectTags(List<TagRecord> list) {
 		selectedIds.clear();
@@ -37,11 +37,11 @@ public class TagsAdaptor extends RecyclerView.Adapter<TagsAdaptor.ViewHolder> {
 		}
 	}
 
-	private List<TagRecord> dataset;
+	private List<TagRecord> cache;
 
 	public TagsAdaptor(TagsAdaptor.Listener ctx) {
 		callback = ctx;
-		dataset = new ArrayList<>();
+		cache = new ArrayList<>();
 	}
 
 	/*=====================================================
@@ -65,11 +65,11 @@ public class TagsAdaptor extends RecyclerView.Adapter<TagsAdaptor.ViewHolder> {
 		item.setOnClickListener(view -> {
 			if (!callback.isFiltered()) {
 				int position = recyclerView.getChildLayoutPosition(view);
-				int index = selectedIds.indexOf(dataset.get(position).getPid());
+				int index = selectedIds.indexOf(cache.get(position).getPid());
 				if (index >= 0) {
 					selectedIds.remove(index);
 				} else {
-					selectedIds.add(dataset.get(position).getPid());
+					selectedIds.add(cache.get(position).getPid());
 				}
 				callback.dataUpdated();
 				notifyDataSetChanged();
@@ -87,12 +87,12 @@ public class TagsAdaptor extends RecyclerView.Adapter<TagsAdaptor.ViewHolder> {
 			holder.itemView.setSelected(false);
 		}
 
-		holder.tag.setText(dataset.get(position).getTag());
+		holder.tag.setText(cache.get(position).getTag());
 	}
 
 	@Override
 	public int getItemCount() {
-		return dataset.size();
+		return cache.size();
 	}
 	//=====================================================
 
@@ -100,7 +100,7 @@ public class TagsAdaptor extends RecyclerView.Adapter<TagsAdaptor.ViewHolder> {
 	 * Data access methods.
 	 */
 	private void refresh() {
-		dataset = DbContract.Tags.Companion.select(callback.getDbHelper());
+		cache = DbContract.Tags.Companion.select(callback.getDbHelper());
 	}
 
 	public final int create(String txt) {
@@ -118,8 +118,8 @@ public class TagsAdaptor extends RecyclerView.Adapter<TagsAdaptor.ViewHolder> {
 
 		int position = -1;
 		if (pid >= 0) {
-			for (int i = 0; i < dataset.size(); i ++) {
-				if (dataset.get(i).getPid() == pid) {
+			for (int i = 0; i < cache.size(); i ++) {
+				if (cache.get(i).getPid() == pid) {
 					position = i;
 					break;
 				}

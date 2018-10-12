@@ -12,12 +12,8 @@ import java.util.List;
 
 public class DbTest {
 
-	public void run(Context context, ContextFragment ctxFrag, boolean cleanUp) {
+	public void run(ContextFragment ctxFrag) {
 		DbHelper helper = ctxFrag.getDbHelper();
-		if (cleanUp) {
-			cleanup(context, helper);
-		}
-
 		prepare(helper);
 		test001(helper);
 		test002(helper);
@@ -27,6 +23,16 @@ public class DbTest {
 		test008(helper);
 		test007(helper);
 		test009(helper);
+	}
+
+	public static void cleanup(ContextFragment ctxFrag) {
+		DbHelper helper = ctxFrag.getDbHelper();
+		helper.getWritableDatabase().execSQL(DbContract.NoteTags.SQL_DROP);
+		helper.getWritableDatabase().execSQL(DbContract.Notes.SQL_DROP);
+		helper.getWritableDatabase().execSQL(DbContract.Tags.SQL_DROP_IDX);
+		helper.getWritableDatabase().execSQL(DbContract.Tags.SQL_DROP);
+		Context context = ctxFrag.getContext();
+		if (context != null) context.deleteDatabase("Secret.db");
 	}
 
 	private void prepare(DbHelper helper) {
@@ -104,14 +110,6 @@ public class DbTest {
 			DbContract.NoteTags.Companion.insert(helper, notes[14].getPid(), tags[3].getPid());
 			DbContract.NoteTags.Companion.insert(helper, notes[14].getPid(), tags[4].getPid());
 		}
-	}
-
-	public static void cleanup(Context context, DbHelper helper) {
-		helper.getWritableDatabase().execSQL(DbContract.NoteTags.SQL_DROP);
-		helper.getWritableDatabase().execSQL(DbContract.Notes.SQL_DROP);
-		helper.getWritableDatabase().execSQL(DbContract.Tags.SQL_DROP_IDX);
-		helper.getWritableDatabase().execSQL(DbContract.Tags.SQL_DROP);
-		if (context != null) context.deleteDatabase("Secret.db");
 	}
 
 	private static final String SQL_TEST0 =
