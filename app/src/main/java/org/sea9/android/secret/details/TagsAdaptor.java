@@ -65,8 +65,9 @@ public class TagsAdaptor extends RecyclerView.Adapter<TagsAdaptor.ViewHolder> {
 		item.setOnClickListener(view -> {
 			if (!callback.isFiltered()) {
 				int position = recyclerView.getChildLayoutPosition(view);
-				if (isSelected(position)) {
-					selectedIds.remove(position);
+				int index = selectedIds.indexOf(dataset.get(position).getPid());
+				if (index >= 0) {
+					selectedIds.remove(index);
 				} else {
 					selectedIds.add(dataset.get(position).getPid());
 				}

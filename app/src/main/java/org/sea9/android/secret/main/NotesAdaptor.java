@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> {
-	private static final String TAG = "secret.list_adaptor";
+	private static final String TAG = "secret.notes_adaptor";
 	private static final String SPACE = " ";
 
 	private RecyclerView recyclerView;
@@ -88,15 +88,6 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 //			notifyItemInserted(position);
 //			selectedPos = position;
 //			callback.updateContent(position);
-//		}
-//	}
-//
-//	public final void onItemDeleted(int position) {
-//		if ((position >= 0) && (position <= getItemCount())) {
-//			notifyItemRemoved(position);
-//			if (position < selectedPos) {
-//				selectedPos --;
-//			}
 //		}
 //	}
 
@@ -181,6 +172,25 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 		}
 	}
 
+	public int update(String k, String c, List<Long> t) {
+		int position = 0, ret = -1;
+		while (position < dataset.size()) {
+			if (dataset.get(position).getKey().equals(k)) {
+				ret = DbContract.Notes.Companion.update(callback.getDbHelper(), dataset.get(position).getPid(), c, t);
+				break;
+			}
+			position ++;
+		}
+
+		if (ret >= 0) {
+			refresh();
+			notifyItemChanged(position);
+			callback.updateContent(c);
+			return position;
+		} else
+			return ret;
+	}
+
 	int delete(int position) {
 		int ret = -1;
 		if ((position >= 0) && (position < dataset.size())) {
@@ -190,6 +200,7 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 
 			ret = DbContract.Notes.Companion.delete(callback.getDbHelper(), dataset.get(position).getPid());
 			if (ret >= 0) {
+				refresh();
 				notifyItemRemoved(position);
 				if (position < selectedPos) {
 					selectedPos --;

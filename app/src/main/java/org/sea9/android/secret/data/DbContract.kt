@@ -1,6 +1,7 @@
 package org.sea9.android.secret.data
 
 import android.content.ContentValues
+import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.provider.BaseColumns
 import java.lang.IllegalStateException
@@ -194,14 +195,35 @@ object DbContract {
 			/**
 			 * Update the content of a note by the note ID.
 			 */
-			fun update(helper: SQLiteOpenHelper, nid: Long, content: String): Int {
+			fun update(helper: SQLiteOpenHelper, nid: Long, content: String, tags: List<Long>): Int {
 				val args = arrayOf(nid.toString())
+				val db = helper.writableDatabase
+				var ret = -1
 				val newRow = ContentValues().apply {
 					put(COL_CONTENT_SALT, "") // TODO Generate new salt
 					put(COL_CONTENT, content) // TODO Remember to encrypt it
 					put(COMMON_MODF, Date().time)
 				}
-				return helper.writableDatabase.update(TABLE, newRow, COMMON_PKEY, args)
+
+				db.beginTransactionNonExclusive()
+				try {
+					val count = db.delete(NoteTags.TABLE, "${NoteTags.COL_NID} = ?", args)
+					if (count >= 0) {
+						var failed = 0
+						for (tid in tags) {
+							if (NoteTags.insert(db, nid, tid) < 0) failed ++
+						}
+						if (failed == 0) {
+							ret = db.update(TABLE, newRow, COMMON_PKEY, args)
+							if (ret >= 0) {
+								db.setTransactionSuccessful()
+							}
+						}
+					}
+					return ret
+				} finally {
+					db.endTransaction()
+				}
 			}
 
 			/**
@@ -277,12 +299,15 @@ object DbContract {
 			 * Add a note/tag relationship.
 			 */
 			fun insert(helper: SQLiteOpenHelper, nid: Long, tid: Long): Long {
+				return insert(helper.writableDatabase, nid, tid)
+			}
+			fun insert(db: SQLiteDatabase, nid: Long, tid: Long): Long {
 				val newRow = ContentValues().apply {
 					put(COL_NID, nid)
 					put(COL_TID, tid)
 					put(COMMON_MODF, Date().time)
 				}
-				return helper.writableDatabase.insertOrThrow(TABLE, null, newRow)
+				return db.insertOrThrow(TABLE, null, newRow)
 			}
 
 			/**

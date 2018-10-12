@@ -289,10 +289,20 @@ public class MainActivity extends AppCompatActivity implements
 
 	@Override
 	public void onSave(boolean isNew, String k, String c, List<Long> t) {
-//		if (isNew) {
+		if (isNew) {
 //			ctxFrag.insertData(k, c, t);
-//		} else {
-//			ctxFrag.updateData(k, c, t);
-//		}
+		} else {
+			int position = ctxFrag.getAdaptor().update(k, c, t);
+			String msg;
+			if (position >= 0) {
+				recycler.smoothScrollToPosition(position);
+				msg = getString(R.string.msg_update_okay);
+			} else {
+				msg = getString(R.string.msg_update_fail);
+			}
+			Snackbar.make(recycler,
+					String.format(Locale.getDefault(), msg, Integer.toString(position+1)),
+					Snackbar.LENGTH_LONG).show();
+		}
 	}
 }
