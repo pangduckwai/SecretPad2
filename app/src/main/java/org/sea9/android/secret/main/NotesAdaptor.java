@@ -170,8 +170,8 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 	}
 	//=====================================================
 
-	/*=====================================================================
-	 * Data access methods. TODO: maybe need to move to a separate thread?
+	/*======================
+	 * Data access methods.
 	 */
 	public void refresh() {
 		dataset = DbContract.Notes.Companion.select(callback.getDbHelper());
@@ -181,18 +181,31 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 		}
 	}
 
-	public int delete(int position) {
-//		if ((position >= 0) && (position < dataset.size())) {
-//			return DbContract.Notes.Companion.delete(callback.getDbHelper(), dataset.get(position).getPid());
-//		}
-		return -1;
+	int delete(int position) {
+		int ret = -1;
+		if ((position >= 0) && (position < dataset.size())) {
+			if (isSelected(position)) {
+				clearSelection();
+			}
+
+			ret = DbContract.Notes.Companion.delete(callback.getDbHelper(), dataset.get(position).getPid());
+			if (ret >= 0) {
+				notifyItemRemoved(position);
+				if (position < selectedPos) {
+					selectedPos --;
+				}
+			} else {
+				notifyDataSetChanged();
+			}
+		}
+		return ret;
 	}
 
 	/**
 	 * Retrieve detail of the selected row.
 	 * @param position position selected on the recyclerView.
 	 */
-	public void onRowSelected(int position) {
+	void onRowSelected(int position) {
 		if ((position >= 0) && (position < dataset.size())) {
 			String content = DbContract.Notes.Companion.select(callback.getDbHelper(), dataset.get(position).getPid());
 			if (content != null) {
@@ -200,7 +213,7 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 			}
 		}
 	}
-	//=====================================================================
+	//======================
 
 	/*=============
 	 * View holder

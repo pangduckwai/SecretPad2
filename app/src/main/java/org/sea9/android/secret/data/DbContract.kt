@@ -7,6 +7,7 @@ import java.lang.IllegalStateException
 import java.util.*
 
 object DbContract {
+	private const val TAG = "secret.database"
 	const val DATABASE = "Secret.db"
 	const val PKEY = BaseColumns._ID
 	const val COMMON_MODF = "modified"
@@ -208,7 +209,22 @@ object DbContract {
 			 */
 			fun delete(helper: SQLiteOpenHelper, nid: Long): Int {
 				val args = arrayOf(nid.toString())
-				return helper.writableDatabase.delete(TABLE, COMMON_PKEY, args)
+				val db = helper.writableDatabase
+				var ret = -1
+
+				db.beginTransactionNonExclusive()
+				try {
+					val count = db.delete(NoteTags.TABLE, "${NoteTags.COL_NID} = ?", args)
+					if (count >= 0) {
+						ret = db.delete(TABLE, COMMON_PKEY, args)
+						if (ret >= 0) {
+							db.setTransactionSuccessful()
+						}
+					}
+					return ret
+				} finally {
+					db.endTransaction()
+				}
 			}
 		}
 	}
@@ -216,8 +232,8 @@ object DbContract {
 	class NoteTags : BaseColumns {
 		companion object {
 			const val TABLE = "NoteTags"
+			const val COL_NID = "noteId"
 			const val COL_TID = "tagId"
-			private const val COL_NID = "noteId"
 
 			const val SQL_CREATE =
 					"create table $TABLE (" +

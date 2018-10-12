@@ -5,7 +5,6 @@ import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
@@ -96,8 +95,8 @@ public class TagsAdaptor extends RecyclerView.Adapter<TagsAdaptor.ViewHolder> {
 	}
 	//=====================================================
 
-	/*=====================================================================
-	 * Data access methods. TODO: maybe need to move to a separate thread?
+	/*======================
+	 * Data access methods.
 	 */
 	private void refresh() {
 		dataset = DbContract.Tags.Companion.select(callback.getDbHelper());
@@ -125,7 +124,7 @@ public class TagsAdaptor extends RecyclerView.Adapter<TagsAdaptor.ViewHolder> {
 				}
 			}
 
-			if ((position >= 0) && !isSelected(position)) { //Something wrong it position < 0...
+			if ((position >= 0) && !isSelected(position)) { //Something wrong if position < 0...
 				selectedIds.add(pid);
 				callback.dataUpdated();
 			}
@@ -141,7 +140,7 @@ public class TagsAdaptor extends RecyclerView.Adapter<TagsAdaptor.ViewHolder> {
 			return -1;
 		}
 	}
-	//=====================================================================
+	//======================
 
 	/*=============
 	 * View holder
