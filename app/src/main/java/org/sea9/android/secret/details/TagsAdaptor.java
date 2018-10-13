@@ -103,7 +103,7 @@ public class TagsAdaptor extends RecyclerView.Adapter<TagsAdaptor.ViewHolder> {
 		cache = DbContract.Tags.Companion.select(callback.getDbHelper());
 	}
 
-	public final int create(String txt) {
+	public final int insert(String txt) {
 		List<Long> tags = DbContract.Tags.Companion.search(callback.getDbHelper(), txt);
 		long pid = -1;
 		if (tags.size() > 0) {

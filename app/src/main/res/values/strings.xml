@@ -13,7 +13,8 @@
 	<string name="ctn_cancel">Cancel button</string>
 	<string name="ctn_add">Add button</string>
 	<string name="msg_insert_okay">Item %s inserted successfully</string>
-	<string name="msg_insert_fail">Insert item %s failed</string>
+	<string name="msg_insert_fail">Insert item failed</string>
+	<string name="msg_insert_duplicated">Item already exists</string>
 	<string name="msg_update_okay">Item %s updated successfully</string>
 	<string name="msg_update_fail">Update item %s failed</string>
 	<string name="msg_delete_okay">Item %s deleted successfully</string>

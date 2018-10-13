@@ -8,7 +8,6 @@ import java.lang.IllegalStateException
 import java.util.*
 
 object DbContract {
-	private const val TAG = "secret.database"
 	const val DATABASE = "Secret.db"
 	const val PKEY = BaseColumns._ID
 	const val COMMON_MODF = "modified"
@@ -61,6 +60,9 @@ object DbContract {
 				return result
 			}
 
+			/**
+			 * Search by tag name if a record already exists or not.
+			 */
 			fun search(helper: SQLiteOpenHelper, tagName: String): List<Long> {
 				val args = arrayOf(tagName)
 				val cursor = helper.readableDatabase.rawQuery(QUERY_SEARCH, args)
@@ -175,25 +177,57 @@ object DbContract {
 			/**
 			 * Insert one note.
 			 */
-			fun insert(helper: SQLiteOpenHelper, k: String, c: String): NoteRecord? {
+			fun insert(helper: SQLiteOpenHelper, key: String, content: String): NoteRecord? {
 				val timestamp = Date().time
 				val newRow = ContentValues().apply {
 					put(COL_KEY_SALT, "") // TODO Generate new salt
-					put(COL_KEY, k) // TODO Remember to encrypt it
+					put(COL_KEY, key) // TODO Remember to encrypt it
 					put(COL_CONTENT_SALT, "") // TODO Generate new salt
-					put(COL_CONTENT, c) // TODO Remember to encrypt it
+					put(COL_CONTENT, content) // TODO Remember to encrypt it
 					put(COMMON_MODF, timestamp)
 				}
 				val pid = helper.writableDatabase.insertOrThrow(TABLE, null, newRow)
 				return if (pid >= 0) {
-					NoteRecord(pid, k,null, timestamp)
+					NoteRecord(pid, key,null, timestamp)
 				} else {
 					null
 				}
 			}
 
 			/**
-			 * Update the content of a note by the note ID.
+			 * Insert a new note and all associated tag relations.
+			 */
+			fun insert(helper: SQLiteOpenHelper, key: String, content: String, tags: List<Long>): Long? {
+				val db = helper.writableDatabase
+				val newRow = ContentValues().apply {
+					put(COL_KEY_SALT, "") // TODO Generate new salt
+					put(COL_KEY, key) // TODO Remember to encrypt it
+					put(COL_CONTENT_SALT, "") // TODO Generate new salt
+					put(COL_CONTENT, content) // TODO Remember to encrypt it
+					put(COMMON_MODF, Date().time)
+				}
+
+				db.beginTransactionNonExclusive()
+				try {
+					val nid = db.insertOrThrow(TABLE, null, newRow)
+					if (nid >= 0) {
+						var failed = 0
+						for (tid in tags) {
+							if (NoteTags.insert(db, nid, tid) < 0) failed ++
+						}
+						if (failed == 0)
+							db.setTransactionSuccessful()
+						else
+							return null
+					}
+					return nid
+				} finally {
+					db.endTransaction()
+				}
+			}
+
+			/**
+			 * Update the content of a note, and delete/insert all associated tag relations, by the note ID.
 			 */
 			fun update(helper: SQLiteOpenHelper, nid: Long, content: String, tags: List<Long>): Int {
 				val args = arrayOf(nid.toString())
@@ -227,7 +261,7 @@ object DbContract {
 			}
 
 			/**
-			 * Delete one note by its ID.
+			 * Delete a note, and all its associated tag relations, by its ID.
 			 */
 			fun delete(helper: SQLiteOpenHelper, nid: Long): Int {
 				val args = arrayOf(nid.toString())

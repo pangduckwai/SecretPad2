@@ -278,7 +278,7 @@ public class MainActivity extends AppCompatActivity implements
 	 */
 	@Override
 	public void onAdd(String t) {
-		int position = ctxFrag.getTagsAdaptor().create(t);
+		int position = ctxFrag.getTagsAdaptor().insert(t);
 		if (position >= 0) {
 			DetailFragment fragment = (DetailFragment) getSupportFragmentManager().findFragmentByTag(DetailFragment.TAG);
 			if (fragment != null) {
@@ -289,20 +289,33 @@ public class MainActivity extends AppCompatActivity implements
 
 	@Override
 	public void onSave(boolean isNew, String k, String c, List<Long> t) {
+		String msg;
+		int position = -1;
 		if (isNew) {
-//			ctxFrag.insertData(k, c, t);
+			Long pid = ctxFrag.getAdaptor().insert(k, c, t);
+			if (pid != null) {
+				if (pid < 0) {
+					msg = getString(R.string.msg_insert_duplicated);
+					pid *= -1;
+				} else {
+					msg = getString(R.string.msg_insert_okay);
+				}
+				position = ctxFrag.getAdaptor().selectRow(pid);
+				if (position >= 0) recycler.smoothScrollToPosition(position);
+			} else {
+				msg = getString(R.string.msg_insert_fail);
+			}
 		} else {
-			int position = ctxFrag.getAdaptor().update(k, c, t);
-			String msg;
+			position = ctxFrag.getAdaptor().update(k, c, t);
 			if (position >= 0) {
 				recycler.smoothScrollToPosition(position);
 				msg = getString(R.string.msg_update_okay);
 			} else {
 				msg = getString(R.string.msg_update_fail);
 			}
-			Snackbar.make(recycler,
-					String.format(Locale.getDefault(), msg, Integer.toString(position+1)),
-					Snackbar.LENGTH_LONG).show();
 		}
+		Snackbar.make(recycler,
+				String.format(Locale.getDefault(), msg, Integer.toString(position+1)),
+				Snackbar.LENGTH_LONG).show();
 	}
 }

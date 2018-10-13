@@ -39,6 +39,17 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 		selectedPos = position;
 		onRowSelected(position);
 	}
+	public final int selectRow(long pid) {
+		int idx = -1;
+		for (int i = 0; i < cache.size(); i ++) {
+			if (pid == cache.get(i).getPid()) {
+				selectRow(i);
+				idx = i;
+				break;
+			}
+		}
+		return idx;
+	}
 	public final int selectRow(String key) {
 		int idx = -1;
 		for (int i = 0; i < cache.size(); i ++) {
@@ -170,7 +181,30 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 		}
 	}
 
-	public int update(String k, String c, List<Long> t) {
+	Long insert(String k, String c, List<Long> t) {
+		for (NoteRecord record : cache) {
+			if (record.getKey().trim().toLowerCase().equals(k)) {
+				return -1 * record.getPid(); // Key already exists
+			}
+		}
+
+		Long pid = DbContract.Notes.Companion.insert(callback.getDbHelper(), k, c, t);
+		if ((pid != null) && (pid > 0)) {
+			refresh();
+			for (int i = 0; i < cache.size(); i ++) {
+				if (pid == cache.get(i).getPid()) {
+					notifyItemInserted(i);
+					callback.updateContent(c);
+					break;
+				}
+			}
+			return pid;
+		} else {
+			return null; // Insert failed
+		}
+	}
+
+	int update(String k, String c, List<Long> t) {
 		int position = 0, ret = -1;
 		while (position < cache.size()) {
 			if (cache.get(position).getKey().equals(k)) {
