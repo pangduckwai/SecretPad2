@@ -6,7 +6,11 @@ data class TagRecord(
 		, var modified: Long
 ) {
 	override fun equals(other: Any?): Boolean {
-		val othr = other as TagRecord
-		return (tag == othr.tag)
+		val value = other as TagRecord
+		return (tag == value.tag)
+	}
+
+	override fun hashCode(): Int {
+		return tag.hashCode()
 	}
 }

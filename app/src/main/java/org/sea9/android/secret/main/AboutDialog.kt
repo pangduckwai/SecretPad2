@@ -29,9 +29,7 @@ class AboutDialog : DialogFragment() {
 		}
 
 		val win = dialog.window
-		win?.let {
-			it.requestFeature(Window.FEATURE_NO_TITLE)
-		}
+		win?.requestFeature(Window.FEATURE_NO_TITLE)
 
 		return view
 	}

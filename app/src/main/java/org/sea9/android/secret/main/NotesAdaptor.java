@@ -30,16 +30,16 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 		return (selectedPos == position);
 	}
 	public final int getSelectedPosition() { return selectedPos; }
-	public final void clearSelection() {
+	final void clearSelection() {
 		selectedPos = -1;
 		callback.updateContent(null);
 	}
 
-	public final void selectRow(int position) {
+	private void selectRow(int position) {
 		selectedPos = position;
 		onRowSelected(position);
 	}
-	public final int selectRow(long pid) {
+	final int selectRow(long pid) {
 		int idx = -1;
 		for (int i = 0; i < cache.size(); i ++) {
 			if (pid == cache.get(i).getPid()) {

@@ -344,14 +344,6 @@ object DbContract {
 				return db.insertOrThrow(TABLE, null, newRow)
 			}
 
-			/**
-			 * Delete one note/tag relationship by the node ID and tag ID.
-			 */
-			fun delete(helper: SQLiteOpenHelper, nid: Long, tid: Long): Int {
-				val where = "$COL_NID = ? and $COL_TID = ?"
-				val args = arrayOf(nid.toString(), tid.toString())
-				return helper.writableDatabase.delete(TABLE, where, args)
-			}
 		}
 	}
 }
