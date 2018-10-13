@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="match_parent"
+	android:layout_height="wrap_content"
+	android:paddingTop="@dimen/margin_narrow"
+	android:paddingBottom="@dimen/margin_normal"
+	android:background="@color/colorDialog"
+	android:orientation="vertical">
+
+	<ImageView
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:contentDescription="@string/app_name"
+		android:src="@drawable/logo" />
+
+	<TextView
+		android:textAppearance="?android:attr/textAppearanceLarge"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:gravity="center"
+		android:text="@string/app_name" />
+
+	<TextView
+		android:id="@+id/version"
+		android:textAppearance="?android:attr/textAppearanceSmall"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:gravity="center"
+		android:text="@string/app_version" />
+
+	<TextView
+		android:textAppearance="?android:attr/textAppearanceSmall"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:layout_marginTop="@dimen/fab_margin"
+		android:gravity="center"
+		android:text="@string/app_copyright" />
+
+	<TextView
+		android:textAppearance="?android:attr/textAppearanceSmall"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:layout_marginTop="@dimen/fab_margin"
+		android:gravity="center"
+		android:text="@string/app_license" />
+
+	<ImageView
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:contentDescription="@string/app_author"
+		android:src="@drawable/paul" />
+
+	<TextView
+		android:id="@+id/author"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:gravity="center"
+		android:text="@string/app_author" />
+</LinearLayout>

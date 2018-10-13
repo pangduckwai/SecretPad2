@@ -200,7 +200,7 @@ public class MainActivity extends AppCompatActivity implements
 			Snackbar.make(getWindow().getDecorView(), "Changing settings", Snackbar.LENGTH_LONG).show(); //TODO TEMP
 			break;
 		case R.id.action_about:
-			Snackbar.make(getWindow().getDecorView(), "About...", Snackbar.LENGTH_LONG).show(); //TODO TEMP
+			AboutDialog.Companion.getInstance().show(getSupportFragmentManager(), AboutDialog.TAG);
 			break;
 		}
 
@@ -233,39 +233,6 @@ public class MainActivity extends AppCompatActivity implements
 		content.setText(EMPTY);
 		fab.show();
 	}
-
-//	@Override
-//	public void onPrepareAddCompleted() {
-//		DetailFragment.getInstance(true, null, null).show(getSupportFragmentManager(), DetailFragment.TAG);
-//	}
-
-//	@Override
-//	public void onInsertDataCompleted(int position) {
-//		if (position >= 0) recycler.smoothScrollToPosition(position);
-//		Snackbar.make(recycler,
-//				String.format(
-//						Locale.getDefault(),
-//						getString((position >= 0) ? R.string.msg_insert_okay : R.string.msg_insert_fail),
-//						Integer.toString(position+1)),
-//				Snackbar.LENGTH_LONG).show();
-//	}
-
-//	@Override
-//	public void onUpdateDataCompleted(int position, String content) {
-//		if (position >= 0) recycler.smoothScrollToPosition(position);
-//		Snackbar.make(recycler,
-//				String.format(
-//						Locale.getDefault(),
-//						getString((position >= 0) ? R.string.msg_update_okay : R.string.msg_update_fail),
-//						Integer.toString(position+1)),
-//				Snackbar.LENGTH_LONG).show();
-//		onRowSelectionMade(content);
-//	}
-
-//	@Override
-//	public void onQueryDataCompleted(NoteRecord record) {
-//		DetailFragment.getInstance(false, record).show(getSupportFragmentManager(), DetailFragment.TAG);
-//	}
 
 	@Override
 	public void onFilterCleared(int position) {

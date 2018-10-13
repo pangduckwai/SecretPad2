@@ -28,7 +28,7 @@ import org.sea9.android.secret.data.NoteRecord;
 
 import java.util.List;
 
-public class DetailFragment extends DialogFragment {//implements ContextFragment.DetailListener {
+public class DetailFragment extends DialogFragment {
 	public static final String TAG = "secret.dialog_frag";
 	public static final String KEY = "secret.key";
 	public static final String CTN = "secret.content";
