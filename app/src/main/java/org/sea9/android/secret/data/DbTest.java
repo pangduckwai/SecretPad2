@@ -6,14 +6,11 @@ import android.database.DatabaseUtils;
 import android.database.SQLException;
 import android.util.Log;
 
-import org.sea9.android.secret.ContextFragment;
-
 import java.util.List;
 
 public class DbTest {
 
-	public void run(ContextFragment ctxFrag) {
-		DbHelper helper = ctxFrag.getDbHelper();
+	public void run(DbHelper helper) {
 		prepare(helper);
 		test001(helper);
 		test002(helper);
@@ -25,14 +22,12 @@ public class DbTest {
 		test009(helper);
 	}
 
-	public static void cleanup(ContextFragment ctxFrag) {
-		DbHelper helper = ctxFrag.getDbHelper();
+	public static void cleanup(Context context, DbHelper helper) {
 		helper.getWritableDatabase().execSQL(DbContract.NoteTags.SQL_DROP);
 		helper.getWritableDatabase().execSQL(DbContract.Notes.SQL_DROP);
 		helper.getWritableDatabase().execSQL(DbContract.Tags.SQL_DROP_IDX);
 		helper.getWritableDatabase().execSQL(DbContract.Tags.SQL_DROP);
-		Context context = ctxFrag.getContext();
-		if (context != null) context.deleteDatabase("Secret.db");
+		context.deleteDatabase("Secret.db");
 	}
 
 	private void prepare(DbHelper helper) {

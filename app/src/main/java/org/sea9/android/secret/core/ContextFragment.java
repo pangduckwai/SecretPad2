@@ -1,4 +1,4 @@
-package org.sea9.android.secret;
+package org.sea9.android.secret.core;
 
 import android.content.Context;
 import android.os.AsyncTask;
@@ -13,7 +13,6 @@ import org.sea9.android.secret.data.DbContract;
 import org.sea9.android.secret.data.DbHelper;
 import org.sea9.android.secret.data.NoteRecord;
 import org.sea9.android.secret.details.TagsAdaptor;
-import org.sea9.android.secret.main.NotesAdaptor;
 
 public class ContextFragment extends Fragment implements
 		DbHelper.Listener,
@@ -53,20 +52,38 @@ public class ContextFragment extends Fragment implements
 		filtered = false;
 
 		//TODO TEMP >>>>>>>>>>>>
-		dbHelper = new DbHelper(this);
-		dbHelper.getWritableDatabase().execSQL(DbContract.SQL_CONFIG);
-		(new org.sea9.android.secret.data.DbTest()).run(this);
+		DbHelper tempHelper = new DbHelper(new DbHelper.Listener() {
+			@Override
+			public void onReady() {
+				Log.w(TAG, "DB Test finished");
+			}
+			@org.jetbrains.annotations.Nullable
+			@Override
+			public Context getContext() {
+				return ContextFragment.this.getContext();
+			}
+		});
+		tempHelper.getWritableDatabase().execSQL(DbContract.SQL_CONFIG);
+		(new org.sea9.android.secret.data.DbTest()).run(tempHelper);
 		//TODO TEMP <<<<<<<<<<<<
-		new DbInitTask().execute(this); //Initial DB async since the first call to getXxxDatabase() can be slow
+//		new DbInitTask().execute(this);
+	}
+
+	@Override
+	public void onResume() {
+		super.onResume();
+		callback.onInit();
 	}
 
 	@Override
 	public void onDestroy() {
 		Log.d(TAG, "onDestroy");
 		//TODO TEMP >>>>>>>>>>>>
-		org.sea9.android.secret.data.DbTest.cleanup(this);
+		Context context = getContext();
+		if ((context != null) && (dbHelper != null))
+			org.sea9.android.secret.data.DbTest.cleanup(context, dbHelper);
 		//TODO TEMP <<<<<<<<<<<<
-		dbHelper.close();
+		if (dbHelper != null) dbHelper.close();
 		super.onDestroy();
 	}
 
@@ -74,6 +91,14 @@ public class ContextFragment extends Fragment implements
 	public final boolean isUpdated() { return updated; }
 	public final void clearUpdated() {  updated = false; }
 	@Override public final void dataUpdated() { updated = true; }
+
+	/**
+	 * Called after logon.
+	 * @param value Hash value of the password.
+	 */
+	public void onLogon(char[] value) {
+		new ContextFragment.DbInitTask().execute(this);
+	}
 
 	/*=====================================================
 	 * @see org.sea9.android.secret.data.DbHelper.Listener
@@ -157,6 +182,7 @@ public class ContextFragment extends Fragment implements
 	 * Callback interface to the main activity
 	 */
 	public interface Listener {
+		void onInit();
 		void onRowSelectionMade(String content);
 		void onRowSelectionCleared();
 		void onFilterCleared(int position);
@@ -182,6 +208,13 @@ public class ContextFragment extends Fragment implements
 	}
 	//=========================================
 
+	/*====================================
+	 * Worker running on separate threads
+	 */
+
+	/**
+	 * //Async initialize DB since the first call to getXxxDatabase() can be slow
+	 */
 	static class DbInitTask extends AsyncTask<ContextFragment, Void, Void> {
 		@Override
 		protected Void doInBackground(ContextFragment... fragments) {
@@ -193,23 +226,18 @@ public class ContextFragment extends Fragment implements
 		}
 	}
 
-	static class AppInitTask extends AsyncTask<ContextFragment, Void, Void> {
+	static class AppInitTask extends AsyncTask<ContextFragment, Void, ContextFragment> {
 		@Override
-		protected Void doInBackground(ContextFragment... fragments) {
+		protected ContextFragment doInBackground(ContextFragment... fragments) {
 			if ((fragments.length > 0) && (fragments[0].getContext() != null)) {
 				fragments[0].getAdaptor().refresh();
 			}
-			return null;
+			return fragments[0];
+		}
+
+		@Override
+		protected void onPostExecute(ContextFragment ctx) {
+			ctx.getAdaptor().notifyDataSetChanged();
 		}
 	}
-
-//	/*=========================================
-//	 * Callback interface to the detail dialog
-//	 */
-//	public interface DetailListener {
-//		void onTagAddCompleted(int position);
-//	}
-//	private DetailListener detailListener;
-//	public final void setDetailListener(DetailListener listener) { detailListener = listener; }
-//	//=========================================
 }

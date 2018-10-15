@@ -1,4 +1,4 @@
-package org.sea9.android.secret.main;
+package org.sea9.android.secret.core;
 
 import android.animation.LayoutTransition;
 import android.app.SearchManager;
@@ -22,7 +22,7 @@ import android.view.ViewGroup;
 import android.widget.SearchView;
 import android.widget.TextView;
 
-import org.sea9.android.secret.ContextFragment;
+import org.jetbrains.annotations.NotNull;
 import org.sea9.android.secret.data.NoteRecord;
 import org.sea9.android.secret.details.DetailFragment;
 import org.sea9.android.secret.R;
@@ -32,6 +32,7 @@ import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity implements
 		ContextFragment.Listener,
+		LogonDialog.Listener,
 		DetailFragment.Listener {
 	public static final String TAG = "secret.main";
 	private static final String EMPTY = "";
@@ -224,9 +225,14 @@ public class MainActivity extends AppCompatActivity implements
 		}
 	}
 
-	/*=======================================================
-	 * @see org.sea9.android.secret.ContextFragment.Listener
+	/*============================================================
+	 * @see org.sea9.android.secret.main.ContextFragment.Listener
 	 */
+	@Override
+	public void onInit() {
+		LogonDialog.Companion.getInstance().show(getSupportFragmentManager(), LogonDialog.TAG);
+	}
+
 	@Override
 	public void onRowSelectionMade(String txt) {
 		content.setText(txt);
@@ -243,7 +249,16 @@ public class MainActivity extends AppCompatActivity implements
 	public void onFilterCleared(int position) {
 		if (position >= 0) recycler.smoothScrollToPosition(position);
 	}
-	//=======================================================
+	//============================================================
+
+	/*========================================================
+	 * @see org.sea9.android.secret.core.LogonDialog.Listener
+	 */
+	@Override
+	public void onLogon(char[] value) {
+		ctxFrag.onLogon(value);
+	}
+	//========================================================
 
 	/*==============================================================
 	 * @see org.sea9.android.secret.details.DetailFragment.Listener

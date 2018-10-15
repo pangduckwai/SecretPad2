@@ -1,4 +1,4 @@
-package org.sea9.android.secret.main;
+package org.sea9.android.secret.core;
 
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
@@ -29,7 +29,7 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 	private boolean isSelected(int position) {
 		return (selectedPos == position);
 	}
-	public final int getSelectedPosition() { return selectedPos; }
+	final int getSelectedPosition() { return selectedPos; }
 	final void clearSelection() {
 		selectedPos = -1;
 		callback.updateContent(null);
@@ -50,7 +50,7 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 		}
 		return idx;
 	}
-	public final int selectRow(String key) {
+	final int selectRow(String key) {
 		int idx = -1;
 		for (int i = 0; i < cache.size(); i ++) {
 			if (key.equals(cache.get(i).getKey())) {
@@ -63,13 +63,13 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 	}
 
 	private List<NoteRecord> cache;
-	public final NoteRecord getRecord(int position) {
+	final NoteRecord getRecord(int position) {
 		if ((position >= 0) && (position < cache.size()))
 			return cache.get(position);
 		else
 			return null;
 	}
-	public final void filterRecord(String query) {
+	final void filterRecord(String query) {
 		refresh();
 
 		// Do this since using removeif() got an UnsupportedOperationException
@@ -88,21 +88,7 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 		}
 	}
 
-	/*
-	 * Call notify the recyclerView for the newly inserted row, remember the current row, and
-	 * highlight the current row by callback to the Activity.
-	 * @param position position of the inserted row in the recycler.
-	 * @param pid SQLite ID of the newly inserted row.
-	 */
-//	public final void onItemInsert(int position) {
-//		if (position >= 0) {
-//			notifyItemInserted(position);
-//			selectedPos = position;
-//			callback.updateContent(position);
-//		}
-//	}
-
-	public NotesAdaptor(Listener ctx) {
+	NotesAdaptor(Listener ctx) {
 		callback = ctx;
 		cache = new ArrayList<>();
 	}
@@ -173,7 +159,7 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 	/*======================
 	 * Data access methods.
 	 */
-	public void refresh() {
+	void refresh() {
 		cache = DbContract.Notes.Companion.select(callback.getDbHelper());
 		for (NoteRecord record : cache) {
 			List<TagRecord> tags = DbContract.NoteTags.Companion.select(callback.getDbHelper(), record.getPid());

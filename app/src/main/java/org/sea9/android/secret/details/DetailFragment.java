@@ -22,7 +22,7 @@ import android.view.Window;
 import android.widget.EditText;
 import android.widget.ImageButton;
 
-import org.sea9.android.secret.ContextFragment;
+import org.sea9.android.secret.core.ContextFragment;
 import org.sea9.android.secret.R;
 import org.sea9.android.secret.data.NoteRecord;
 

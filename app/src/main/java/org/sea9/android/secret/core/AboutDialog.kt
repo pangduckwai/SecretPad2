@@ -1,4 +1,4 @@
-package org.sea9.android.secret.main
+package org.sea9.android.secret.core
 
 import android.content.Context
 import android.os.Bundle
@@ -13,6 +13,7 @@ import org.sea9.android.secret.R
 class AboutDialog : DialogFragment() {
 	companion object {
 		const val TAG = "secret.dialog_about"
+
 		fun getInstance() : AboutDialog {
 			return AboutDialog()
 		}
@@ -30,7 +31,6 @@ class AboutDialog : DialogFragment() {
 
 		val win = dialog.window
 		win?.requestFeature(Window.FEATURE_NO_TITLE)
-
 		return view
 	}
 
