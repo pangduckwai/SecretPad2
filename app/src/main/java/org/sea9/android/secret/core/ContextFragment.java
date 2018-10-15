@@ -4,7 +4,9 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.util.Log;
 import android.widget.Filter;
 import android.widget.Filterable;
@@ -12,6 +14,7 @@ import android.widget.Filterable;
 import org.sea9.android.secret.data.DbContract;
 import org.sea9.android.secret.data.DbHelper;
 import org.sea9.android.secret.data.NoteRecord;
+import org.sea9.android.secret.details.DetailFragment;
 import org.sea9.android.secret.details.TagsAdaptor;
 
 public class ContextFragment extends Fragment implements
@@ -66,13 +69,6 @@ public class ContextFragment extends Fragment implements
 		tempHelper.getWritableDatabase().execSQL(DbContract.SQL_CONFIG);
 		(new org.sea9.android.secret.data.DbTest()).run(tempHelper);
 		//TODO TEMP <<<<<<<<<<<<
-//		new DbInitTask().execute(this);
-	}
-
-	@Override
-	public void onResume() {
-		super.onResume();
-		callback.onInit();
 	}
 
 	@Override
@@ -87,18 +83,39 @@ public class ContextFragment extends Fragment implements
 		super.onDestroy();
 	}
 
+	/*=========================================
+	 * Handle unsaved updates in detail dialog
+	 */
 	private boolean updated;
 	public final boolean isUpdated() { return updated; }
 	public final void clearUpdated() {  updated = false; }
 	@Override public final void dataUpdated() { updated = true; }
+	//=========================================
+
+	/*=============================
+	 * Handle logon related stuffs
+	 */
+	private char[] password = null;
+	public final boolean isLogon() {
+		return (password != null);
+	}
+	public final void logoff() {
+		if (isLogon()) {
+			for (int i = 0; i < password.length; i ++)
+				password[i] = 0;
+			password = null;
+		}
+	}
 
 	/**
 	 * Called after logon.
 	 * @param value Hash value of the password.
 	 */
 	public void onLogon(char[] value) {
+		password = value;
 		new ContextFragment.DbInitTask().execute(this);
 	}
+	//=============================
 
 	/*=====================================================
 	 * @see org.sea9.android.secret.data.DbHelper.Listener

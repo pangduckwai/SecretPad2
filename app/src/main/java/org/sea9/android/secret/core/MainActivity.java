@@ -8,6 +8,8 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.DialogFragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -145,6 +147,28 @@ public class MainActivity extends AppCompatActivity implements
 			recycler.smoothScrollToPosition(pos); // Scroll list to the selected row
 			ctxFrag.getAdaptor().onRowSelected(pos);
 		}
+
+		if (!ctxFrag.isLogon()) onInit();
+	}
+
+	@Override
+	public void onPause() {
+		super.onPause();
+		FragmentManager manager = getSupportFragmentManager();
+		DialogFragment frag = (DetailFragment) manager.findFragmentByTag(DetailFragment.TAG);
+		if (frag != null) frag.dismiss();
+
+		frag = (LogonDialog) manager.findFragmentByTag(LogonDialog.TAG);
+		if (frag != null) frag.dismiss();
+
+		frag = (AboutDialog) manager.findFragmentByTag(AboutDialog.TAG);
+		if (frag != null) frag.dismiss();
+	}
+
+	@Override
+	public void onStop() {
+		super.onStop();
+		ctxFrag.logoff();
 	}
 
 	@Override

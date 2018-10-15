@@ -37,5 +37,6 @@
 		android:layout_height="wrap_content"
 		android:layout_gravity="center"
 		android:layout_marginTop="@dimen/fab_margin"
+		android:background="?android:attr/selectableItemBackground"
 		android:text="@string/btn_logon" />
 </LinearLayout>

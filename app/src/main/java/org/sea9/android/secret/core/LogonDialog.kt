@@ -37,9 +37,9 @@ class LogonDialog : DialogFragment() {
 		}
 
 		txtPasswd = view.findViewById(R.id.password)
-		txtPasswd.setOnEditorActionListener { view, actionId, _ ->
+		txtPasswd.setOnEditorActionListener { v, actionId, _ ->
 			if (actionId == EditorInfo.IME_ACTION_DONE) {
-				logon(view);
+				logon(v)
 			}
 			false
 		}
@@ -62,6 +62,7 @@ class LogonDialog : DialogFragment() {
 		} else {
 			val ret = CharArray(len)
 			txtPasswd.text.getChars(0, len, ret, 0)
+			txtPasswd.text.clear()
 			callback?.onLogon(CryptoUtils.convert(CryptoUtils.encode(CryptoUtils.hash(CryptoUtils.convert(ret)))))
 			dismiss()
 			true
@@ -69,7 +70,7 @@ class LogonDialog : DialogFragment() {
 	}
 
 	interface Listener {
-		fun onLogon(value: CharArray)
+		fun onLogon(value: CharArray?)
 	}
 	private var callback : Listener? = null
 
