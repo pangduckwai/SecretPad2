@@ -85,15 +85,6 @@ public class ContextFragment extends Fragment implements
 	}
 	//=====================================================
 
-	/*=======================================================
-	 * Data maintenance APIs - query, insert, update, delete
-	 */
-//	public final void prepareAdd() {
-//		updated = false;
-//		tagsAdaptor.refreshSelection(null);
-//		callback.onPrepareAddCompleted();
-//	}
-
 	/*================================
 	 * @see android.widget.Filterable
 	 */
@@ -168,10 +159,6 @@ public class ContextFragment extends Fragment implements
 	public interface Listener {
 		void onRowSelectionMade(String content);
 		void onRowSelectionCleared();
-//		void onPrepareAddCompleted();
-//		void onInsertDataCompleted(int position);
-//		void onUpdateDataCompleted(int position, String content);
-//		void onQueryDataCompleted(NoteRecord record);
 		void onFilterCleared(int position);
 	}
 	private Listener callback;

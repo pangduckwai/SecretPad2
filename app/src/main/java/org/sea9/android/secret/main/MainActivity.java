@@ -195,8 +195,14 @@ public class MainActivity extends AppCompatActivity implements
 			builder.setNegativeButton(R.string.btn_cancel, (dialog, which) -> Snackbar.make(recycler, getString(R.string.msg_delete_tags_cancel), Snackbar.LENGTH_LONG).show());
 			(builder.create()).show();
 			break;
-		case R.id.action_settings:
-			Snackbar.make(getWindow().getDecorView(), "Changing settings", Snackbar.LENGTH_LONG).show(); //TODO TEMP
+		case R.id.action_import:
+			Snackbar.make(getWindow().getDecorView(), "Importing...", Snackbar.LENGTH_LONG).show(); //TODO TEMP
+			break;
+		case R.id.action_export:
+			Snackbar.make(getWindow().getDecorView(), "Exporting...", Snackbar.LENGTH_LONG).show(); //TODO TEMP
+			break;
+		case R.id.action_passwd:
+			Snackbar.make(getWindow().getDecorView(), "Change password", Snackbar.LENGTH_LONG).show(); //TODO TEMP
 			break;
 		case R.id.action_about:
 			AboutDialog.Companion.getInstance().show(getSupportFragmentManager(), AboutDialog.TAG);
