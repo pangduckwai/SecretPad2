@@ -37,8 +37,18 @@ class DbHelper(private val callback: Listener): SQLiteOpenHelper(callback.getCon
 		callback.onReady()
 	}
 
+	fun encrypt(input: CharArray, salt: ByteArray): CharArray {
+		return callback.encrypt(input, salt)
+	}
+
+	fun decrypt(input: CharArray, salt: ByteArray): CharArray {
+		return callback.decrypt(input, salt)
+	}
+
 	interface Listener {
 		fun getContext(): Context?
 		fun onReady()
+		fun encrypt(input: CharArray, salt: ByteArray): CharArray
+		fun decrypt(input: CharArray, salt: ByteArray): CharArray
 	}
 }

@@ -2,7 +2,6 @@ package org.sea9.android.secret.data
 
 import android.content.ContentValues
 import android.database.sqlite.SQLiteDatabase
-import android.database.sqlite.SQLiteOpenHelper
 import android.provider.BaseColumns
 import java.lang.IllegalStateException
 import java.util.*
@@ -41,7 +40,7 @@ object DbContract {
 			/**
 			 * Select all tags.
 			 */
-			fun select(helper: SQLiteOpenHelper): List<TagRecord> {
+			fun select(helper: DbHelper): List<TagRecord> {
 				val cursor = helper.readableDatabase
 						.query(TABLE, COLUMNS, null, null, null, null, COL_TAG_NAME)
 
@@ -63,7 +62,7 @@ object DbContract {
 			/**
 			 * Search by tag name if a record already exists or not.
 			 */
-			fun search(helper: SQLiteOpenHelper, tagName: String): List<Long> {
+			fun search(helper: DbHelper, tagName: String): List<Long> {
 				val args = arrayOf(tagName)
 				val cursor = helper.readableDatabase.rawQuery(QUERY_SEARCH, args)
 
@@ -82,7 +81,7 @@ object DbContract {
 			/**
 			 * Insert a tag.
 			 */
-			fun insert(helper: SQLiteOpenHelper, tagName: String): TagRecord? {
+			fun insert(helper: DbHelper, tagName: String): TagRecord? {
 				val timestamp = Date().time
 				val newRow = ContentValues().apply {
 					put(COL_TAG_NAME, tagName)
@@ -99,7 +98,7 @@ object DbContract {
 			/**
 			 * Delete any unused tags.
 			 */
-			fun delete(helper: SQLiteOpenHelper): Int {
+			fun delete(helper: DbHelper): Int {
 				return helper.writableDatabase.compileStatement(QUERY_DELETE).executeUpdateDelete()
 			}
 		}
@@ -129,7 +128,7 @@ object DbContract {
 			/**
 			 * Select all notes.
 			 */
-			fun select(helper: SQLiteOpenHelper): List<NoteRecord> {
+			fun select(helper: DbHelper): List<NoteRecord> {
 				// Not using order-by in query because keys are encrypted as well
 				val cursor = helper.readableDatabase
 						.query(TABLE, KEYS, null, null, null, null, null)
@@ -138,6 +137,7 @@ object DbContract {
 				with(cursor) {
 					while (moveToNext()) {
 						val pid = getLong((getColumnIndexOrThrow(PKEY)))
+						val salt = getString(getColumnIndexOrThrow(COL_KEY_SALT))
 						val key = getString(getColumnIndexOrThrow(COL_KEY)) //TODO remember to decrypt...
 						val modified = getLong(getColumnIndexOrThrow(COMMON_MODF))
 						val item = NoteRecord(pid, key, null, modified)
@@ -154,7 +154,7 @@ object DbContract {
 			/**
 			 * Select one note by its ID, returns only the content.
 			 */
-			fun select(helper: SQLiteOpenHelper, nid: Long): String? {
+			fun select(helper: DbHelper, nid: Long): String? {
 				val args = arrayOf(nid.toString())
 				val cursor = helper.readableDatabase
 						.query(TABLE, COLUMNS, COMMON_PKEY, args, null, null, null)
@@ -179,7 +179,7 @@ object DbContract {
 			/**
 			 * Insert one note.
 			 */
-			fun insert(helper: SQLiteOpenHelper, key: String, content: String): NoteRecord? {
+			fun insert(helper: DbHelper, key: String, content: String): NoteRecord? {
 				val timestamp = Date().time
 				val newRow = ContentValues().apply {
 					put(COL_KEY_SALT, "") // TODO Generate new salt
@@ -199,7 +199,7 @@ object DbContract {
 			/**
 			 * Insert a new note and all associated tag relations.
 			 */
-			fun insert(helper: SQLiteOpenHelper, key: String, content: String, tags: List<Long>): Long? {
+			fun insert(helper: DbHelper, key: String, content: String, tags: List<Long>): Long? {
 				val db = helper.writableDatabase
 				val newRow = ContentValues().apply {
 					put(COL_KEY_SALT, "") // TODO Generate new salt
@@ -231,7 +231,7 @@ object DbContract {
 			/**
 			 * Update the content of a note, and delete/insert all associated tag relations, by the note ID.
 			 */
-			fun update(helper: SQLiteOpenHelper, nid: Long, content: String, tags: List<Long>): Int {
+			fun update(helper: DbHelper, nid: Long, content: String, tags: List<Long>): Int {
 				val args = arrayOf(nid.toString())
 				val db = helper.writableDatabase
 				var ret = -1
@@ -265,7 +265,7 @@ object DbContract {
 			/**
 			 * Delete a note, and all its associated tag relations, by its ID.
 			 */
-			fun delete(helper: SQLiteOpenHelper, nid: Long): Int {
+			fun delete(helper: DbHelper, nid: Long): Int {
 				val args = arrayOf(nid.toString())
 				val db = helper.writableDatabase
 				var ret = -1
@@ -313,7 +313,7 @@ object DbContract {
 			/**
 			 * Select one note by its ID and return all tags associate with it.
 			 */
-			fun select(helper: SQLiteOpenHelper, nid: Long): List<TagRecord> {
+			fun select(helper: DbHelper, nid: Long): List<TagRecord> {
 				val args = arrayOf(nid.toString())
 				val cursor = helper.readableDatabase.rawQuery(QUERY_CONTENT, args)
 
@@ -334,7 +334,7 @@ object DbContract {
 			/**
 			 * Add a note/tag relationship.
 			 */
-			fun insert(helper: SQLiteOpenHelper, nid: Long, tid: Long): Long {
+			fun insert(helper: DbHelper, nid: Long, tid: Long): Long {
 				return insert(helper.writableDatabase, nid, tid)
 			}
 			fun insert(db: SQLiteDatabase, nid: Long, tid: Long): Long {

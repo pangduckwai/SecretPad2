@@ -3,6 +3,7 @@ package org.sea9.android.secret.core;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -10,10 +11,14 @@ import android.util.Log;
 import android.widget.Filter;
 import android.widget.Filterable;
 
+import org.jetbrains.annotations.NotNull;
+import org.sea9.android.secret.crypto.CryptoUtils;
 import org.sea9.android.secret.data.DbContract;
 import org.sea9.android.secret.data.DbHelper;
 import org.sea9.android.secret.data.NoteRecord;
 import org.sea9.android.secret.details.TagsAdaptor;
+
+import javax.crypto.BadPaddingException;
 
 public class ContextFragment extends Fragment implements
 		DbHelper.Listener,
@@ -54,14 +59,18 @@ public class ContextFragment extends Fragment implements
 
 		//TODO TEMP >>>>>>>>>>>>
 		DbHelper tempHelper = new DbHelper(new DbHelper.Listener() {
-			@Override
-			public void onReady() {
+			@Override public void onReady() {
 				Log.w(TAG, "DB test connection ready");
 			}
 			@org.jetbrains.annotations.Nullable
-			@Override
-			public Context getContext() {
+			@Override public Context getContext() {
 				return ContextFragment.this.getContext();
+			}
+			@NotNull @Override public char[] encrypt(@NotNull char[] input, @NotNull byte[] salt) {
+				return new char[0];
+			}
+			@NotNull @Override public char[] decrypt(@NotNull char[] input, @NotNull byte[] salt) {
+				return new char[0];
 			}
 		});
 		tempHelper.getWritableDatabase().execSQL(DbContract.SQL_CONFIG);
@@ -163,6 +172,38 @@ public class ContextFragment extends Fragment implements
 	public void onReady() {
 		Log.d(TAG, "DbHelper.Listener.onReady");
 		new AppInitTask().execute(this);
+	}
+
+	/**
+	 * Put the method here because the password is held here.
+	 * @param input data to be encrypted.
+	 * @param salt salt used for this encryption.
+	 * @return the encrypted data.
+	 */
+	@Override @NonNull
+	public final char[] encrypt(@NonNull char[] input, @NonNull byte[] salt) {
+		try {
+			return CryptoUtils.encrypt(input, password, salt);
+		} catch (BadPaddingException e) {
+			Log.w(TAG, e.getMessage());
+			return new char[0];
+		}
+	}
+
+	/**
+	 * Put the method here because the password is held here.
+	 * @param input data to be decrypted.
+	 * @param salt salt use for this decryption.
+	 * @return the decrypted data.
+	 */
+	@Override @NonNull
+	public final char[] decrypt(@NonNull char[] input, @NonNull byte[] salt) {
+		try {
+			return CryptoUtils.decrypt(input, password, salt);
+		} catch (BadPaddingException e) {
+			Log.w(TAG, e.getMessage());
+			return new char[0];
+		}
 	}
 	//=====================================================
 

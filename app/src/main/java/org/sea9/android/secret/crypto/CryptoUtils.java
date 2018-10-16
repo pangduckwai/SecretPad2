@@ -34,8 +34,8 @@ public class CryptoUtils {
 	private static final String DEFAULT_CHARSET = "UTF-8";
 	private static final String DEFAULT_PBE_ALGORITHM = "PBEWITHSHA-256AND192BITAES-CBC-BC";
 	private static final String DEFAULT_HASH_ALGORITHM = "SHA-256";
-	private static final int DEFAULT_ITERATION = 2048;
-	private static final int DEFAULT_SALT_LENGTH = 512;
+	static final int DEFAULT_ITERATION = 2048;
+	static final int DEFAULT_SALT_LENGTH = 512;
 
 	/**
 	 * Compute the hash of the given input.
@@ -171,10 +171,10 @@ public class CryptoUtils {
 	 * Encrypt of decrypt a given message in byte array.
 	 * @param msg message to be encrypted or decrypted.
 	 * @param alias secret key to use in the operation.
-	 * @param flag do encryption if true, decrytpion otherwise.
+	 * @param flag do encryption if true, decryption otherwise.
 	 * @return the convert data in a byte array.
 	 */
-	private static byte[] doCipher(byte[] msg, KeySpec keySpec, AlgorithmParameterSpec paramSpec, boolean flag)
+	static byte[] doCipher(byte[] msg, KeySpec keySpec, AlgorithmParameterSpec paramSpec, boolean flag)
 			throws BadPaddingException {
 		try {
 			SecretKeyFactory factory = SecretKeyFactory.getInstance(DEFAULT_PBE_ALGORITHM);
