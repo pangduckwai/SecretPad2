@@ -37,7 +37,7 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 
 	private void selectRow(int position) {
 		selectedPos = position;
-		onRowSelected(position);
+		selectDetails(position);
 	}
 	final int selectRow(long pid) {
 		int idx = -1;
@@ -69,8 +69,8 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 		else
 			return null;
 	}
-	final void filterRecord(String query) {
-		refresh();
+	final void filterRecords(String query) {
+		select();
 
 		// Do this since using removeif() got an UnsupportedOperationException
 		List<NoteRecord> filtered = cache.stream().filter(p -> {
@@ -86,6 +86,9 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 		if (filtered != null) {
 			cache = filtered;
 		}
+	}
+	final void clearRecords() {
+		cache.clear();
 	}
 
 	NotesAdaptor(Listener ctx) {
@@ -105,8 +108,6 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 
 	@Override @NonNull
 	public final ViewHolder onCreateViewHolder(@NonNull final ViewGroup parent, int viewType) {
-		Log.d(TAG, "onCreateViewHolder");
-
 		// create a new view
 		View item = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_item, parent, false);
 
@@ -159,11 +160,20 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 	/*======================
 	 * Data access methods.
 	 */
-	void refresh() {
+	void select() {
 		cache = DbContract.Notes.Companion.select(callback.getDbHelper());
 		for (NoteRecord record : cache) {
 			List<TagRecord> tags = DbContract.NoteTags.Companion.select(callback.getDbHelper(), record.getPid());
 			record.setTags(tags);
+		}
+	}
+
+	void selectDetails(int position) { // Retrieve detail of the selected row
+		if ((position >= 0) && (position < cache.size())) {
+			String content = DbContract.Notes.Companion.select(callback.getDbHelper(), cache.get(position).getPid());
+			if (content != null) {
+				callback.updateContent(content);
+			}
 		}
 	}
 
@@ -176,7 +186,7 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 
 		Long pid = DbContract.Notes.Companion.insert(callback.getDbHelper(), k, c, t);
 		if ((pid != null) && (pid > 0)) {
-			refresh();
+			select();
 			for (int i = 0; i < cache.size(); i ++) {
 				if (pid == cache.get(i).getPid()) {
 					notifyItemInserted(i);
@@ -201,7 +211,7 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 		}
 
 		if (ret >= 0) {
-			refresh();
+			select();
 			notifyItemChanged(position);
 			callback.updateContent(c);
 			return position;
@@ -218,7 +228,7 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 
 			ret = DbContract.Notes.Companion.delete(callback.getDbHelper(), cache.get(position).getPid());
 			if (ret >= 0) {
-				refresh();
+				select();
 				notifyItemRemoved(position);
 				if (position < selectedPos) {
 					selectedPos --;
@@ -228,19 +238,6 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 			}
 		}
 		return ret;
-	}
-
-	/**
-	 * Retrieve detail of the selected row.
-	 * @param position position selected on the recyclerView.
-	 */
-	void onRowSelected(int position) {
-		if ((position >= 0) && (position < cache.size())) {
-			String content = DbContract.Notes.Companion.select(callback.getDbHelper(), cache.get(position).getPid());
-			if (content != null) {
-				callback.updateContent(content);
-			}
-		}
 	}
 	//======================
 

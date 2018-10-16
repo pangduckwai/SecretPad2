@@ -53,7 +53,7 @@ public class TagsAdaptor extends RecyclerView.Adapter<TagsAdaptor.ViewHolder> {
 		Log.d(TAG, "onAttachedToRecyclerView");
 		recyclerView = recycler;
 
-		refresh();
+		select();
 	}
 
 	@Override @NonNull
@@ -99,7 +99,7 @@ public class TagsAdaptor extends RecyclerView.Adapter<TagsAdaptor.ViewHolder> {
 	/*======================
 	 * Data access methods.
 	 */
-	private void refresh() {
+	private void select() {
 		cache = DbContract.Tags.Companion.select(callback.getDbHelper());
 	}
 
@@ -113,7 +113,7 @@ public class TagsAdaptor extends RecyclerView.Adapter<TagsAdaptor.ViewHolder> {
 			if (tag != null) {
 				pid = tag.getPid();
 			}
-			refresh();
+			select();
 		}
 
 		int position = -1;

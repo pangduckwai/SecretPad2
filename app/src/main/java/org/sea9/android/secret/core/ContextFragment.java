@@ -4,9 +4,8 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.widget.Filter;
 import android.widget.Filterable;
@@ -14,7 +13,6 @@ import android.widget.Filterable;
 import org.sea9.android.secret.data.DbContract;
 import org.sea9.android.secret.data.DbHelper;
 import org.sea9.android.secret.data.NoteRecord;
-import org.sea9.android.secret.details.DetailFragment;
 import org.sea9.android.secret.details.TagsAdaptor;
 
 public class ContextFragment extends Fragment implements
@@ -58,7 +56,7 @@ public class ContextFragment extends Fragment implements
 		DbHelper tempHelper = new DbHelper(new DbHelper.Listener() {
 			@Override
 			public void onReady() {
-				Log.w(TAG, "DB Test finished");
+				Log.w(TAG, "DB test connection ready");
 			}
 			@org.jetbrains.annotations.Nullable
 			@Override
@@ -72,6 +70,13 @@ public class ContextFragment extends Fragment implements
 	}
 
 	@Override
+	public void onResume() {
+		super.onResume();
+		Log.d(TAG, "onResume");
+		cancelLogoff();
+	}
+
+	@Override
 	public void onDestroy() {
 		Log.d(TAG, "onDestroy");
 		//TODO TEMP >>>>>>>>>>>>
@@ -80,6 +85,7 @@ public class ContextFragment extends Fragment implements
 			org.sea9.android.secret.data.DbTest.cleanup(context, dbHelper);
 		//TODO TEMP <<<<<<<<<<<<
 		if (dbHelper != null) dbHelper.close();
+		cancelLogoff();
 		super.onDestroy();
 	}
 
@@ -96,15 +102,39 @@ public class ContextFragment extends Fragment implements
 	 * Handle logon related stuffs
 	 */
 	private char[] password = null;
+
 	public final boolean isLogon() {
 		return (password != null);
 	}
+
+	private LogoffTask logoffTask;
+
+	/**
+	 * Initiate the logoff process.
+	 */
 	public final void logoff() {
-		if (isLogon()) {
-			for (int i = 0; i < password.length; i ++)
-				password[i] = 0;
-			password = null;
+		logoffTask = new ContextFragment.LogoffTask();
+		logoffTask.execute(this);
+	}
+
+	/*
+	 * Called by the logoff async task to do the actual logoff steps.
+	 */
+	private void doLogoff() {
+		for (int i = 0; i < password.length; i++)
+			password[i] = 0;
+		password = null;
+
+		adaptor.clearRecords();
+
+		FragmentActivity activity = getActivity();
+		if (activity != null) {
+			activity.runOnUiThread(() -> adaptor.clearSelection());
 		}
+	}
+
+	private void cancelLogoff() {
+		if (logoffTask != null) logoffTask.cancel(true);
 	}
 
 	/**
@@ -112,8 +142,17 @@ public class ContextFragment extends Fragment implements
 	 * @param value Hash value of the password.
 	 */
 	public void onLogon(char[] value) {
+		Log.d(TAG, "onLogon");
 		password = value;
 		new ContextFragment.DbInitTask().execute(this);
+	}
+
+	/**
+	 * Called by the logoff async task after logged off.
+	 */
+	public void onLogoff() {
+		Log.d(TAG, "onLogoff");
+		callback.onLogoff();
 	}
 	//=============================
 
@@ -152,7 +191,7 @@ public class ContextFragment extends Fragment implements
 			if (pos >= 0) r = adaptor.getRecord(pos);
 
 			filtered = false;
-			adaptor.refresh();
+			adaptor.select();
 			adaptor.notifyDataSetChanged();
 			if (r != null) {
 				callback.onFilterCleared(adaptor.selectRow(r.getKey()));
@@ -177,7 +216,7 @@ public class ContextFragment extends Fragment implements
 
 			@Override
 			protected void publishResults(CharSequence constraint, FilterResults results) {
-				adaptor.filterRecord((String) results.values);
+				adaptor.filterRecords((String) results.values);
 				filtered = true;
 			}
 		};
@@ -200,6 +239,7 @@ public class ContextFragment extends Fragment implements
 	 */
 	public interface Listener {
 		void onInit();
+		void onLogoff();
 		void onRowSelectionMade(String content);
 		void onRowSelectionCleared();
 		void onFilterCleared(int position);
@@ -230,7 +270,7 @@ public class ContextFragment extends Fragment implements
 	 */
 
 	/**
-	 * //Async initialize DB since the first call to getXxxDatabase() can be slow
+	 * Async initialize DB since the first call to getXxxDatabase() can be slow
 	 */
 	static class DbInitTask extends AsyncTask<ContextFragment, Void, Void> {
 		@Override
@@ -243,11 +283,15 @@ public class ContextFragment extends Fragment implements
 		}
 	}
 
+	/**
+	 * Invoke a separate thread to read the database after DB init to avoid an IllegalStateException
+	 * which complained 'getDatabase' is called recursively.
+	 */
 	static class AppInitTask extends AsyncTask<ContextFragment, Void, ContextFragment> {
 		@Override
 		protected ContextFragment doInBackground(ContextFragment... fragments) {
 			if ((fragments.length > 0) && (fragments[0].getContext() != null)) {
-				fragments[0].getAdaptor().refresh();
+				fragments[0].getAdaptor().select();
 			}
 			return fragments[0];
 		}
@@ -255,6 +299,38 @@ public class ContextFragment extends Fragment implements
 		@Override
 		protected void onPostExecute(ContextFragment ctx) {
 			ctx.getAdaptor().notifyDataSetChanged();
+		}
+	}
+
+	/**
+	 * Move logoff to a separate thread to introduce delay and allow it to be interrupted
+	 */
+	static class LogoffTask extends AsyncTask<ContextFragment, Void, ContextFragment> {
+		@Override
+		protected ContextFragment doInBackground(ContextFragment... fragments) {
+			if ((fragments.length > 0) && (fragments[0].getContext() != null)) {
+				if (fragments[0].isLogon()) {
+					try {
+						Thread.sleep(500);
+						if (!isCancelled()) {
+							fragments[0].doLogoff();
+						}
+					} catch (InterruptedException e) {
+						Log.i(TAG, e.getMessage());
+					}
+				}
+			}
+			return fragments[0];
+		}
+
+		@Override
+		protected void onPostExecute(ContextFragment fragment) {
+			fragment.onLogoff();
+		}
+
+		@Override
+		protected void onCancelled() {
+			Log.d(TAG, "Logoff cancelled");
 		}
 	}
 }

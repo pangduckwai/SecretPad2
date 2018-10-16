@@ -67,16 +67,16 @@ object DbContract {
 				val args = arrayOf(tagName)
 				val cursor = helper.readableDatabase.rawQuery(QUERY_SEARCH, args)
 
-				val ret = mutableListOf<Long>()
+				val result = mutableListOf<Long>()
 				with(cursor) {
 					while (moveToNext()) {
 						val pid = getLong(getColumnIndexOrThrow(PKEY))
-						ret.add(pid)
+						result.add(pid)
 					}
 				}
 
 				cursor.close()
-				return ret
+				return result
 			}
 
 			/**
@@ -146,7 +146,9 @@ object DbContract {
 				}
 
 				cursor.close()
-				return result.sortedWith(compareBy { it.key }) // Sort here after decrypt
+				return result.asSequence()
+						.sortedWith(compareBy { it.key }) // Sort here after decrypt
+						.toMutableList()
 			}
 
 			/**

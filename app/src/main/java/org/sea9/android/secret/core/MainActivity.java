@@ -24,7 +24,6 @@ import android.view.ViewGroup;
 import android.widget.SearchView;
 import android.widget.TextView;
 
-import org.jetbrains.annotations.NotNull;
 import org.sea9.android.secret.data.NoteRecord;
 import org.sea9.android.secret.details.DetailFragment;
 import org.sea9.android.secret.R;
@@ -145,7 +144,7 @@ public class MainActivity extends AppCompatActivity implements
 		int pos = ctxFrag.getAdaptor().getSelectedPosition();
 		if (pos >= 0) {
 			recycler.smoothScrollToPosition(pos); // Scroll list to the selected row
-			ctxFrag.getAdaptor().onRowSelected(pos);
+			ctxFrag.getAdaptor().selectDetails(pos);
 		}
 
 		if (!ctxFrag.isLogon()) onInit();
@@ -154,11 +153,10 @@ public class MainActivity extends AppCompatActivity implements
 	@Override
 	public void onPause() {
 		super.onPause();
+		Log.d(TAG, "onPause");
 		FragmentManager manager = getSupportFragmentManager();
-		DialogFragment frag = (DetailFragment) manager.findFragmentByTag(DetailFragment.TAG);
-		if (frag != null) frag.dismiss();
 
-		frag = (LogonDialog) manager.findFragmentByTag(LogonDialog.TAG);
+		DialogFragment frag = (LogonDialog) manager.findFragmentByTag(LogonDialog.TAG);
 		if (frag != null) frag.dismiss();
 
 		frag = (AboutDialog) manager.findFragmentByTag(AboutDialog.TAG);
@@ -168,6 +166,7 @@ public class MainActivity extends AppCompatActivity implements
 	@Override
 	public void onStop() {
 		super.onStop();
+		Log.d(TAG, "onStop");
 		ctxFrag.logoff();
 	}
 
@@ -179,6 +178,7 @@ public class MainActivity extends AppCompatActivity implements
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
+		Log.d(TAG, "onCreateOptionsMenu");
 		getMenuInflater().inflate(R.menu.menu_list, menu);
 
 		SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
@@ -255,6 +255,12 @@ public class MainActivity extends AppCompatActivity implements
 	@Override
 	public void onInit() {
 		LogonDialog.Companion.getInstance().show(getSupportFragmentManager(), LogonDialog.TAG);
+	}
+
+	@Override
+	public void onLogoff() {
+		DetailFragment frag = (DetailFragment) getSupportFragmentManager().findFragmentByTag(DetailFragment.TAG);
+		if (frag != null) frag.dismissAllowingStateLoss();
 	}
 
 	@Override
