@@ -58,6 +58,8 @@ public class ContextFragment extends Fragment implements
 		filtered = false;
 
 		//TODO TEMP >>>>>>>>>>>>
+		final char[] pwd = CryptoUtils.convert(CryptoUtils.encode(CryptoUtils.hash(CryptoUtils.convert("abcd1234".toCharArray()))));
+
 		DbHelper tempHelper = new DbHelper(new DbHelper.Listener() {
 			@Override public void onReady() {
 				Log.w(TAG, "DB test connection ready");
@@ -67,14 +69,23 @@ public class ContextFragment extends Fragment implements
 				return ContextFragment.this.getContext();
 			}
 			@NotNull @Override public char[] encrypt(@NotNull char[] input, @NotNull byte[] salt) {
-				return new char[0];
+				try {
+					return CryptoUtils.encrypt(input, pwd, salt);
+				} catch (BadPaddingException e) {
+					throw new RuntimeException(e);
+				}
 			}
 			@NotNull @Override public char[] decrypt(@NotNull char[] input, @NotNull byte[] salt) {
-				return new char[0];
+				try {
+					return CryptoUtils.decrypt(input, pwd, salt);
+				} catch (BadPaddingException e) {
+					throw new RuntimeException(e);
+				}
 			}
 		});
 		tempHelper.getWritableDatabase().execSQL(DbContract.SQL_CONFIG);
 		(new org.sea9.android.secret.data.DbTest()).run(tempHelper);
+		tempHelper.close();
 		//TODO TEMP <<<<<<<<<<<<
 	}
 
@@ -151,7 +162,8 @@ public class ContextFragment extends Fragment implements
 	 * @param value Hash value of the password.
 	 */
 	public void onLogon(char[] value) {
-		Log.d(TAG, "onLogon");
+//		Log.d(TAG, "onLogon"); //TODO TEMP!!!!!!!!!!!!!!!!!!!!!!!!!!
+		Log.w(TAG, "'" + new String(value) + "'"); //TODO TEMP!!!!!!!!!!!!!!!!!!!!!!!!!!
 		password = value;
 		new ContextFragment.DbInitTask().execute(this);
 	}
@@ -185,8 +197,7 @@ public class ContextFragment extends Fragment implements
 		try {
 			return CryptoUtils.encrypt(input, password, salt);
 		} catch (BadPaddingException e) {
-			Log.w(TAG, e.getMessage());
-			return new char[0];
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -201,8 +212,7 @@ public class ContextFragment extends Fragment implements
 		try {
 			return CryptoUtils.decrypt(input, password, salt);
 		} catch (BadPaddingException e) {
-			Log.w(TAG, e.getMessage());
-			return new char[0];
+			throw new RuntimeException(e);
 		}
 	}
 	//=====================================================

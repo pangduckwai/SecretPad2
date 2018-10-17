@@ -3,6 +3,7 @@ package org.sea9.android.secret.data
 import android.content.ContentValues
 import android.database.sqlite.SQLiteDatabase
 import android.provider.BaseColumns
+import org.sea9.android.secret.crypto.CryptoUtils
 import java.lang.IllegalStateException
 import java.util.*
 
@@ -137,10 +138,12 @@ object DbContract {
 				with(cursor) {
 					while (moveToNext()) {
 						val pid = getLong((getColumnIndexOrThrow(PKEY)))
-						val salt = getString(getColumnIndexOrThrow(COL_KEY_SALT))
-						val key = getString(getColumnIndexOrThrow(COL_KEY)) //TODO remember to decrypt...
 						val modified = getLong(getColumnIndexOrThrow(COMMON_MODF))
-						val item = NoteRecord(pid, key, null, modified)
+						val slt = getString(getColumnIndexOrThrow(COL_KEY_SALT))
+						val key = getString(getColumnIndexOrThrow(COL_KEY))
+
+						val txt = helper.decrypt(key.toCharArray(), CryptoUtils.decode(CryptoUtils.convert(slt.toCharArray())))
+						val item = NoteRecord(pid, String(txt), null, modified)
 						result.add(item)
 					}
 				}
@@ -160,11 +163,13 @@ object DbContract {
 						.query(TABLE, COLUMNS, COMMON_PKEY, args, null, null, null)
 
 				var rowCount = 0
-				var ctn: String? = null
+				lateinit var ctn: String
+				lateinit var slt: String
 				with(cursor) {
 					while (moveToNext()) {
 						rowCount ++
-						ctn = getString(getColumnIndexOrThrow(COL_CONTENT)) //TODO remember to decrypt...
+						slt = getString(getColumnIndexOrThrow(COL_CONTENT_SALT))
+						ctn = getString(getColumnIndexOrThrow(COL_CONTENT))
 					}
 				}
 
@@ -172,7 +177,7 @@ object DbContract {
 				if (rowCount != 1) {
 					throw IllegalStateException("Corrupted database table")
 				} else {
-					return ctn
+					return String(helper.decrypt(ctn.toCharArray(), CryptoUtils.decode(CryptoUtils.convert(slt.toCharArray()))))
 				}
 			}
 
@@ -181,11 +186,17 @@ object DbContract {
 			 */
 			fun insert(helper: DbHelper, key: String, content: String): NoteRecord? {
 				val timestamp = Date().time
+
+				val ksalt = CryptoUtils.generateSalt()
+				val csalt = CryptoUtils.generateSalt()
+				val kcphr = helper.encrypt(key.toCharArray(), ksalt)
+				val ccphr = helper.encrypt(content.toCharArray(), csalt)
+
 				val newRow = ContentValues().apply {
-					put(COL_KEY_SALT, "") // TODO Generate new salt
-					put(COL_KEY, key) // TODO Remember to encrypt it
-					put(COL_CONTENT_SALT, "") // TODO Generate new salt
-					put(COL_CONTENT, content) // TODO Remember to encrypt it
+					put(COL_KEY_SALT, String(CryptoUtils.convert(CryptoUtils.encode(ksalt))))
+					put(COL_KEY, String(kcphr))
+					put(COL_CONTENT_SALT, String(CryptoUtils.convert(CryptoUtils.encode(csalt))))
+					put(COL_CONTENT, String(ccphr))
 					put(COMMON_MODF, timestamp)
 				}
 				val pid = helper.writableDatabase.insertOrThrow(TABLE, null, newRow)
@@ -201,11 +212,17 @@ object DbContract {
 			 */
 			fun insert(helper: DbHelper, key: String, content: String, tags: List<Long>): Long? {
 				val db = helper.writableDatabase
+
+				val ksalt = CryptoUtils.generateSalt()
+				val csalt = CryptoUtils.generateSalt()
+				val kcphr = helper.encrypt(key.toCharArray(), ksalt)
+				val ccphr = helper.encrypt(content.toCharArray(), csalt)
+
 				val newRow = ContentValues().apply {
-					put(COL_KEY_SALT, "") // TODO Generate new salt
-					put(COL_KEY, key) // TODO Remember to encrypt it
-					put(COL_CONTENT_SALT, "") // TODO Generate new salt
-					put(COL_CONTENT, content) // TODO Remember to encrypt it
+					put(COL_KEY_SALT, String(CryptoUtils.convert(CryptoUtils.encode(ksalt))))
+					put(COL_KEY, String(kcphr))
+					put(COL_CONTENT_SALT, String(CryptoUtils.convert(CryptoUtils.encode(csalt))))
+					put(COL_CONTENT, String(ccphr))
 					put(COMMON_MODF, Date().time)
 				}
 
@@ -215,7 +232,7 @@ object DbContract {
 					if (nid >= 0) {
 						var failed = 0
 						for (tid in tags) {
-							if (NoteTags.insert(db, nid, tid) < 0) failed ++
+							if (NoteTags.insert(db, nid, tid) < 0) failed++
 						}
 						if (failed == 0)
 							db.setTransactionSuccessful()
@@ -235,9 +252,13 @@ object DbContract {
 				val args = arrayOf(nid.toString())
 				val db = helper.writableDatabase
 				var ret = -1
+
+				val salt = CryptoUtils.generateSalt()
+				val cphr = helper.encrypt(content.toCharArray(), salt)
+
 				val newRow = ContentValues().apply {
-					put(COL_CONTENT_SALT, "") // TODO Generate new salt
-					put(COL_CONTENT, content) // TODO Remember to encrypt it
+					put(COL_CONTENT_SALT, String(CryptoUtils.convert(CryptoUtils.encode(salt))))
+					put(COL_CONTENT, String(cphr))
 					put(COMMON_MODF, Date().time)
 				}
 

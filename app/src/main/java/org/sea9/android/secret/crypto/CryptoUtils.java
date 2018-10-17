@@ -34,8 +34,8 @@ public class CryptoUtils {
 	private static final String DEFAULT_CHARSET = "UTF-8";
 	private static final String DEFAULT_PBE_ALGORITHM = "PBEWITHSHA-256AND192BITAES-CBC-BC";
 	private static final String DEFAULT_HASH_ALGORITHM = "SHA-256";
-	static final int DEFAULT_ITERATION = 2048;
-	static final int DEFAULT_SALT_LENGTH = 512;
+	private static final int DEFAULT_ITERATION = 2048;
+	private static final int DEFAULT_SALT_LENGTH = 512;
 
 	/**
 	 * Compute the hash of the given input.
