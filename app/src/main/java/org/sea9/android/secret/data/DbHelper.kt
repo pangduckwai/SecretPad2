@@ -5,7 +5,7 @@ import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
 
-class DbHelper(private val callback: Listener, private val isTest: Boolean):
+class DbHelper(private val callback: Listener, isTest: Boolean):
 		SQLiteOpenHelper(callback.getContext()
 				, DB_NAME + (if (isTest) "_test" else "")
 				, null
