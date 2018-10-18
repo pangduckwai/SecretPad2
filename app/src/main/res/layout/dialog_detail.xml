@@ -81,6 +81,24 @@
 		app:layout_constraintTop_toBottomOf="@+id/edit_tag" />
 
 	<ImageButton
+		android:id="@+id/dtl_cancel"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_marginEnd="8dp"
+		android:layout_marginBottom="4dp"
+		android:contentDescription="@string/ctn_cancel"
+		android:minWidth="0dp"
+		android:minHeight="0dp"
+		android:padding="4dp"
+		android:background="?android:attr/selectableItemBackground"
+		app:layout_constraintBottom_toBottomOf="parent"
+		app:layout_constraintEnd_toStartOf="@+id/dtl_save"
+		app:layout_constraintHorizontal_bias="0.5"
+		app:layout_constraintHorizontal_chainStyle="packed"
+		app:layout_constraintStart_toEndOf="@+id/divider_v"
+		app:srcCompat="@android:drawable/ic_delete" />
+
+	<ImageButton
 		android:id="@+id/dtl_save"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
@@ -93,28 +111,10 @@
 		android:padding="4dp"
 		android:background="?android:attr/selectableItemBackground"
 		app:layout_constraintBottom_toBottomOf="parent"
-		app:layout_constraintEnd_toStartOf="@+id/dtl_cancel"
-		app:layout_constraintHorizontal_bias="0.5"
-		app:layout_constraintHorizontal_chainStyle="packed"
-		app:layout_constraintStart_toEndOf="@+id/divider_v"
-		app:srcCompat="@android:drawable/ic_menu_save" />
-
-	<ImageButton
-		android:id="@+id/dtl_cancel"
-		android:layout_width="wrap_content"
-		android:layout_height="wrap_content"
-		android:layout_marginEnd="8dp"
-		android:layout_marginBottom="4dp"
-		android:contentDescription="@string/ctn_cancel"
-		android:minWidth="0dp"
-		android:minHeight="0dp"
-		android:padding="4dp"
-		android:background="?android:attr/selectableItemBackground"
-		app:layout_constraintBottom_toBottomOf="parent"
 		app:layout_constraintEnd_toEndOf="parent"
 		app:layout_constraintHorizontal_bias="0.5"
-		app:layout_constraintStart_toEndOf="@+id/dtl_save"
-		app:srcCompat="@android:drawable/ic_delete" />
+		app:layout_constraintStart_toEndOf="@+id/dtl_cancel"
+		app:srcCompat="@android:drawable/ic_menu_save" />
 
 	<View
 		android:id="@+id/divider_v"
@@ -143,5 +143,4 @@
 		app:layout_constraintEnd_toEndOf="parent"
 		app:layout_constraintStart_toEndOf="@+id/edit_content"
 		app:layout_constraintTop_toTopOf="@+id/dtl_cancel" />
-
 </android.support.constraint.ConstraintLayout>

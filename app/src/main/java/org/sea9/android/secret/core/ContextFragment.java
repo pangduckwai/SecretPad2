@@ -189,7 +189,7 @@ public class ContextFragment extends Fragment implements
 
 	@Override
 	public void onFilterComplete(int count) {
-		adaptor.dataSetChanged();
+		adaptor.notifyDataSetChanged();
 	}
 
 	public void applyFilter(String query) {
@@ -204,7 +204,7 @@ public class ContextFragment extends Fragment implements
 
 			filtered = false;
 			adaptor.select();
-			adaptor.dataSetChanged();
+			adaptor.notifyDataSetChanged();
 			if (r != null) {
 				callback.onFilterCleared(adaptor.selectRow(r.getKey()));
 			}
@@ -243,11 +243,6 @@ public class ContextFragment extends Fragment implements
 			callback.onRowSelectionMade(content);
 		else
 			callback.onRowSelectionCleared();
-	}
-
-	public void itemCountChanged(int count) {
-		//TODO HERE!!!!!!!!!!!!!!
-		//Change menu access according to count and filter status
 	}
 	//================================================
 
@@ -315,7 +310,7 @@ public class ContextFragment extends Fragment implements
 
 		@Override
 		protected void onPostExecute(ContextFragment ctx) {
-			ctx.getAdaptor().dataSetChanged();
+			ctx.getAdaptor().notifyDataSetChanged();
 		}
 	}
 

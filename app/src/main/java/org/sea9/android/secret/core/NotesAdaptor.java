@@ -189,7 +189,7 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 			select();
 			for (int i = 0; i < cache.size(); i ++) {
 				if (pid == cache.get(i).getPid()) {
-					itemInserted(i);
+					notifyItemInserted(i);
 					callback.updateContent(c);
 					break;
 				}
@@ -212,7 +212,7 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 
 		if (ret >= 0) {
 			select();
-			itemChanged(position);
+			notifyItemChanged(position);
 			callback.updateContent(c);
 			return position;
 		} else
@@ -229,7 +229,7 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 			ret = DbContract.Notes.Companion.delete(callback.getDbHelper(), cache.get(position).getPid());
 			if (ret >= 0) {
 				select();
-				itemRemoved(position);
+				notifyItemRemoved(position);
 				if (position < selectedPos) {
 					selectedPos --;
 				}
@@ -238,30 +238,6 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 			}
 		}
 		return ret;
-	}
-	//======================
-
-	/*======================
-	 * Change notification methods.
-	 */
-	final void dataSetChanged() {
-		notifyDataSetChanged();
-		callback.itemCountChanged(getItemCount());
-	}
-
-	private void itemInserted(int position) {
-		notifyItemInserted(position);
-		callback.itemCountChanged(getItemCount());
-	}
-
-	private void itemChanged(int position) {
-		notifyItemChanged(position);
-		callback.itemCountChanged(getItemCount());
-	}
-
-	private void itemRemoved(int position) {
-		notifyItemRemoved(position);
-		callback.itemCountChanged(getItemCount());
 	}
 	//======================
 
@@ -285,7 +261,6 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 	public interface Listener {
 		DbHelper getDbHelper();
 		void updateContent(String content);
-		void itemCountChanged(int count);
 	}
 	private Listener callback;
 }

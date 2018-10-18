@@ -205,6 +205,28 @@ public class MainActivity extends AppCompatActivity implements
 	}
 
 	@Override
+	public boolean onPrepareOptionsMenu(Menu menu) {
+		if (ctxFrag.isFiltered()) {
+			menu.findItem(R.id.action_cleanup).setEnabled(false);
+			menu.findItem(R.id.action_import).setEnabled(false);
+			menu.findItem(R.id.action_export).setEnabled(false);
+			menu.findItem(R.id.action_passwd).setEnabled(false);
+		} else if (ctxFrag.getAdaptor().getItemCount() > 0) {
+			menu.findItem(R.id.action_cleanup).setEnabled(true);
+			menu.findItem(R.id.action_import).setEnabled(false);
+			menu.findItem(R.id.action_export).setEnabled(true);
+			menu.findItem(R.id.action_passwd).setEnabled(true);
+		} else {
+			menu.findItem(R.id.action_cleanup).setEnabled(true);
+			menu.findItem(R.id.action_import).setEnabled(true);
+			menu.findItem(R.id.action_export).setEnabled(false);
+			menu.findItem(R.id.action_passwd).setEnabled(false);
+		}
+
+		return super.onPrepareOptionsMenu(menu);
+	}
+
+	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case R.id.action_cleanup:
