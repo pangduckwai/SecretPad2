@@ -11,7 +11,6 @@ import android.util.Log;
 import android.widget.Filter;
 import android.widget.Filterable;
 
-import org.jetbrains.annotations.NotNull;
 import org.sea9.android.secret.crypto.CryptoUtils;
 import org.sea9.android.secret.data.DbContract;
 import org.sea9.android.secret.data.DbHelper;
@@ -190,7 +189,7 @@ public class ContextFragment extends Fragment implements
 
 	@Override
 	public void onFilterComplete(int count) {
-		adaptor.notifyDataSetChanged();
+		adaptor.dataSetChanged();
 	}
 
 	public void applyFilter(String query) {
@@ -205,7 +204,7 @@ public class ContextFragment extends Fragment implements
 
 			filtered = false;
 			adaptor.select();
-			adaptor.notifyDataSetChanged();
+			adaptor.dataSetChanged();
 			if (r != null) {
 				callback.onFilterCleared(adaptor.selectRow(r.getKey()));
 			}
@@ -244,6 +243,11 @@ public class ContextFragment extends Fragment implements
 			callback.onRowSelectionMade(content);
 		else
 			callback.onRowSelectionCleared();
+	}
+
+	public void itemCountChanged(int count) {
+		//TODO HERE!!!!!!!!!!!!!!
+		//Change menu access according to count and filter status
 	}
 	//================================================
 
@@ -311,7 +315,7 @@ public class ContextFragment extends Fragment implements
 
 		@Override
 		protected void onPostExecute(ContextFragment ctx) {
-			ctx.getAdaptor().notifyDataSetChanged();
+			ctx.getAdaptor().dataSetChanged();
 		}
 	}
 

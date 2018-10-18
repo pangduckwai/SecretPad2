@@ -160,7 +160,7 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 	/*======================
 	 * Data access methods.
 	 */
-	void select() {
+	final void select() {
 		cache = DbContract.Notes.Companion.select(callback.getDbHelper());
 		for (NoteRecord record : cache) {
 			List<TagRecord> tags = DbContract.NoteTags.Companion.select(callback.getDbHelper(), record.getPid());
@@ -168,7 +168,7 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 		}
 	}
 
-	void selectDetails(int position) { // Retrieve detail of the selected row
+	final void selectDetails(int position) { // Retrieve detail of the selected row
 		if ((position >= 0) && (position < cache.size())) {
 			String content = DbContract.Notes.Companion.select(callback.getDbHelper(), cache.get(position).getPid());
 			if (content != null) {
@@ -177,7 +177,7 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 		}
 	}
 
-	Long insert(String k, String c, List<Long> t) {
+	final Long insert(String k, String c, List<Long> t) {
 		for (NoteRecord record : cache) {
 			if (record.getKey().trim().toLowerCase().equals(k)) {
 				return -1 * record.getPid(); // Key already exists
@@ -189,7 +189,7 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 			select();
 			for (int i = 0; i < cache.size(); i ++) {
 				if (pid == cache.get(i).getPid()) {
-					notifyItemInserted(i);
+					itemInserted(i);
 					callback.updateContent(c);
 					break;
 				}
@@ -200,7 +200,7 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 		}
 	}
 
-	int update(String k, String c, List<Long> t) {
+	final int update(String k, String c, List<Long> t) {
 		int position = 0, ret = -1;
 		while (position < cache.size()) {
 			if (cache.get(position).getKey().equals(k)) {
@@ -212,14 +212,14 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 
 		if (ret >= 0) {
 			select();
-			notifyItemChanged(position);
+			itemChanged(position);
 			callback.updateContent(c);
 			return position;
 		} else
 			return ret;
 	}
 
-	int delete(int position) {
+	final int delete(int position) {
 		int ret = -1;
 		if ((position >= 0) && (position < cache.size())) {
 			if (isSelected(position)) {
@@ -229,15 +229,39 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 			ret = DbContract.Notes.Companion.delete(callback.getDbHelper(), cache.get(position).getPid());
 			if (ret >= 0) {
 				select();
-				notifyItemRemoved(position);
+				itemRemoved(position);
 				if (position < selectedPos) {
 					selectedPos --;
 				}
 			} else {
-				notifyDataSetChanged();
+				notifyDataSetChanged(); //This is exception
 			}
 		}
 		return ret;
+	}
+	//======================
+
+	/*======================
+	 * Change notification methods.
+	 */
+	final void dataSetChanged() {
+		notifyDataSetChanged();
+		callback.itemCountChanged(getItemCount());
+	}
+
+	private void itemInserted(int position) {
+		notifyItemInserted(position);
+		callback.itemCountChanged(getItemCount());
+	}
+
+	private void itemChanged(int position) {
+		notifyItemChanged(position);
+		callback.itemCountChanged(getItemCount());
+	}
+
+	private void itemRemoved(int position) {
+		notifyItemRemoved(position);
+		callback.itemCountChanged(getItemCount());
 	}
 	//======================
 
@@ -261,6 +285,7 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 	public interface Listener {
 		DbHelper getDbHelper();
 		void updateContent(String content);
+		void itemCountChanged(int count);
 	}
 	private Listener callback;
 }

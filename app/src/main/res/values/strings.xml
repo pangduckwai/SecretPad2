@@ -13,6 +13,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
 	<string name="action_passwd">Change Password</string>
 	<string name="action_about">About</string>
 	<string name="action_cleanup">Cleanup Tags</string>
+	<string name="title_details">Note details</string>
 	<string name="hint_password">Password</string>
 	<string name="hint_search">Search secrets</string>
 	<string name="hint_content">Content</string>

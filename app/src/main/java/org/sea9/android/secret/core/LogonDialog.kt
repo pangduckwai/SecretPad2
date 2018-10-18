@@ -29,7 +29,7 @@ class LogonDialog : DialogFragment() {
 
 		dialog.setOnKeyListener { _, keyCode, event ->
 			if (keyCode == KeyEvent.KEYCODE_BACK) {
-				if (event.action == KeyEvent.ACTION_UP) dismiss()
+				if (event.action == KeyEvent.ACTION_UP) cancel()
 				true
 			} else {
 				false
@@ -67,6 +67,11 @@ class LogonDialog : DialogFragment() {
 			dismiss()
 			true
 		}
+	}
+
+	private fun cancel() {
+		callback?.onLogon(null)
+		dismiss()
 	}
 
 	interface Listener {

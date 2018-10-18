@@ -286,7 +286,11 @@ public class MainActivity extends AppCompatActivity implements
 	 */
 	@Override
 	public void onLogon(char[] value) {
-		ctxFrag.onLogon(value);
+		if (value == null) {
+			finish();
+		} else {
+			ctxFrag.onLogon(value);
+		}
 	}
 	//========================================================
 

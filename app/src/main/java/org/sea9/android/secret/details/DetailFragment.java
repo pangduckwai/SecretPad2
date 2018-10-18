@@ -1,5 +1,6 @@
 package org.sea9.android.secret.details;
 
+import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -18,7 +19,6 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
 import android.widget.EditText;
 import android.widget.ImageButton;
 
@@ -54,6 +54,7 @@ public class DetailFragment extends DialogFragment {
 			args.putString(CTN, content);
 		}
 		dialog.setArguments(args);
+		dialog.setStyle(DialogFragment.STYLE_NORMAL, R.style.TitleDialog);
 
 		return dialog;
 	}
@@ -131,8 +132,8 @@ public class DetailFragment extends DialogFragment {
 
 		view.findViewById(R.id.dtl_cancel).setOnClickListener(v -> close());
 
-		Window w = getDialog().getWindow();
-		if (w != null) w.requestFeature(Window.FEATURE_NO_TITLE);
+		getDialog().setTitle(R.string.title_details);
+
 		getDialog().setOnKeyListener((dialog, keyCode, event) -> {
 			if (keyCode == KeyEvent.KEYCODE_BACK) {
 				if (event.getAction() == KeyEvent.ACTION_UP) close();
