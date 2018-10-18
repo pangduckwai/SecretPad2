@@ -100,9 +100,7 @@ public class ContextFragment extends Fragment implements
 	public void onDestroy() {
 		Log.d(TAG, "onDestroy");
 		//TODO TEMP >>>>>>>>>>>>
-		Context context = getContext();
-		if ((context != null) && (dbHelper != null))
-			org.sea9.android.secret.data.DbTest.cleanup(context, dbHelper);
+		if (dbHelper != null) org.sea9.android.secret.data.DbTest.cleanup(dbHelper);
 		//TODO TEMP <<<<<<<<<<<<
 		if (dbHelper != null) dbHelper.close();
 		cancelLogoff();
@@ -162,8 +160,6 @@ public class ContextFragment extends Fragment implements
 	 * @param value Hash value of the password.
 	 */
 	public void onLogon(char[] value) {
-//		Log.d(TAG, "onLogon"); //TODO TEMP!!!!!!!!!!!!!!!!!!!!!!!!!!
-		Log.w(TAG, "'" + new String(value) + "'"); //TODO TEMP!!!!!!!!!!!!!!!!!!!!!!!!!!
 		password = value;
 		new ContextFragment.DbInitTask().execute(this);
 	}

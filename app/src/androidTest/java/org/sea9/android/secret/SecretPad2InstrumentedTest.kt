@@ -52,7 +52,7 @@ class SecretPad2InstrumentedTest {
 				override fun decrypt(input: CharArray, salt: ByteArray): CharArray {
 					return CryptoUtils.decrypt(input, password, salt)
 				}
-			})
+			}, true)
 			helper.writableDatabase.execSQL(DbContract.SQL_CONFIG)
 
 			val tags = arrayOfNulls<TagRecord>(6)
@@ -93,11 +93,7 @@ class SecretPad2InstrumentedTest {
 
 		@AfterClass @JvmStatic
 		fun cleanup() {
-			helper.writableDatabase.execSQL(DbContract.NoteTags.SQL_DROP)
-			helper.writableDatabase.execSQL(DbContract.Notes.SQL_DROP)
-			helper.writableDatabase.execSQL(DbContract.Tags.SQL_DROP_IDX)
-			helper.writableDatabase.execSQL(DbContract.Tags.SQL_DROP)
-			context.deleteDatabase("Secret.db");
+			helper.deleteDatabase()
 		}
 	}
 
@@ -130,8 +126,13 @@ class SecretPad2InstrumentedTest {
 	}
 
 	@Test(expected = SQLException::class)
-	fun testForeignKeyAddAssociation() {
+	fun testForeignKeyAddAssociation1() {
 		DbContract.NoteTags.insert(helper, nid, 999)
+	}
+
+	@Test(expected = SQLException::class)
+	fun testForeignKeyAddAssociation2() {
+		DbContract.NoteTags.insert(helper, 999, ti2)
 	}
 
 	@Test(expected = SQLException::class)
@@ -147,6 +148,19 @@ class SecretPad2InstrumentedTest {
 	@Test(expected = SQLException::class)
 	fun testUniqueIndex() {
 		DbContract.Tags.insert(helper, "One")
+	}
+
+	@Test
+	fun testRecordCount() {
+		var associationCount = 0
+		val tagCount = DbContract.Tags.select(helper).size
+		val noteList = DbContract.Notes.select(helper)
+		for (record in noteList) {
+			associationCount += DbContract.NoteTags.select(helper, record.pid).size
+		}
+		assertEquals(5, tagCount)
+		assertEquals(7, noteList.size)
+		assertEquals(13, associationCount)
 	}
 
 	@Test
