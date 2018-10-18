@@ -56,37 +56,6 @@ public class ContextFragment extends Fragment implements
 
 		updated = false;
 		filtered = false;
-
-		//TODO TEMP >>>>>>>>>>>>
-		final char[] pwd = CryptoUtils.convert(CryptoUtils.encode(CryptoUtils.hash(CryptoUtils.convert("abcd1234".toCharArray()))));
-
-		DbHelper tempHelper = new DbHelper(new DbHelper.Listener() {
-			@Override public void onReady() {
-				Log.w(TAG, "DB test connection ready");
-			}
-			@org.jetbrains.annotations.Nullable
-			@Override public Context getContext() {
-				return ContextFragment.this.getContext();
-			}
-			@NotNull @Override public char[] encrypt(@NotNull char[] input, @NotNull byte[] salt) {
-				try {
-					return CryptoUtils.encrypt(input, pwd, salt);
-				} catch (BadPaddingException e) {
-					throw new RuntimeException(e);
-				}
-			}
-			@NotNull @Override public char[] decrypt(@NotNull char[] input, @NotNull byte[] salt) {
-				try {
-					return CryptoUtils.decrypt(input, pwd, salt);
-				} catch (BadPaddingException e) {
-					throw new RuntimeException(e);
-				}
-			}
-		});
-		tempHelper.getWritableDatabase().execSQL(DbContract.SQL_CONFIG);
-		(new org.sea9.android.secret.data.DbTest()).run(tempHelper);
-		tempHelper.close();
-		//TODO TEMP <<<<<<<<<<<<
 	}
 
 	@Override
@@ -99,9 +68,6 @@ public class ContextFragment extends Fragment implements
 	@Override
 	public void onDestroy() {
 		Log.d(TAG, "onDestroy");
-		//TODO TEMP >>>>>>>>>>>>
-		if (dbHelper != null) org.sea9.android.secret.data.DbTest.cleanup(dbHelper);
-		//TODO TEMP <<<<<<<<<<<<
 		if (dbHelper != null) dbHelper.close();
 		cancelLogoff();
 		super.onDestroy();
