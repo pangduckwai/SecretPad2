@@ -80,7 +80,7 @@ public class DetailFragment extends DialogFragment {
 		}
 
 		tagList.setHasFixedSize(true);
-		tagList.setLayoutManager(new LinearLayoutManager(this.getContext()));
+		tagList.setLayoutManager(new LinearLayoutManager(getContext()));
 
 		editKey.addTextChangedListener(new TextWatcher() {
 			@Override

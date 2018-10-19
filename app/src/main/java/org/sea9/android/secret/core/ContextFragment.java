@@ -16,6 +16,9 @@ import org.sea9.android.secret.data.DbContract;
 import org.sea9.android.secret.data.DbHelper;
 import org.sea9.android.secret.data.NoteRecord;
 import org.sea9.android.secret.details.TagsAdaptor;
+import org.sea9.android.secret.io.FileChooserAdaptor;
+
+import java.io.File;
 
 import javax.crypto.BadPaddingException;
 
@@ -23,6 +26,7 @@ public class ContextFragment extends Fragment implements
 		DbHelper.Listener,
 		NotesAdaptor.Listener,
 		TagsAdaptor.Listener,
+		FileChooserAdaptor.Listener,
 		Filterable,
 		Filter.FilterListener {
 	public static final String TAG = "secret.ctx_frag";
@@ -44,6 +48,9 @@ public class ContextFragment extends Fragment implements
 		return tagsAdaptor;
 	}
 
+	private FileChooserAdaptor fileAdaptor;
+	public final FileChooserAdaptor getFileAdaptor() { return fileAdaptor; }
+
 	@Override
 	public void onCreate(@Nullable Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -52,6 +59,7 @@ public class ContextFragment extends Fragment implements
 
 		adaptor = new NotesAdaptor(this);
 		tagsAdaptor = new TagsAdaptor(this);
+		fileAdaptor = new FileChooserAdaptor(this);
 
 		updated = false;
 		filtered = false;
@@ -246,6 +254,17 @@ public class ContextFragment extends Fragment implements
 	}
 	//================================================
 
+	/*=============================================================
+	 * @see org.sea9.android.secret.io.FileChooserAdaptor.Listener
+	 */
+	@Override
+	public void selected(File selected) {
+		Log.w(TAG, "File selected: " + selected.getName());
+		//TODO HERE!
+		callback.onFileSelected();
+	}
+	//=============================================================
+
 	/*=========================================
 	 * Callback interface to the main activity
 	 */
@@ -255,6 +274,7 @@ public class ContextFragment extends Fragment implements
 		void onRowSelectionMade(String content);
 		void onRowSelectionCleared();
 		void onFilterCleared(int position);
+		void onFileSelected();
 	}
 	private Listener callback;
 

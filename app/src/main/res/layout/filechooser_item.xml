@@ -4,8 +4,8 @@
 	android:id="@+id/file_item"
 	android:layout_width="match_parent"
 	android:layout_height="wrap_content"
-	android:paddingTop="@dimen/margin_narrow"
-	android:paddingBottom="@dimen/margin_narrow"
+	android:paddingTop="@dimen/margin_normal"
+	android:paddingBottom="@dimen/margin_normal"
 	android:paddingStart="@dimen/margin_narrow"
 	android:paddingEnd="@dimen/margin_narrow"
 	android:background="@drawable/select"
@@ -35,7 +35,7 @@
 			android:id="@+id/file_name"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
-			android:textSize="@dimen/text_normal" />
+			android:textSize="@dimen/text_medium" />
 
 		<LinearLayout
 			android:layout_width="match_parent"

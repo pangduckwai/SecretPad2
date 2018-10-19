@@ -27,6 +27,7 @@ import android.widget.TextView;
 import org.sea9.android.secret.data.NoteRecord;
 import org.sea9.android.secret.details.DetailFragment;
 import org.sea9.android.secret.R;
+import org.sea9.android.secret.io.FileChooser;
 
 import java.util.List;
 import java.util.Locale;
@@ -244,7 +245,7 @@ public class MainActivity extends AppCompatActivity implements
 			break;
 
 		case R.id.action_import:
-			Snackbar.make(getWindow().getDecorView(), "Importing...", Snackbar.LENGTH_LONG).show(); //TODO TEMP
+			FileChooser.Companion.getInstance().show(getSupportFragmentManager(), FileChooser.TAG);
 			break;
 
 		case R.id.action_export:
@@ -302,6 +303,12 @@ public class MainActivity extends AppCompatActivity implements
 	@Override
 	public void onFilterCleared(int position) {
 		if (position >= 0) recycler.smoothScrollToPosition(position);
+	}
+
+	@Override
+	public void onFileSelected() {
+		FileChooser frag = (FileChooser) getSupportFragmentManager().findFragmentByTag(FileChooser.TAG);
+		if (frag != null) frag.dismissAllowingStateLoss();
 	}
 	//============================================================
 

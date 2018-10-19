@@ -19,7 +19,7 @@
 		android:layout_marginEnd="@dimen/margin_normal"
 		android:layout_marginTop="@dimen/margin_normal"
 		android:layout_marginBottom="@dimen/margin_narrow"
-		android:textSize="@dimen/text_title" />
+		android:textSize="@dimen/text_large" />
 
 	<android.support.v7.widget.RecyclerView
 		android:id="@+id/file_list"
