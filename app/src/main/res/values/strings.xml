@@ -19,6 +19,9 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
 	<string name="hint_content">Content</string>
 	<string name="hint_key">Name</string>
 	<string name="hint_tag">Tag</string>
+	<string name="hint_files">File</string>
+	<string name="hint_directory">Directory</string>
+	<string name="hint_current_dir">Current Directory</string>
 	<string name="btn_logon">Login</string>
 	<string name="btn_okay">Okay</string>
 	<string name="btn_cancel">Cancel</string>

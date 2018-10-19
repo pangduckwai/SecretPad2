@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:id="@+id/file_item"
+	android:layout_width="match_parent"
+	android:layout_height="wrap_content"
+	android:paddingTop="@dimen/margin_narrow"
+	android:paddingBottom="@dimen/margin_narrow"
+	android:paddingStart="@dimen/margin_narrow"
+	android:paddingEnd="@dimen/margin_narrow"
+	android:background="@drawable/select"
+	android:orientation="horizontal">
+
+	<ImageView
+		android:id="@+id/icon_dir"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:focusable="false"
+		android:contentDescription="@string/hint_directory"
+		android:src="@mipmap/icon_folder"/>
+	<ImageView
+		android:id="@+id/icon_file"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:focusable="false"
+		android:contentDescription="@string/hint_files"
+		android:src="@mipmap/icon_file"/>
+
+	<LinearLayout
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:orientation="vertical">
+
+		<TextView
+			android:id="@+id/file_name"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:textSize="@dimen/text_normal" />
+
+		<LinearLayout
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:orientation="horizontal">
+
+			<TextView
+				android:id="@+id/modify_time"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:textSize="@dimen/text_small" />
+			<TextView
+				android:id="@+id/file_size"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:textSize="@dimen/text_small" />
+		</LinearLayout>
+	</LinearLayout>
+</LinearLayout>

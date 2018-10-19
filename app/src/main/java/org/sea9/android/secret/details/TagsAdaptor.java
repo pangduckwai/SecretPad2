@@ -39,7 +39,7 @@ public class TagsAdaptor extends RecyclerView.Adapter<TagsAdaptor.ViewHolder> {
 
 	private List<TagRecord> cache;
 
-	public TagsAdaptor(TagsAdaptor.Listener ctx) {
+	public TagsAdaptor(Listener ctx) {
 		callback = ctx;
 		cache = new ArrayList<>();
 	}
@@ -163,5 +163,5 @@ public class TagsAdaptor extends RecyclerView.Adapter<TagsAdaptor.ViewHolder> {
 		boolean isFiltered();
 		void dataUpdated();
 	}
-	private TagsAdaptor.Listener callback;
+	private Listener callback;
 }

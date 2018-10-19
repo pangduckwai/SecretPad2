@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:id="@+id/file_main"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent"
+	android:paddingTop="@dimen/margin_narrow"
+	android:paddingBottom="@dimen/margin_narrow"
+	android:paddingStart="@dimen/margin_narrow"
+	android:paddingEnd="@dimen/margin_narrow"
+	android:orientation="vertical">
+
+	<TextView
+		android:id="@+id/current_dir"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:hint="@string/hint_current_dir"
+		android:layout_marginStart="@dimen/margin_normal"
+		android:layout_marginEnd="@dimen/margin_normal"
+		android:layout_marginTop="@dimen/margin_normal"
+		android:layout_marginBottom="@dimen/margin_narrow"
+		android:textSize="@dimen/text_title" />
+
+	<android.support.v7.widget.RecyclerView
+		android:id="@+id/file_list"
+		android:layout_width="match_parent"
+		android:layout_height="match_parent"
+		android:layout_marginStart="@dimen/margin_normal"
+		android:layout_marginEnd="@dimen/margin_normal"
+		android:layout_marginTop="@dimen/margin_narrow"
+		android:layout_marginBottom="@dimen/margin_normal"
+		android:scrollbars="vertical" />
+</LinearLayout>

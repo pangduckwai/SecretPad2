@@ -162,7 +162,10 @@ public class CryptoUtils {
 	}
 
 	public static byte[] generateSalt() {
-		byte[] rtn = new byte[DEFAULT_SALT_LENGTH];
+		return generateRandomBytes(DEFAULT_SALT_LENGTH);
+	}
+	public static byte[] generateRandomBytes(int numOfBytes) {
+		byte[] rtn = new byte[numOfBytes];
 		(new SecureRandom()).nextBytes(rtn);
 		return rtn;
 	}
