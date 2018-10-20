@@ -36,7 +36,7 @@ class SecretPad2InstrumentedTest {
 		fun prepare() {
 			password = CryptoUtils.convert(CryptoUtils.encode(CryptoUtils.hash(CryptoUtils.convert("abcd1234".toCharArray()))))
 			context = InstrumentationRegistry.getTargetContext()
-			helper = DbHelper(object : DbHelper.Listener {
+			helper = DbHelper(object : DbHelper.Caller {
 				override fun getContext(): Context? {
 					return context
 				}

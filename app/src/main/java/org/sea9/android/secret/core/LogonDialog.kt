@@ -74,17 +74,17 @@ class LogonDialog : DialogFragment() {
 		dismiss()
 	}
 
-	interface Listener {
+	interface Callback {
 		fun onLogon(value: CharArray?)
 	}
-	private var callback : Listener? = null
+	private var callback : Callback? = null
 
 	override fun onAttach(context: Context?) {
 		super.onAttach(context)
 		try {
-			callback = context as Listener
+			callback = context as Callback
 		} catch (e: ClassCastException) {
-			throw ClassCastException(context.toString() + " missing implementation of DetailFragment.Listener")
+			throw ClassCastException("${context.toString()} missing implementation of LogonDialog.Callback")
 		}
 	}
 

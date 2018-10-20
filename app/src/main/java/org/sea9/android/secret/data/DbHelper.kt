@@ -5,12 +5,12 @@ import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
 
-class DbHelper(private val callback: Listener, isTest: Boolean):
-		SQLiteOpenHelper(callback.getContext()
+class DbHelper(private val caller: Caller, isTest: Boolean):
+		SQLiteOpenHelper(caller.getContext()
 				, DB_NAME + (if (isTest) "_test" else "")
 				, null
 				, DB_VERN) {
-	constructor(callback: Listener): this(callback, false)
+	constructor(caller: Caller): this(caller, false)
 
 	companion object {
 		const val TAG = "secret.db_contract"
@@ -41,7 +41,7 @@ class DbHelper(private val callback: Listener, isTest: Boolean):
 		writableDatabase.execSQL(DbContract.Notes.SQL_DROP)
 		writableDatabase.execSQL(DbContract.Tags.SQL_DROP_IDX)
 		writableDatabase.execSQL(DbContract.Tags.SQL_DROP)
-		callback.getContext()?.deleteDatabase(databaseName)
+		caller.getContext()?.deleteDatabase(databaseName)
 		Log.i(TAG, "Database $dbName deleted")
 	}
 
@@ -50,18 +50,18 @@ class DbHelper(private val callback: Listener, isTest: Boolean):
 	override fun onOpen(db: SQLiteDatabase?) {
 		super.onOpen(db)
 		ready = true
-		callback.onReady()
+		caller.onReady()
 	}
 
 	fun encrypt(input: CharArray, salt: ByteArray): CharArray {
-		return callback.encrypt(input, salt)
+		return caller.encrypt(input, salt)
 	}
 
 	fun decrypt(input: CharArray, salt: ByteArray): CharArray {
-		return callback.decrypt(input, salt)
+		return caller.decrypt(input, salt)
 	}
 
-	interface Listener {
+	interface Caller {
 		fun getContext(): Context?
 		fun onReady()
 		fun encrypt(input: CharArray, salt: ByteArray): CharArray

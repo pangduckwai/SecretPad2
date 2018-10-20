@@ -33,9 +33,9 @@ import java.util.List;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity implements
-		ContextFragment.Listener,
-		LogonDialog.Listener,
-		DetailFragment.Listener {
+		ContextFragment.Callback,
+		LogonDialog.Callback,
+		DetailFragment.Callback {
 	public static final String TAG = "secret.main";
 	private static final String EMPTY = "";
 
@@ -275,7 +275,7 @@ public class MainActivity extends AppCompatActivity implements
 	}
 
 	/*============================================================
-	 * @see org.sea9.android.secret.main.ContextFragment.Listener
+	 * @see org.sea9.android.secret.main.ContextFragment.Callback
 	 */
 	@Override
 	public void onInit() {
@@ -313,7 +313,7 @@ public class MainActivity extends AppCompatActivity implements
 	//============================================================
 
 	/*========================================================
-	 * @see org.sea9.android.secret.core.LogonDialog.Listener
+	 * @see org.sea9.android.secret.core.LogonDialog.Callback
 	 */
 	@Override
 	public void onLogon(char[] value) {
@@ -326,7 +326,7 @@ public class MainActivity extends AppCompatActivity implements
 	//========================================================
 
 	/*==============================================================
-	 * @see org.sea9.android.secret.details.DetailFragment.Listener
+	 * @see org.sea9.android.secret.details.DetailFragment.Callback
 	 */
 	@Override
 	public void onAdd(String t) {

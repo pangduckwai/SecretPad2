@@ -23,12 +23,11 @@ import java.io.File;
 import javax.crypto.BadPaddingException;
 
 public class ContextFragment extends Fragment implements
-		DbHelper.Listener,
-		NotesAdaptor.Listener,
-		TagsAdaptor.Listener,
-		FileChooserAdaptor.Listener,
-		Filterable,
-		Filter.FilterListener {
+		DbHelper.Caller,
+		NotesAdaptor.Caller,
+		TagsAdaptor.Caller,
+		FileChooserAdaptor.Caller,
+		Filterable, Filter.FilterListener {
 	public static final String TAG = "secret.ctx_frag";
 	private static final String EMPTY = "";
 
@@ -147,11 +146,11 @@ public class ContextFragment extends Fragment implements
 	//=============================
 
 	/*=====================================================
-	 * @see org.sea9.android.secret.data.DbHelper.Listener
+	 * @see org.sea9.android.secret.data.DbHelper.Caller
 	 */
 	@Override
 	public void onReady() {
-		Log.d(TAG, "DbHelper.Listener.onReady");
+		Log.d(TAG, "DbHelper.Caller.onReady");
 		new AppInitTask().execute(this);
 	}
 
@@ -255,7 +254,7 @@ public class ContextFragment extends Fragment implements
 	//================================================
 
 	/*=============================================================
-	 * @see org.sea9.android.secret.io.FileChooserAdaptor.Listener
+	 * @see org.sea9.android.secret.io.FileChooserAdaptor.Caller
 	 */
 	@Override
 	public void selected(File selected) {
@@ -268,7 +267,7 @@ public class ContextFragment extends Fragment implements
 	/*=========================================
 	 * Callback interface to the main activity
 	 */
-	public interface Listener {
+	public interface Callback {
 		void onInit();
 		void onLogoff();
 		void onRowSelectionMade(String content);
@@ -276,16 +275,16 @@ public class ContextFragment extends Fragment implements
 		void onFilterCleared(int position);
 		void onFileSelected();
 	}
-	private Listener callback;
+	private Callback callback;
 
 	@Override
 	public void onAttach(Context context) {
 		super.onAttach(context);
 		Log.d(TAG, "onAttach");
 		try {
-			callback = (Listener) context;
+			callback = (Callback) context;
 		} catch (ClassCastException e) {
-			throw new ClassCastException(context.toString() + " missing implementation of ContextFragment.Listener");
+			throw new ClassCastException(context.toString() + " missing implementation of ContextFragment.Callback");
 		}
 	}
 

@@ -42,8 +42,8 @@ public class FileChooserAdaptor extends RecyclerView.Adapter<FileChooserAdaptor.
 
 	private List<FileRecord> cache;
 
-	public FileChooserAdaptor(Listener ctx) {
-		callback = ctx;
+	public FileChooserAdaptor(Caller ctx) {
+		caller = ctx;
 		cache = new ArrayList<>();
 
 		String state = Environment.getExternalStorageState();
@@ -81,7 +81,7 @@ public class FileChooserAdaptor extends RecyclerView.Adapter<FileChooserAdaptor.
 					}
 				} else {
 					selectedPos = position;
-					callback.selected(new File(selected.getPath()));
+					caller.selected(new File(selected.getPath()));
 				}
 			}
 			notifyDataSetChanged();
@@ -177,8 +177,8 @@ public class FileChooserAdaptor extends RecyclerView.Adapter<FileChooserAdaptor.
 	/*============================================
 	 * Callback interface to the context fragment
 	 */
-	public interface Listener {
+	public interface Caller {
 		void selected(File selected);
 	}
-	private Listener callback;
+	private Caller caller;
 }

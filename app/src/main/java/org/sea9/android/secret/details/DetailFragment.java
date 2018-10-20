@@ -190,20 +190,20 @@ public class DetailFragment extends DialogFragment {
 	/*=========================================
 	 * Callback interface to the main activity
 	 */
-	public interface Listener {
+	public interface Callback {
 		void onAdd(String t);
 		void onSave(boolean isNew, String k, String c, List<Long> t);
 	}
-	private Listener callback;
+	private Callback callback;
 
 	@Override
 	public void onAttach(Context context) {
 		super.onAttach(context);
 		Log.d(TAG, "onAttach");
 		try {
-			callback = (Listener) context;
+			callback = (Callback) context;
 		} catch (ClassCastException e) {
-			throw new ClassCastException(context.toString() + " missing implementation of DetailFragment.Listener");
+			throw new ClassCastException(context.toString() + " missing implementation of DetailFragment.Callback");
 		}
 	}
 

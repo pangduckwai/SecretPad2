@@ -32,7 +32,7 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 	final int getSelectedPosition() { return selectedPos; }
 	final void clearSelection() {
 		selectedPos = -1;
-		callback.updateContent(null);
+		caller.updateContent(null);
 	}
 
 	private void selectRow(int position) {
@@ -91,8 +91,8 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 		cache.clear();
 	}
 
-	NotesAdaptor(Listener ctx) {
-		callback = ctx;
+	NotesAdaptor(Caller ctx) {
+		caller = ctx;
 		cache = new ArrayList<>();
 	}
 
@@ -161,18 +161,18 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 	 * Data access methods.
 	 */
 	final void select() {
-		cache = DbContract.Notes.Companion.select(callback.getDbHelper());
+		cache = DbContract.Notes.Companion.select(caller.getDbHelper());
 		for (NoteRecord record : cache) {
-			List<TagRecord> tags = DbContract.NoteTags.Companion.select(callback.getDbHelper(), record.getPid());
+			List<TagRecord> tags = DbContract.NoteTags.Companion.select(caller.getDbHelper(), record.getPid());
 			record.setTags(tags);
 		}
 	}
 
 	final void selectDetails(int position) { // Retrieve detail of the selected row
 		if ((position >= 0) && (position < cache.size())) {
-			String content = DbContract.Notes.Companion.select(callback.getDbHelper(), cache.get(position).getPid());
+			String content = DbContract.Notes.Companion.select(caller.getDbHelper(), cache.get(position).getPid());
 			if (content != null) {
-				callback.updateContent(content);
+				caller.updateContent(content);
 			}
 		}
 	}
@@ -184,13 +184,13 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 			}
 		}
 
-		Long pid = DbContract.Notes.Companion.insert(callback.getDbHelper(), k, c, t);
+		Long pid = DbContract.Notes.Companion.insert(caller.getDbHelper(), k, c, t);
 		if ((pid != null) && (pid > 0)) {
 			select();
 			for (int i = 0; i < cache.size(); i ++) {
 				if (pid == cache.get(i).getPid()) {
 					notifyItemInserted(i);
-					callback.updateContent(c);
+					caller.updateContent(c);
 					break;
 				}
 			}
@@ -204,7 +204,7 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 		int position = 0, ret = -1;
 		while (position < cache.size()) {
 			if (cache.get(position).getKey().equals(k)) {
-				ret = DbContract.Notes.Companion.update(callback.getDbHelper(), cache.get(position).getPid(), c, t);
+				ret = DbContract.Notes.Companion.update(caller.getDbHelper(), cache.get(position).getPid(), c, t);
 				break;
 			}
 			position ++;
@@ -213,7 +213,7 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 		if (ret >= 0) {
 			select();
 			notifyItemChanged(position);
-			callback.updateContent(c);
+			caller.updateContent(c);
 			return position;
 		} else
 			return ret;
@@ -226,7 +226,7 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 				clearSelection();
 			}
 
-			ret = DbContract.Notes.Companion.delete(callback.getDbHelper(), cache.get(position).getPid());
+			ret = DbContract.Notes.Companion.delete(caller.getDbHelper(), cache.get(position).getPid());
 			if (ret >= 0) {
 				select();
 				notifyItemRemoved(position);
@@ -258,9 +258,9 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 	/*============================================
 	 * Callback interface to the context fragment
 	 */
-	public interface Listener {
+	public interface Caller {
 		DbHelper getDbHelper();
 		void updateContent(String content);
 	}
-	private Listener callback;
+	private Caller caller;
 }

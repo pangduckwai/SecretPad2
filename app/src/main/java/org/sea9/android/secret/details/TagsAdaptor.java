@@ -39,8 +39,8 @@ public class TagsAdaptor extends RecyclerView.Adapter<TagsAdaptor.ViewHolder> {
 
 	private List<TagRecord> cache;
 
-	public TagsAdaptor(Listener ctx) {
-		callback = ctx;
+	public TagsAdaptor(Caller ctx) {
+		caller = ctx;
 		cache = new ArrayList<>();
 	}
 
@@ -63,7 +63,7 @@ public class TagsAdaptor extends RecyclerView.Adapter<TagsAdaptor.ViewHolder> {
 		TextView item = (TextView) LayoutInflater.from(parent.getContext()).inflate(R.layout.tag_item, parent, false);
 
 		item.setOnClickListener(view -> {
-			if (!callback.isFiltered()) {
+			if (!caller.isFiltered()) {
 				int position = recyclerView.getChildLayoutPosition(view);
 				int index = selectedIds.indexOf(cache.get(position).getPid());
 				if (index >= 0) {
@@ -71,7 +71,7 @@ public class TagsAdaptor extends RecyclerView.Adapter<TagsAdaptor.ViewHolder> {
 				} else {
 					selectedIds.add(cache.get(position).getPid());
 				}
-				callback.dataUpdated();
+				caller.dataUpdated();
 				notifyDataSetChanged();
 			}
 		});
@@ -100,16 +100,16 @@ public class TagsAdaptor extends RecyclerView.Adapter<TagsAdaptor.ViewHolder> {
 	 * Data access methods.
 	 */
 	private void select() {
-		cache = DbContract.Tags.Companion.select(callback.getDbHelper());
+		cache = DbContract.Tags.Companion.select(caller.getDbHelper());
 	}
 
 	public final int insert(String txt) {
-		List<Long> tags = DbContract.Tags.Companion.search(callback.getDbHelper(), txt);
+		List<Long> tags = DbContract.Tags.Companion.search(caller.getDbHelper(), txt);
 		long pid = -1;
 		if (tags.size() > 0) {
 			pid = tags.get(0);
 		} else {
-			TagRecord tag = DbContract.Tags.Companion.insert(callback.getDbHelper(), txt);
+			TagRecord tag = DbContract.Tags.Companion.insert(caller.getDbHelper(), txt);
 			if (tag != null) {
 				pid = tag.getPid();
 			}
@@ -127,7 +127,7 @@ public class TagsAdaptor extends RecyclerView.Adapter<TagsAdaptor.ViewHolder> {
 
 			if ((position >= 0) && !isSelected(position)) { //Something wrong if position < 0...
 				selectedIds.add(pid);
-				callback.dataUpdated();
+				caller.dataUpdated();
 			}
 			notifyDataSetChanged();
 		}
@@ -136,7 +136,7 @@ public class TagsAdaptor extends RecyclerView.Adapter<TagsAdaptor.ViewHolder> {
 
 	public final int delete() {
 		try {
-			return DbContract.Tags.Companion.delete(callback.getDbHelper());
+			return DbContract.Tags.Companion.delete(caller.getDbHelper());
 		} catch (SQLException e) {
 			return -1;
 		}
@@ -158,10 +158,10 @@ public class TagsAdaptor extends RecyclerView.Adapter<TagsAdaptor.ViewHolder> {
 	/*============================================
 	 * Callback interface to the context fragment
 	 */
-	public interface Listener {
+	public interface Caller {
 		DbHelper getDbHelper();
 		boolean isFiltered();
 		void dataUpdated();
 	}
-	private Listener callback;
+	private Caller caller;
 }
