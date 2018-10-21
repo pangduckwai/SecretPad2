@@ -18,7 +18,11 @@ import org.sea9.android.secret.data.NoteRecord;
 import org.sea9.android.secret.details.TagsAdaptor;
 import org.sea9.android.secret.io.FileChooserAdaptor;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 
 import javax.crypto.BadPaddingException;
 
@@ -165,7 +169,9 @@ public class ContextFragment extends Fragment implements
 		try {
 			return CryptoUtils.encrypt(input, password, salt);
 		} catch (BadPaddingException e) {
-			throw new RuntimeException(e);
+			Log.i(TAG, e.getMessage(), e);
+			callback.doNotify(e.getMessage());
+			return null;
 		}
 	}
 
@@ -180,7 +186,9 @@ public class ContextFragment extends Fragment implements
 		try {
 			return CryptoUtils.decrypt(input, password, salt);
 		} catch (BadPaddingException e) {
-			throw new RuntimeException(e);
+			Log.i(TAG, e.getMessage(), e);
+			callback.doNotify(e.getMessage());
+			return null;
 		}
 	}
 	//=====================================================
@@ -268,6 +276,7 @@ public class ContextFragment extends Fragment implements
 	 * Callback interface to the main activity
 	 */
 	public interface Callback {
+		void doNotify(String message);
 		void onInit();
 		void onLogoff();
 		void onRowSelectionMade(String content);
@@ -362,6 +371,47 @@ public class ContextFragment extends Fragment implements
 		@Override
 		protected void onCancelled() {
 			Log.d(TAG, "Logoff cancelled");
+		}
+	}
+
+	// TODO here!!!!!!!!!!!!!
+	static class ImportTask extends AsyncTask<File, Void, Integer> {
+		private ContextFragment caller = null;
+		private static final String TAB = "\t";
+
+		ImportTask(ContextFragment ctx) {
+			caller = ctx;
+		}
+
+		@Override
+		protected Integer doInBackground(File... files) {
+			if (files.length > 0) {
+				String line;
+				String row[];
+				try {
+					BufferedReader reader = new BufferedReader(new FileReader(files[0]));
+					while ((line = reader.readLine()) != null) {
+						row = line.split(TAB);
+						if (row.length == 6) {
+							// Old Secret Pad format:
+							// ID, salt, category, title*, content*, modified
+							// TODO TEMP >>>>>>>>>>>>>>>>>>
+
+							// TODO TEMP <<<<<<<<<<<<<<<<<<
+						} else {
+							// TODO check column count!!!
+						}
+					}
+					return 0;
+				} catch (FileNotFoundException e) {
+					Log.w(TAG, e);
+					return -1;
+				} catch (IOException e) {
+					Log.w(TAG, e);
+					return -2;
+				}
+			}
+			return -3;
 		}
 	}
 }

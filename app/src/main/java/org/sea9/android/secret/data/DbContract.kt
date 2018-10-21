@@ -129,7 +129,7 @@ object DbContract {
 			/**
 			 * Select all notes.
 			 */
-			fun select(helper: DbHelper): List<NoteRecord> {
+			fun select(helper: DbHelper): List<NoteRecord>? {
 				// Not using order-by in query because keys are encrypted as well
 				val cursor = helper.readableDatabase
 						.query(TABLE, KEYS, null, null, null, null, null)
@@ -143,8 +143,11 @@ object DbContract {
 						val key = getString(getColumnIndexOrThrow(COL_KEY))
 
 						val txt = helper.decrypt(key.toCharArray(), CryptoUtils.decode(CryptoUtils.convert(slt.toCharArray())))
-						val item = NoteRecord(pid, String(txt), null, modified)
-						result.add(item)
+						if (txt != null) {
+							result.add(NoteRecord(pid, String(txt), null, modified))
+						} else {
+							return null
+						}
 					}
 				}
 
@@ -177,7 +180,12 @@ object DbContract {
 				if (rowCount != 1) {
 					throw IllegalStateException("Corrupted database table")
 				} else {
-					return String(helper.decrypt(ctn.toCharArray(), CryptoUtils.decode(CryptoUtils.convert(slt.toCharArray()))))
+					val ret = helper.decrypt(ctn.toCharArray(), CryptoUtils.decode(CryptoUtils.convert(slt.toCharArray())))
+					return if (ret != null) {
+						String(ret)
+					} else {
+						null
+					}
 				}
 			}
 

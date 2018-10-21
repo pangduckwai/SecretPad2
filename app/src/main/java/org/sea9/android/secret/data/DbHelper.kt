@@ -57,7 +57,7 @@ class DbHelper(private val caller: Caller, isTest: Boolean):
 		return caller.encrypt(input, salt)
 	}
 
-	fun decrypt(input: CharArray, salt: ByteArray): CharArray {
+	fun decrypt(input: CharArray, salt: ByteArray): CharArray? {
 		return caller.decrypt(input, salt)
 	}
 

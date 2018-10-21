@@ -43,4 +43,5 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
 	<string name="msg_delete_tags_fail">Delete unused tags failed</string>
 	<string name="msg_delete_tags_cancel">Delete unused tags Cancelled</string>
 	<string name="msg_filter_active">Function disabled, filter is active</string>
+	<string name="msg_not_logon">Not yet logon</string>
 </resources>

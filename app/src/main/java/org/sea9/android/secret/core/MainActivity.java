@@ -65,12 +65,16 @@ public class MainActivity extends AppCompatActivity implements
 
 		fab = findViewById(R.id.fab);
 		fab.setOnClickListener(view -> {
-			if (!ctxFrag.isFiltered()) {
+			if (!ctxFrag.isLogon()) {
+				doNotify(getString(R.string.msg_not_logon));
+			} else if (ctxFrag.isFiltered()) {
+				doNotify(getString(R.string.msg_filter_active));
+			} else {
+				ctxFrag.getAdaptor().clearSelection();
+				ctxFrag.getAdaptor().notifyDataSetChanged();
 				ctxFrag.getTagsAdaptor().selectTags(null);
 				ctxFrag.clearUpdated();
 				DetailFragment.getInstance(true, null, null).show(getSupportFragmentManager(), DetailFragment.TAG);
-			} else {
-				Snackbar.make(view, getString(R.string.msg_filter_active), Snackbar.LENGTH_LONG).setAction("Action", null).show();
 			}
 		});
 
@@ -207,7 +211,7 @@ public class MainActivity extends AppCompatActivity implements
 
 	@Override
 	public boolean onPrepareOptionsMenu(Menu menu) {
-		if (ctxFrag.isFiltered()) {
+		if (!ctxFrag.isLogon() || ctxFrag.isFiltered()) {
 			menu.findItem(R.id.action_cleanup).setEnabled(false);
 			menu.findItem(R.id.action_import).setEnabled(false);
 			menu.findItem(R.id.action_export).setEnabled(false);
@@ -274,6 +278,13 @@ public class MainActivity extends AppCompatActivity implements
 		}
 	}
 
+	/*
+	 * Common method to several Callback interfaces.
+	 */
+	public void doNotify(String message) {
+		Snackbar.make(fab, message, Snackbar.LENGTH_LONG).show();
+	}
+
 	/*============================================================
 	 * @see org.sea9.android.secret.main.ContextFragment.Callback
 	 */
@@ -291,13 +302,13 @@ public class MainActivity extends AppCompatActivity implements
 	@Override
 	public void onRowSelectionMade(String txt) {
 		content.setText(txt);
-		fab.hide();
+//		fab.hide();
 	}
 
 	@Override
 	public void onRowSelectionCleared() {
 		content.setText(EMPTY);
-		fab.show();
+//		fab.show();
 	}
 
 	@Override
