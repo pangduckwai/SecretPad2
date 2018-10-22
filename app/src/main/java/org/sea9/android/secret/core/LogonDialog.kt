@@ -13,7 +13,7 @@ import org.sea9.android.secret.crypto.CryptoUtils
 
 class LogonDialog : DialogFragment() {
 	companion object {
-		const val TAG = "secret.dialog_logon"
+		const val TAG = "secret.logon_dialog"
 
 		fun getInstance(): LogonDialog {
 			val instance = LogonDialog()
@@ -25,7 +25,7 @@ class LogonDialog : DialogFragment() {
 	private lateinit var txtPasswd: EditText
 
 	override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-		val view = inflater.inflate(R.layout.dialog_login, container, false)
+		val view = inflater.inflate(R.layout.logon_dialog, container, false)
 
 		dialog.setOnKeyListener { _, keyCode, event ->
 			if (keyCode == KeyEvent.KEYCODE_BACK) {

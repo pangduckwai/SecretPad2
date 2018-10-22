@@ -1,6 +1,9 @@
 package org.sea9.android.secret.io;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.Context;
+import android.content.pm.PackageManager;
 import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
@@ -25,9 +28,15 @@ public class FileChooserAdaptor extends RecyclerView.Adapter<FileChooserAdaptor.
 	private static final String TAG = "secret.files_adaptor";
 	private static final String PATTERN_DATE = "yyyy-MM-dd HH:mm:ss";
 	private static final String FILE_EXT = ".txt";
+	private static final String FILE_SELF = ".";
 	private static final String FILE_PARENT = "..";
 
 	private boolean ready;
+
+	private boolean hasPermission = false;
+	public final void setHasPermission(boolean granted) {
+		hasPermission = granted;
+	}
 
 	private RecyclerView recyclerView;
 
@@ -74,14 +83,17 @@ public class FileChooserAdaptor extends RecyclerView.Adapter<FileChooserAdaptor.
 				if (selected.isDirectory()) {
 					selectedPos = -1;
 					if (selected.getPath().equals(FILE_PARENT)) {
-						Log.w(TAG, currentPath);
-						select((new File(currentPath)).getParent());
-					} else {
+						Log.d(TAG, currentPath);
+						String slct = (new File(currentPath)).getParent();
+						select(slct);
+						caller.directorySelected(new File(slct));
+					} else if (!selected.getPath().equals(FILE_SELF)) {
 						select(selected.getPath());
+						caller.directorySelected(new File(selected.getPath()));
 					}
 				} else {
 					selectedPos = position;
-					caller.selected(new File(selected.getPath()));
+					caller.fileSelected(new File(selected.getPath()));
 				}
 			}
 			notifyDataSetChanged();
@@ -128,10 +140,13 @@ public class FileChooserAdaptor extends RecyclerView.Adapter<FileChooserAdaptor.
 			File curr = new File(current);
 			if (curr.exists()) {
 				if (curr.isDirectory()) {
-					// TODO !!!!!!!!!!! Check permission here!!!!!!!!
 					File[] list = curr.listFiles(this);
 					cache = new ArrayList<>(list.length + 1);
-					cache.add(new FileRecord(FILE_PARENT, FILE_PARENT, new Date(), 0, true));
+
+					if (hasPermission)
+						cache.add(new FileRecord(FILE_PARENT, FILE_PARENT, new Date(), 0, true));
+					cache.add(new FileRecord(FILE_SELF, FILE_SELF, new Date(), 0, true));
+
 					for (File record : list) {
 						cache.add(new FileRecord(
 								  record.getPath()
@@ -178,7 +193,9 @@ public class FileChooserAdaptor extends RecyclerView.Adapter<FileChooserAdaptor.
 	 * Callback interface to the context fragment
 	 */
 	public interface Caller {
-		void selected(File selected);
+		Context getContext();
+		void directorySelected(File selected);
+		void fileSelected(File selected);
 	}
 	private Caller caller;
 }

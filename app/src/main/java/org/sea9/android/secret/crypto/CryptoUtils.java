@@ -177,7 +177,7 @@ public class CryptoUtils {
 	 * @param flag do encryption if true, decryption otherwise.
 	 * @return the convert data in a byte array.
 	 */
-	static byte[] doCipher(byte[] msg, KeySpec keySpec, AlgorithmParameterSpec paramSpec, boolean flag)
+	public static byte[] doCipher(byte[] msg, KeySpec keySpec, AlgorithmParameterSpec paramSpec, boolean flag)
 			throws BadPaddingException {
 		try {
 			SecretKeyFactory factory = SecretKeyFactory.getInstance(DEFAULT_PBE_ALGORITHM);

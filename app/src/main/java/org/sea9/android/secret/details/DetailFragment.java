@@ -28,7 +28,7 @@ import org.sea9.android.secret.data.NoteRecord;
 import java.util.List;
 
 public class DetailFragment extends DialogFragment {
-	public static final String TAG = "secret.dialog_frag";
+	public static final String TAG = "secret.detail_dialog";
 	public static final String KEY = "secret.key";
 	public static final String CTN = "secret.content";
 	private static final String EMPTY = "";
@@ -63,7 +63,7 @@ public class DetailFragment extends DialogFragment {
 	public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 		Log.d(TAG, "onCreateView");
 
-		View view = inflater.inflate(R.layout.dialog_detail, container, false);
+		View view = inflater.inflate(R.layout.detail_dialog, container, false);
 
 		tagList = view.findViewById(R.id.edit_tags);
 		editKey = view.findViewById(R.id.edit_key);

@@ -25,11 +25,15 @@ class FileChooser : DialogFragment() {
 	}
 
 	private lateinit var ctxFrag: ContextFragment
-	private lateinit var currentPath: TextView
 	private lateinit var fileList: RecyclerView
 
+	private lateinit var currentPath: TextView
+	fun setCurrentPath(path: String?) {
+		currentPath.text = path
+	}
+
 	override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-		val view = inflater.inflate(R.layout.filechooser_main, container, false)
+		val view = inflater.inflate(R.layout.filechooser_dialog, container, false)
 		currentPath = view.findViewById(R.id.current_dir)
 		fileList = view.findViewById(R.id.file_list)
 
@@ -55,6 +59,8 @@ class FileChooser : DialogFragment() {
 		ctxFrag = fragmentManager?.findFragmentByTag(ContextFragment.TAG) as ContextFragment
 		fileList.adapter = ctxFrag.fileAdaptor
 
-		ctxFrag.fileAdaptor.select(context?.getExternalFilesDir(null)?.path)
+		val root = context?.getExternalFilesDir(null)?.path
+		ctxFrag.fileAdaptor.select(root)
+		setCurrentPath(root)
 	}
 }

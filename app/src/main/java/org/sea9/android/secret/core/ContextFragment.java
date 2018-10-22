@@ -107,7 +107,7 @@ public class ContextFragment extends Fragment implements
 	 * Initiate the logoff process.
 	 */
 	public final void logoff() {
-		logoffTask = new ContextFragment.LogoffTask();
+		logoffTask = new LogoffTask();
 		logoffTask.execute(this);
 	}
 
@@ -137,7 +137,7 @@ public class ContextFragment extends Fragment implements
 	 */
 	public void onLogon(char[] value) {
 		password = value;
-		new ContextFragment.DbInitTask().execute(this);
+		new DbInitTask().execute(this);
 	}
 
 	/**
@@ -169,9 +169,7 @@ public class ContextFragment extends Fragment implements
 		try {
 			return CryptoUtils.encrypt(input, password, salt);
 		} catch (BadPaddingException e) {
-			Log.i(TAG, e.getMessage(), e);
-			callback.doNotify(e.getMessage());
-			return null;
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -181,7 +179,7 @@ public class ContextFragment extends Fragment implements
 	 * @param salt salt use for this decryption.
 	 * @return the decrypted data.
 	 */
-	@Override @NonNull
+	@Override
 	public final char[] decrypt(@NonNull char[] input, @NonNull byte[] salt) {
 		try {
 			return CryptoUtils.decrypt(input, password, salt);
@@ -265,10 +263,16 @@ public class ContextFragment extends Fragment implements
 	 * @see org.sea9.android.secret.io.FileChooserAdaptor.Caller
 	 */
 	@Override
-	public void selected(File selected) {
-		Log.w(TAG, "File selected: " + selected.getName());
-		//TODO HERE!
+	public void directorySelected(File selected) {
+		Log.d(TAG, "Directory selected: " + selected.getName());
+		callback.onDirectorySelected(selected);
+	}
+
+	@Override
+	public void fileSelected(File selected) {
+		Log.d(TAG, "File selected: " + selected.getName());
 		callback.onFileSelected();
+		(new ImportTask(this)).execute(selected);
 	}
 	//=============================================================
 
@@ -282,6 +286,7 @@ public class ContextFragment extends Fragment implements
 		void onRowSelectionMade(String content);
 		void onRowSelectionCleared();
 		void onFilterCleared(int position);
+		void onDirectorySelected(File selected);
 		void onFileSelected();
 	}
 	private Callback callback;
@@ -374,7 +379,9 @@ public class ContextFragment extends Fragment implements
 		}
 	}
 
-	// TODO here!!!!!!!!!!!!!
+	/**
+	 * Import notes from exports.
+	 */
 	static class ImportTask extends AsyncTask<File, Void, Integer> {
 		private ContextFragment caller = null;
 		private static final String TAB = "\t";
@@ -388,30 +395,53 @@ public class ContextFragment extends Fragment implements
 			if (files.length > 0) {
 				String line;
 				String row[];
+				int count = 0;
+				BufferedReader reader = null;
 				try {
-					BufferedReader reader = new BufferedReader(new FileReader(files[0]));
+					reader = new BufferedReader(new FileReader(files[0]));
 					while ((line = reader.readLine()) != null) {
+						if (isCancelled()) break;
+
 						row = line.split(TAB);
-						if (row.length == 6) {
+						if ((row.length == 6) && (count == 0)) {
 							// Old Secret Pad format:
 							// ID, salt, category, title*, content*, modified
-							// TODO TEMP >>>>>>>>>>>>>>>>>>
-
-							// TODO TEMP <<<<<<<<<<<<<<<<<<
+							cancel(true);
+							break;
 						} else {
 							// TODO check column count!!!
+							Log.w(TAG, row.length + " columns found"); //TODO TEMP
 						}
+						count ++;
 					}
-					return 0;
+					return count;
 				} catch (FileNotFoundException e) {
 					Log.w(TAG, e);
 					return -1;
 				} catch (IOException e) {
 					Log.w(TAG, e);
 					return -2;
+				} finally {
+					if (reader != null) {
+						try {
+							reader.close();
+						} catch (IOException e) {
+							Log.d(TAG, e.getMessage());
+						}
+					}
 				}
 			}
 			return -3;
+		}
+
+		@Override
+		protected void onPostExecute(Integer integer) {
+			Log.w(TAG, "ImportTask.onPostExecute " + integer); //TODO TEMP
+		}
+
+		@Override
+		protected void onCancelled(Integer integer) {
+			Log.w(TAG, "ImportTask.onCancelled " + integer); //TODO TEMP
 		}
 	}
 }

@@ -13,7 +13,7 @@ class DbHelper(private val caller: Caller, isTest: Boolean):
 	constructor(caller: Caller): this(caller, false)
 
 	companion object {
-		const val TAG = "secret.db_contract"
+		const val TAG = "secret.db_helper"
 		const val DB_NAME = DbContract.DATABASE
 		const val DB_VERN = 1
 	}
@@ -65,6 +65,6 @@ class DbHelper(private val caller: Caller, isTest: Boolean):
 		fun getContext(): Context?
 		fun onReady()
 		fun encrypt(input: CharArray, salt: ByteArray): CharArray
-		fun decrypt(input: CharArray, salt: ByteArray): CharArray
+		fun decrypt(input: CharArray, salt: ByteArray): CharArray?
 	}
 }

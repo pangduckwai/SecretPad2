@@ -8,7 +8,7 @@ import java.lang.IllegalStateException
 import java.util.*
 
 object DbContract {
-	const val DATABASE = "Secret.db"
+	const val DATABASE = "Secret.db_contract"
 	const val PKEY = BaseColumns._ID
 	const val COMMON_MODF = "modified"
 	const val COMMON_PKEY = "$PKEY = ?"

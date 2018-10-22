@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="match_parent"
+	android:layout_height="wrap_content"
+	android:minWidth="@dimen/dialog_minWidth"
+	android:paddingTop="@dimen/margin_narrow"
+	android:paddingLeft="@dimen/margin_narrow"
+	android:paddingRight="@dimen/margin_narrow"
+	android:paddingBottom="@dimen/margin_normal"
+	android:background="@color/colorDialog" >
+
+	<EditText
+		android:id="@+id/password"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:layout_marginTop="@dimen/fab_margin"
+		android:ems="10"
+		android:hint="@string/hint_old_password"
+		android:inputType="textPassword"
+		android:selectAllOnFocus="true"
+		android:imeOptions="actionDone" />
+	<requestFocus />
+</FrameLayout>

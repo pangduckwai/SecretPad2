@@ -1,4 +1,6 @@
-package org.sea9.android.secret.crypto;
+package org.sea9.android.secret.compat;
+
+import org.sea9.android.secret.crypto.CryptoUtils;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.spec.PBEKeySpec;
@@ -7,7 +9,7 @@ import javax.crypto.spec.PBEParameterSpec;
 /**
  * Only used in importing old data files.
  */
-public class BackCompatCryptoUtils {
+public class CompatCryptoUtils {
 	public static final int DEFAULT_ITERATION_OLD = 255;
 
 	/**
