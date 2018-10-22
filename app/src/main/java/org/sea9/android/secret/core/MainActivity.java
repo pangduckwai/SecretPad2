@@ -141,7 +141,6 @@ public class MainActivity extends AppCompatActivity implements
 	@Override
 	protected void onResume() {
 		super.onResume();
-		Log.d(TAG, "onResume");
 
 		ctxFrag = (ContextFragment) getSupportFragmentManager().findFragmentByTag(ContextFragment.TAG);
 		if (ctxFrag == null) {

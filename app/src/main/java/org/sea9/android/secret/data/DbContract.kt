@@ -125,7 +125,7 @@ object DbContract {
 					"$COL_CONTENT text not null," +
 					"$COMMON_MODF integer)"
 			const val SQL_DROP = "drop table if exists $TABLE"
-			const val QUERY_COUNT = "select count($PKEY) from $TABLE"
+			private const val QUERY_COUNT = "select count($PKEY) from $TABLE"
 
 			fun count(helper: DbHelper): Int {
 				val cursor = helper.readableDatabase.rawQuery(QUERY_COUNT, null)
@@ -165,7 +165,7 @@ object DbContract {
 							result.add(NoteRecord(pid, String(txt), null, modified))
 						} else {
 							error = true
-							break;
+							break
 						}
 					}
 				}
