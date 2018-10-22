@@ -26,7 +26,7 @@ class NewPasswordDialog : DialogFragment() {
 	private lateinit var txtConfrm: EditText
 
 	override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-		val view = inflater.inflate(R.layout.logon_dialog, container, false)
+		val view = inflater.inflate(R.layout.newpassword_dialog, container, false)
 
 		dialog.setOnKeyListener { _, keyCode, event ->
 			if (keyCode == KeyEvent.KEYCODE_BACK) {
@@ -38,12 +38,6 @@ class NewPasswordDialog : DialogFragment() {
 		}
 
 		txtPasswd = view.findViewById(R.id.password)
-//		txtPasswd.setOnEditorActionListener { v, actionId, _ ->
-//			if (actionId == EditorInfo.IME_ACTION_NEXT) {
-//				logon(v)
-//			}
-//			false
-//		}
 
 		txtConfrm = view.findViewById(R.id.confirm)
 		txtConfrm.setOnEditorActionListener { v, actionId, _ ->
@@ -63,17 +57,19 @@ class NewPasswordDialog : DialogFragment() {
 	}
 
 	private fun logon(view: View) : Boolean {
-		val txt1 = txtPasswd.text
-		val len1 = txt1.length
-		val txt2 = txtConfrm.text
-		val len2 = txt2.length
-		return if ((txt1 == null) || (len1 <= 0) || (txt2 == null) || (len2 <= 0)) {
+		val len1 = txtPasswd.text.length
+		val len2 = txtConfrm.text.length
+		if ((len1 <= 0) || (len2 <= 0)) {
 			Snackbar.make(view, getString(R.string.msg_passwd_needed), Snackbar.LENGTH_LONG).show()
-			false
-		} else if (txt1 != txt2) {
-			Snackbar.make(view, getString(R.string.msg_passwd_mismatch), Snackbar.LENGTH_LONG).show()
-			false
-		} else {
+			return false
+		}
+
+		val txt1 = CharArray(len1)
+		val txt2 = CharArray(len2)
+		txtPasswd.text.getChars(0, len1, txt1, 0)
+		txtPasswd.text.getChars(0, len2, txt2, 0)
+
+		return if (txt1.contentEquals(txt2)) {
 			val ret = CharArray(len1)
 			txtPasswd.text.getChars(0, len1, ret, 0)
 			txtPasswd.text.clear()
@@ -81,6 +77,9 @@ class NewPasswordDialog : DialogFragment() {
 			callback?.onLogon(CryptoUtils.convert(CryptoUtils.encode(CryptoUtils.hash(CryptoUtils.convert(ret)))))
 			dismiss()
 			true
+		} else {
+			Snackbar.make(view, getString(R.string.msg_passwd_mismatch), Snackbar.LENGTH_LONG).show()
+			false
 		}
 	}
 

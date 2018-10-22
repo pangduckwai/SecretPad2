@@ -74,6 +74,9 @@ class LogonDialog : DialogFragment() {
 		dismiss()
 	}
 
+	/*=========================================
+	 * Callback interface to the main activity
+	 */
 	interface Callback {
 		fun onLogon(value: CharArray?)
 	}

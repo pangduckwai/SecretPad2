@@ -1,5 +1,6 @@
 package org.sea9.android.secret.core;
 
+import android.app.Activity;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -33,14 +34,20 @@ public class ContextFragment extends Fragment implements
 		FileChooserAdaptor.Caller,
 		Filterable, Filter.FilterListener {
 	public static final String TAG = "secret.ctx_frag";
-	private static final String EMPTY = "";
+	static final String EMPTY = "";
 
 	private DbHelper dbHelper;
+	public final boolean isDbReady() {
+		return ((dbHelper != null) && dbHelper.getReady());
+	}
+	public final void initDb() {
+		new DbInitTask().execute(this);
+	}
 	@Override public final DbHelper getDbHelper() {
-		if ((dbHelper == null) || !dbHelper.getReady())
-			throw new RuntimeException("Database not ready");
-		else
+		if (isDbReady())
 			return dbHelper;
+		else
+			throw new RuntimeException("Database not ready");
 	}
 
 	private NotesAdaptor adaptor;
@@ -80,7 +87,10 @@ public class ContextFragment extends Fragment implements
 	@Override
 	public void onDestroy() {
 		Log.d(TAG, "onDestroy");
-		if (dbHelper != null) dbHelper.close();
+		if (dbHelper != null) {
+			dbHelper.close();
+			dbHelper = null;
+		}
 		cancelLogoff();
 		super.onDestroy();
 	}
@@ -107,11 +117,8 @@ public class ContextFragment extends Fragment implements
 		int count = DbContract.Notes.Companion.count(dbHelper);
 		if (count < 0) {
 			throw new RuntimeException("Failed counting number of rows in the Notes table");
-		} else if (count == 0) {
-			return true;
-		} else {
-			return false;
-		}
+		} else
+			return (count == 0);
 	}
 
 	private LogoffTask logoffTask;
@@ -150,7 +157,7 @@ public class ContextFragment extends Fragment implements
 	 */
 	public void onLogon(char[] value) {
 		password = value;
-		new DbInitTask().execute(this);
+		new AppInitTask().execute(this);
 	}
 
 	/**
@@ -162,13 +169,18 @@ public class ContextFragment extends Fragment implements
 	}
 	//=============================
 
-	/*=====================================================
+	/*===================================================
 	 * @see org.sea9.android.secret.data.DbHelper.Caller
 	 */
 	@Override
 	public void onReady() {
 		Log.d(TAG, "DbHelper.Caller.onReady");
-		new AppInitTask().execute(this);
+		if (!isLogon()) {
+			Activity activity = getActivity();
+			if (activity != null) activity.runOnUiThread(() -> callback.doLogon());
+		} else {
+			new AppInitTask().execute(this); // Keep it here just in case DB somehow closed, normally won't reach here
+		}
 	}
 
 	/**
@@ -202,7 +214,7 @@ public class ContextFragment extends Fragment implements
 			return null;
 		}
 	}
-	//=====================================================
+	//===================================================
 
 	/*================================
 	 * @see android.widget.Filterable
@@ -266,9 +278,9 @@ public class ContextFragment extends Fragment implements
 	 */
 	public void updateContent(String content) {
 		if (content != null)
-			callback.onRowSelectionMade(content);
+			callback.onRowSelectionChanged(content);
 		else
-			callback.onRowSelectionCleared();
+			callback.onRowSelectionChanged(EMPTY);
 	}
 	//================================================
 
@@ -294,10 +306,9 @@ public class ContextFragment extends Fragment implements
 	 */
 	public interface Callback {
 		void doNotify(String message);
-		void onInit();
+		void doLogon();
 		void onLogoff();
-		void onRowSelectionMade(String content);
-		void onRowSelectionCleared();
+		void onRowSelectionChanged(String content);
 		void onFilterCleared(int position);
 		void onDirectorySelected(File selected);
 		void onFileSelected();

@@ -133,7 +133,7 @@ object DbContract {
 				with(cursor) {
 					while (moveToNext()) {
 						if (columnCount == 1) {
-							result = getInt(1)
+							result = getInt(0)
 							break
 						}
 					}

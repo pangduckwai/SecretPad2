@@ -42,7 +42,6 @@ public class MainActivity extends AppCompatActivity implements
 		NewPasswordDialog.Callback,
 		DetailFragment.Callback {
 	public static final String TAG = "secret.main";
-	private static final String EMPTY = "";
 	private static final int READ_EXTERNAL_STORAGE_REQUEST = 123;
 
 	private View mainView;
@@ -158,7 +157,13 @@ public class MainActivity extends AppCompatActivity implements
 			ctxFrag.getAdaptor().selectDetails(pos);
 		}
 
-		if (!ctxFrag.isLogon()) onInit();
+		if (!ctxFrag.isDbReady()) {
+			Log.d(TAG, "onResume - DB not ready, initializing...");
+			ctxFrag.initDb();
+		} else if (!ctxFrag.isLogon()) {
+			Log.d(TAG, "onResume - DB ready, logging in...");
+			doLogon();
+		}
 	}
 
 	@Override
@@ -206,7 +211,7 @@ public class MainActivity extends AppCompatActivity implements
 			searchView.findViewById(searchView.getContext().getResources()
 					.getIdentifier("android:id/search_close_btn", null, null))
 					.setOnClickListener(view -> {
-						searchView.setQuery(EMPTY, false);
+						searchView.setQuery(ContextFragment.EMPTY, false);
 						searchView.setIconified(true);
 						ctxFrag.clearFilter();
 					});
@@ -290,6 +295,13 @@ public class MainActivity extends AppCompatActivity implements
 		}
 	}
 
+	/*
+	 * Common method to several Callback interfaces.
+	 */
+	public void doNotify(String message) {
+		Snackbar.make(fab, message, Snackbar.LENGTH_LONG).show();
+	}
+
 	private void handleIntent(Intent intent) {
 		if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
 			String query = intent.getStringExtra(SearchManager.QUERY);
@@ -302,18 +314,17 @@ public class MainActivity extends AppCompatActivity implements
 		}
 	}
 
-	/*
-	 * Common method to several Callback interfaces.
-	 */
-	public void doNotify(String message) {
-		Snackbar.make(fab, message, Snackbar.LENGTH_LONG).show();
-	}
-
 	/*============================================================
 	 * @see org.sea9.android.secret.main.ContextFragment.Callback
 	 */
 	@Override
-	public void onInit() {
+	public void onLogoff() {
+		DetailFragment frag = (DetailFragment) getSupportFragmentManager().findFragmentByTag(DetailFragment.TAG);
+		if (frag != null) frag.dismissAllowingStateLoss();
+	}
+
+	@Override
+	public void doLogon() {
 		if (ctxFrag.isDbEmpty()) {
 			NewPasswordDialog.Companion.getInstance().show(getSupportFragmentManager(), LogonDialog.TAG);
 		} else {
@@ -322,19 +333,8 @@ public class MainActivity extends AppCompatActivity implements
 	}
 
 	@Override
-	public void onLogoff() {
-		DetailFragment frag = (DetailFragment) getSupportFragmentManager().findFragmentByTag(DetailFragment.TAG);
-		if (frag != null) frag.dismissAllowingStateLoss();
-	}
-
-	@Override
-	public void onRowSelectionMade(String txt) {
+	public void onRowSelectionChanged(String txt) {
 		content.setText(txt);
-	}
-
-	@Override
-	public void onRowSelectionCleared() {
-		content.setText(EMPTY);
 	}
 
 	@Override

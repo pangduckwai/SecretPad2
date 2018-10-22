@@ -18,6 +18,11 @@ class DbHelper(private val caller: Caller, isTest: Boolean):
 		const val DB_VERN = 1
 	}
 
+	override fun close() {
+		super.close()
+		ready = false
+	}
+
 	override fun onCreate(db: SQLiteDatabase) {
 		db.execSQL(DbContract.Tags.SQL_CREATE)
 		db.execSQL(DbContract.Tags.SQL_CREATE_IDX)
