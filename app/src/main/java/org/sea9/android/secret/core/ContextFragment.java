@@ -37,8 +37,10 @@ public class ContextFragment extends Fragment implements
 
 	private DbHelper dbHelper;
 	@Override public final DbHelper getDbHelper() {
-		if ((dbHelper == null) || !dbHelper.getReady()) throw new RuntimeException("Database not ready");
-		return dbHelper;
+		if ((dbHelper == null) || !dbHelper.getReady())
+			throw new RuntimeException("Database not ready");
+		else
+			return dbHelper;
 	}
 
 	private NotesAdaptor adaptor;
@@ -99,6 +101,17 @@ public class ContextFragment extends Fragment implements
 
 	public final boolean isLogon() {
 		return (password != null);
+	}
+
+	public final boolean isDbEmpty() {
+		int count = DbContract.Notes.Companion.count(dbHelper);
+		if (count < 0) {
+			throw new RuntimeException("Failed counting number of rows in the Notes table");
+		} else if (count == 0) {
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	private LogoffTask logoffTask;

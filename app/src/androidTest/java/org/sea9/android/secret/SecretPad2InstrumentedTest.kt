@@ -155,7 +155,7 @@ class SecretPad2InstrumentedTest {
 		var associationCount = 0
 		val tagCount = DbContract.Tags.select(helper).size
 		val noteList = DbContract.Notes.select(helper)
-		for (record in noteList) {
+		for (record in noteList!!) {
 			associationCount += DbContract.NoteTags.select(helper, record.pid).size
 		}
 		assertEquals(5, tagCount)
@@ -168,7 +168,7 @@ class SecretPad2InstrumentedTest {
 		var count = -1
 		val list = DbContract.Notes.select(helper)
 		count ++
-		for (record in list) {
+		for (record in list!!) {
 			DbContract.Notes.select(helper, record.pid)
 			count ++
 		}

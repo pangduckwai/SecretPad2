@@ -15,6 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
 	<string name="action_cleanup">Cleanup Tags</string>
 	<string name="title_details">Note details</string>
 	<string name="hint_password">Password</string>
+	<string name="hint_confirm">Confirm Password</string>
 	<string name="hint_old_password">Enter the Old Password</string>
 	<string name="hint_search">Search secrets</string>
 	<string name="hint_content">Content</string>
@@ -23,13 +24,14 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
 	<string name="hint_files">File</string>
 	<string name="hint_directory">Directory</string>
 	<string name="hint_current_dir">Current Directory</string>
-	<string name="btn_logon">Login</string>
+	<string name="btn_logon">Logon</string>
 	<string name="btn_okay">Okay</string>
 	<string name="btn_cancel">Cancel</string>
 	<string name="ctn_save">Save</string>
 	<string name="ctn_cancel">Cancel</string>
 	<string name="ctn_add">Add</string>
 	<string name="msg_passwd_needed">Please provide a password</string>
+	<string name="msg_passwd_mismatch">Confirm password mismatched</string>
 	<string name="msg_insert_okay">Item %s inserted successfully</string>
 	<string name="msg_insert_fail">Insert item failed</string>
 	<string name="msg_insert_duplicated">Item already exists</string>

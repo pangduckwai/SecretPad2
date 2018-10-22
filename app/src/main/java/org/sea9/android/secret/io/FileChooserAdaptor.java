@@ -1,9 +1,7 @@
 package org.sea9.android.secret.io;
 
-import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
@@ -44,10 +42,8 @@ public class FileChooserAdaptor extends RecyclerView.Adapter<FileChooserAdaptor.
 	private boolean isSelected(int position) {
 		return (selectedPos == position);
 	}
-	final int getSelectedPosition() { return selectedPos; }
 
 	private String currentPath;
-	final String getCurrentPath() { return currentPath; }
 
 	private List<FileRecord> cache;
 

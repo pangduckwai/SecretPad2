@@ -125,6 +125,23 @@ object DbContract {
 					"$COL_CONTENT text not null," +
 					"$COMMON_MODF integer)"
 			const val SQL_DROP = "drop table if exists $TABLE"
+			const val QUERY_COUNT = "select count($PKEY) from $TABLE"
+
+			fun count(helper: DbHelper): Int {
+				val cursor = helper.readableDatabase.rawQuery(QUERY_COUNT, null)
+				var result = -1
+				with(cursor) {
+					while (moveToNext()) {
+						if (columnCount == 1) {
+							result = getInt(1)
+							break
+						}
+					}
+				}
+
+				cursor.close()
+				return result
+			}
 
 			/**
 			 * Select all notes.
@@ -135,6 +152,7 @@ object DbContract {
 						.query(TABLE, KEYS, null, null, null, null, null)
 
 				val result = mutableSetOf<NoteRecord>()
+				var error = false
 				with(cursor) {
 					while (moveToNext()) {
 						val pid = getLong((getColumnIndexOrThrow(PKEY)))
@@ -146,15 +164,20 @@ object DbContract {
 						if (txt != null) {
 							result.add(NoteRecord(pid, String(txt), null, modified))
 						} else {
-							return null
+							error = true
+							break;
 						}
 					}
 				}
 
 				cursor.close()
-				return result.asSequence()
-						.sortedWith(compareBy { it.key }) // Sort here after decrypt
-						.toMutableList()
+				return if (!error) {
+					result.asSequence()
+							.sortedWith(compareBy { it.key }) // Sort here after decrypt
+							.toMutableList()
+				} else {
+					null
+				}
 			}
 
 			/**
