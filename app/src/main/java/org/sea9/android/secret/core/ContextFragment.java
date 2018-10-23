@@ -38,8 +38,9 @@ public class ContextFragment extends Fragment implements
 		FileChooserAdaptor.Caller,
 		Filterable, Filter.FilterListener {
 	public static final String TAG = "secret.ctx_frag";
-	static final String EMPTY = "";
+	public static final String PATTERN_DATE = "yyyy-MM-dd HH:mm:ss";
 	private static final String PURAL = "s";
+	static final String EMPTY = "";
 
 	private DbHelper dbHelper;
 	public final boolean isDbReady() {
@@ -384,6 +385,11 @@ public class ContextFragment extends Fragment implements
 		private ContextFragment caller;
 		AppInitTask(ContextFragment ctx) {
 			caller = ctx;
+		}
+
+		@Override
+		protected void onPreExecute() {
+			caller.callback.setBusyState(true);
 		}
 
 		@Override

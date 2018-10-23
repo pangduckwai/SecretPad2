@@ -162,7 +162,6 @@ public class MainActivity extends AppCompatActivity implements
 			ctxFrag.getAdaptor().selectDetails(pos);
 		}
 
-		setBusyState(true);
 		if (!ctxFrag.isDbReady()) {
 			Log.d(TAG, "onResume - DB not ready, initializing...");
 			ctxFrag.initDb();

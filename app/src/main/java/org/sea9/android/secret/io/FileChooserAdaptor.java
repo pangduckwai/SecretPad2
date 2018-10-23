@@ -13,6 +13,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import org.sea9.android.secret.R;
+import org.sea9.android.secret.core.ContextFragment;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -24,7 +25,6 @@ import java.util.Locale;
 
 public class FileChooserAdaptor extends RecyclerView.Adapter<FileChooserAdaptor.ViewHolder> implements FileFilter {
 	private static final String TAG = "secret.files_adaptor";
-	private static final String PATTERN_DATE = "yyyy-MM-dd HH:mm:ss";
 	private static final String FILE_EXT = ".txt";
 	private static final String FILE_SELF = ".";
 	private static final String FILE_PARENT = "..";
@@ -106,7 +106,7 @@ public class FileChooserAdaptor extends RecyclerView.Adapter<FileChooserAdaptor.
 			holder.itemView.setSelected(false);
 		}
 
-		SimpleDateFormat formatter = new SimpleDateFormat(PATTERN_DATE, Locale.getDefault());
+		SimpleDateFormat formatter = new SimpleDateFormat(ContextFragment.PATTERN_DATE, Locale.getDefault());
 		FileRecord selected = cache.get(position);
 		if (selected.isDirectory()) {
 			holder.iconDir.setVisibility(View.VISIBLE);

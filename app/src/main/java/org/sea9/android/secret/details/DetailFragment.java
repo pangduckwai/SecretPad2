@@ -20,17 +20,22 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.TextView;
 
 import org.sea9.android.secret.core.ContextFragment;
 import org.sea9.android.secret.R;
 import org.sea9.android.secret.data.NoteRecord;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class DetailFragment extends DialogFragment {
 	public static final String TAG = "secret.detail_dialog";
 	public static final String KEY = "secret.key";
 	public static final String CTN = "secret.content";
+	public static final String MOD = "secret.modified";
 	private static final String EMPTY = "";
 
 	private ContextFragment ctxFrag;
@@ -38,6 +43,7 @@ public class DetailFragment extends DialogFragment {
 	private EditText editKey;
 	private EditText editCtn;
 	private EditText editTag;
+	private TextView textMod;
 	private ImageButton bttnAdd;
 	private ImageButton bttnSav;
 	private boolean isNew;
@@ -51,6 +57,7 @@ public class DetailFragment extends DialogFragment {
 		if (record != null) {
 			args.putString(KEY, record.getKey());
 			args.putString(CTN, content);
+			args.putLong(MOD, record.getModified());
 		}
 		dialog.setArguments(args);
 		dialog.setStyle(DialogFragment.STYLE_NORMAL, R.style.TitleDialog);
@@ -69,14 +76,17 @@ public class DetailFragment extends DialogFragment {
 		editKey = view.findViewById(R.id.edit_key);
 		editCtn = view.findViewById(R.id.edit_content);
 		editTag = view.findViewById(R.id.edit_tag);
+		textMod = view.findViewById(R.id.modify_time);
 		bttnAdd = view.findViewById(R.id.tag_add);
 		bttnSav = view.findViewById(R.id.dtl_save);
 
+		SimpleDateFormat formatter = new SimpleDateFormat(ContextFragment.PATTERN_DATE, Locale.getDefault());
 		Bundle args = getArguments();
 		if (args != null) {
 			isNew = args.getBoolean(TAG);
 			editCtn.setText(args.getString(CTN));
 			editKey.setText(args.getString(KEY));
+			textMod.setText(formatter.format(new Date(args.getLong(MOD))));
 		}
 
 		tagList.setHasFixedSize(true);
