@@ -46,7 +46,7 @@ public class ContextFragment extends Fragment implements
 		return ((dbHelper != null) && dbHelper.getReady());
 	}
 	public final void initDb() {
-		new DbInitTask().execute(this);
+		new DbInitTask(this).execute();
 	}
 	@Override public final DbHelper getDbHelper() {
 		if (isDbReady())
@@ -132,8 +132,8 @@ public class ContextFragment extends Fragment implements
 	 * Initiate the logoff process.
 	 */
 	public final void logoff() {
-		logoffTask = new LogoffTask();
-		logoffTask.execute(this);
+		logoffTask = new LogoffTask(this);
+		logoffTask.execute();
 	}
 
 	/*
@@ -162,7 +162,7 @@ public class ContextFragment extends Fragment implements
 	 */
 	public void onLogon(char[] value) {
 		password = value;
-		new AppInitTask().execute(this);
+		new AppInitTask(this).execute();
 	}
 
 	/**
@@ -184,7 +184,7 @@ public class ContextFragment extends Fragment implements
 			Activity activity = getActivity();
 			if (activity != null) activity.runOnUiThread(() -> callback.doLogon());
 		} else {
-			new AppInitTask().execute(this); // Keep it here just in case DB somehow closed, normally won't reach here
+			new AppInitTask(this).execute(); // Keep it here just in case DB somehow closed, normally won't reach here
 		}
 	}
 
@@ -320,6 +320,7 @@ public class ContextFragment extends Fragment implements
 	 */
 	public interface Callback {
 		void doNotify(String message);
+		void setBusyState(boolean isBusy);
 		void doLogon();
 		void onLogoff();
 		void onRowSelectionChanged(String content);
@@ -356,13 +357,21 @@ public class ContextFragment extends Fragment implements
 	/**
 	 * Async initialize DB since the first call to getXxxDatabase() can be slow
 	 */
-	static class DbInitTask extends AsyncTask<ContextFragment, Void, Void> {
+	static class DbInitTask extends AsyncTask<Void, Void, Void> {
+		private ContextFragment caller;
+		DbInitTask(ContextFragment ctx) {
+			caller = ctx;
+		}
+
 		@Override
-		protected Void doInBackground(ContextFragment... fragments) {
-			if ((fragments.length > 0) && (fragments[0].getContext() != null)) {
-				fragments[0].dbHelper = new DbHelper(fragments[0]);
-				fragments[0].dbHelper.getWritableDatabase().execSQL(DbContract.SQL_CONFIG);
-			}
+		protected void onPreExecute() {
+			caller.callback.setBusyState(true);
+		}
+
+		@Override
+		protected Void doInBackground(Void... voids) {
+			caller.dbHelper = new DbHelper(caller);
+			caller.dbHelper.getWritableDatabase().execSQL(DbContract.SQL_CONFIG);
 			return null;
 		}
 	}
@@ -371,49 +380,56 @@ public class ContextFragment extends Fragment implements
 	 * Invoke a separate thread to read the database after DB init to avoid an IllegalStateException
 	 * which complained 'getDatabase' is called recursively.
 	 */
-	static class AppInitTask extends AsyncTask<ContextFragment, Void, ContextFragment> {
-		@Override
-		protected ContextFragment doInBackground(ContextFragment... fragments) {
-			if ((fragments.length > 0) && (fragments[0].getContext() != null)) {
-				fragments[0].getAdaptor().select();
-			}
-			return fragments[0];
+	static class AppInitTask extends AsyncTask<Void, Void, Void> {
+		private ContextFragment caller;
+		AppInitTask(ContextFragment ctx) {
+			caller = ctx;
 		}
 
 		@Override
-		protected void onPostExecute(ContextFragment ctx) {
-			ctx.getAdaptor().notifyDataSetChanged();
+		protected Void doInBackground(Void... voids) {
+			caller.getAdaptor().select();
+			return null;
+		}
+
+		@Override
+		protected void onPostExecute(Void nothing) {
+			caller.getAdaptor().notifyDataSetChanged();
+			caller.callback.setBusyState(false);
 		}
 	}
 
 	/**
 	 * Move logoff to a separate thread to introduce delay and allow it to be interrupted
 	 */
-	static class LogoffTask extends AsyncTask<ContextFragment, Void, ContextFragment> {
+	static class LogoffTask extends AsyncTask<Void, Void, Void> {
+		private ContextFragment caller;
+		LogoffTask(ContextFragment ctx) {
+			caller = ctx;
+		}
+
 		@Override
-		protected ContextFragment doInBackground(ContextFragment... fragments) {
-			if ((fragments.length > 0) && (fragments[0].getContext() != null)) {
-				if (fragments[0].isLogon()) {
-					try {
-						Thread.sleep(500);
-						if (!isCancelled()) {
-							fragments[0].doLogoff();
-						}
-					} catch (InterruptedException e) {
-						Log.i(TAG, e.getMessage());
+		protected Void doInBackground(Void... voids) {
+			if (caller.isLogon()) {
+				try {
+					Thread.sleep(500);
+					if (!isCancelled()) {
+						caller.doLogoff();
 					}
+				} catch (InterruptedException e) {
+					Log.i(TAG, e.getMessage());
 				}
 			}
-			return fragments[0];
+			return null;
 		}
 
 		@Override
-		protected void onPostExecute(ContextFragment fragment) {
-			fragment.onLogoff();
+		protected void onPostExecute(Void aVoid) {
+			caller.onLogoff();
 		}
 
 		@Override
-		protected void onCancelled() {
+		protected void onCancelled(Void aVoid) {
 			Log.d(TAG, "Logoff cancelled");
 		}
 	}
@@ -422,12 +438,17 @@ public class ContextFragment extends Fragment implements
 	 * Import notes from exports.
 	 */
 	static class ImportTask extends AsyncTask<File, Void, Integer> {
-		private ContextFragment caller = null;
 		private static final String TAB = "\t";
 		private static final int OLD_FORMAT_COLUMN_COUNT = 6;
 
+		private ContextFragment caller;
 		ImportTask(ContextFragment ctx) {
 			caller = ctx;
+		}
+
+		@Override
+		protected void onPreExecute() {
+			caller.callback.setBusyState(true);
 		}
 
 		@Override
@@ -494,11 +515,11 @@ public class ContextFragment extends Fragment implements
 	 * Import notes in old format.
 	 */
 	static class ImportOldFormatTask extends AsyncTask<Void, Void, Integer> {
-		private ContextFragment caller = null;
 		private static final String TAB = "\t";
 		private static final int OLD_FORMAT_COLUMN_COUNT = 6;
 
 		private StringBuilder errors;
+		private ContextFragment caller;
 		ImportOldFormatTask(ContextFragment ctx) {
 			caller = ctx;
 			errors = new StringBuilder(EMPTY);
@@ -604,6 +625,7 @@ public class ContextFragment extends Fragment implements
 				caller.tempPassword[i] = 0;
 			caller.tempPassword = null;
 			caller.tempFile = null;
+			caller.callback.setBusyState(false);
 		}
 	}
 }

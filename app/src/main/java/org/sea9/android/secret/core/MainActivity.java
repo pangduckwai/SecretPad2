@@ -24,6 +24,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 import android.widget.SearchView;
 import android.widget.TextView;
 
@@ -44,9 +45,10 @@ public class MainActivity extends AppCompatActivity implements
 		CompatLogonDialog.Callback,
 		DetailFragment.Callback {
 	public static final String TAG = "secret.main";
-	private static final int READ_EXTERNAL_STORAGE_REQUEST = 417523;
+	private static final int READ_EXTERNAL_STORAGE_REQUEST = 17523;
 
 	private View mainView;
+	private ProgressBar progress;
 	private FloatingActionButton fab;
 	private ContextFragment ctxFrag;
 	private RecyclerView recycler;
@@ -69,6 +71,8 @@ public class MainActivity extends AppCompatActivity implements
 		}
 
 		mainView = findViewById(R.id.main_view);
+
+		progress = findViewById(R.id.progressbar);
 
 		fab = findViewById(R.id.fab);
 		fab.setOnClickListener(view -> {
@@ -158,6 +162,7 @@ public class MainActivity extends AppCompatActivity implements
 			ctxFrag.getAdaptor().selectDetails(pos);
 		}
 
+		setBusyState(true);
 		if (!ctxFrag.isDbReady()) {
 			Log.d(TAG, "onResume - DB not ready, initializing...");
 			ctxFrag.initDb();
@@ -302,6 +307,13 @@ public class MainActivity extends AppCompatActivity implements
 	 */
 	public void doNotify(String message) {
 		Snackbar.make(fab, message, Snackbar.LENGTH_LONG).show();
+	}
+
+	/*
+	 * Common method to several Callback interfaces.
+	 */
+	public void setBusyState(boolean isBusy) {
+		progress.setVisibility(isBusy ? View.VISIBLE : View.INVISIBLE);
 	}
 
 	private void handleIntent(Intent intent) {
