@@ -215,9 +215,7 @@ object DbContract {
 			/**
 			 * Insert one note.
 			 */
-			fun insert(helper: DbHelper, key: String, content: String): NoteRecord? {
-				val timestamp = Date().time
-
+			fun insert(helper: DbHelper, key: String, content: String, timestamp: Long): NoteRecord? {
 				val ksalt = CryptoUtils.generateSalt()
 				val csalt = CryptoUtils.generateSalt()
 				val kcphr = helper.encrypt(key.toCharArray(), ksalt)

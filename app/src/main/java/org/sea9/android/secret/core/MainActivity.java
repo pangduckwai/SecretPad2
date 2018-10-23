@@ -27,6 +27,7 @@ import android.view.ViewGroup;
 import android.widget.SearchView;
 import android.widget.TextView;
 
+import org.sea9.android.secret.compat.CompatLogonDialog;
 import org.sea9.android.secret.data.NoteRecord;
 import org.sea9.android.secret.details.DetailFragment;
 import org.sea9.android.secret.R;
@@ -40,9 +41,10 @@ public class MainActivity extends AppCompatActivity implements
 		ContextFragment.Callback,
 		LogonDialog.Callback,
 		LogonDialog2.Callback,
+		CompatLogonDialog.Callback,
 		DetailFragment.Callback {
 	public static final String TAG = "secret.main";
-	private static final int READ_EXTERNAL_STORAGE_REQUEST = 123;
+	private static final int READ_EXTERNAL_STORAGE_REQUEST = 417523;
 
 	private View mainView;
 	private FloatingActionButton fab;
@@ -264,6 +266,7 @@ public class MainActivity extends AppCompatActivity implements
 						new String[] { Manifest.permission.READ_EXTERNAL_STORAGE },
 						READ_EXTERNAL_STORAGE_REQUEST);
 			} else {
+				ctxFrag.getFileAdaptor().setHasPermission(true);
 				FileChooser.Companion.getInstance().show(getSupportFragmentManager(), FileChooser.TAG);
 			}
 			break;
@@ -352,6 +355,12 @@ public class MainActivity extends AppCompatActivity implements
 		FileChooser frag = (FileChooser) getSupportFragmentManager().findFragmentByTag(FileChooser.TAG);
 		if (frag != null) frag.dismissAllowingStateLoss();
 	}
+
+	@Override
+	public void doCompatLogon() {
+		DialogFragment dialog = new CompatLogonDialog();
+		dialog.show(getSupportFragmentManager(), CompatLogonDialog.TAG);
+	}
 	//============================================================
 
 	/*========================================================
@@ -366,6 +375,18 @@ public class MainActivity extends AppCompatActivity implements
 		}
 	}
 	//========================================================
+
+	/*==============================================================
+	 * @see org.sea9.android.secret.core.CompatLogonDialog.Callback
+	 */
+
+	@Override
+	public void onCompatLogon(char[] value) {
+		if (value != null) {
+			ctxFrag.importOldFormat(value);
+		}
+	}
+//==============================================================
 
 	/*==============================================================
 	 * @see org.sea9.android.secret.details.DetailFragment.Callback

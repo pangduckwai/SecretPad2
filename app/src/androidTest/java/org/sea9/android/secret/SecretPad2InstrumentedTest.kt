@@ -14,6 +14,7 @@ import org.sea9.android.secret.data.DbContract
 import org.sea9.android.secret.data.DbHelper
 import org.sea9.android.secret.data.NoteRecord
 import org.sea9.android.secret.data.TagRecord
+import java.util.*
 
 /**
  * Instrumented test, which will execute on an Android device.
@@ -66,13 +67,13 @@ class SecretPad2InstrumentedTest {
 			ti2 = tags[4]!!.pid
 
 			val notes = arrayOfNulls<NoteRecord>(7)
-			notes[0] = DbContract.Notes.insert(helper, "KEY03", "CONTENT03")
-			notes[1] = DbContract.Notes.insert(helper, "KEY05", "CONTENT05")
-			notes[2] = DbContract.Notes.insert(helper, "KEY01", "CONTENT01")
-			notes[3] = DbContract.Notes.insert(helper, "KEY04", "CONTENT04")
-			notes[4] = DbContract.Notes.insert(helper, "KEY06", "CONTENT06")
-			notes[5] = DbContract.Notes.insert(helper, "KEY07", "CONTENT07")
-			notes[6] = DbContract.Notes.insert(helper, "KEY02", "CONTENT02")
+			notes[0] = DbContract.Notes.insert(helper, "KEY03", "CONTENT03", Date().time)
+			notes[1] = DbContract.Notes.insert(helper, "KEY05", "CONTENT05", Date().time)
+			notes[2] = DbContract.Notes.insert(helper, "KEY01", "CONTENT01", Date().time)
+			notes[3] = DbContract.Notes.insert(helper, "KEY04", "CONTENT04", Date().time)
+			notes[4] = DbContract.Notes.insert(helper, "KEY06", "CONTENT06", Date().time)
+			notes[5] = DbContract.Notes.insert(helper, "KEY07", "CONTENT07", Date().time)
+			notes[6] = DbContract.Notes.insert(helper, "KEY02", "CONTENT02", Date().time)
 			nid = notes[0]!!.pid
 
 			aid = DbContract.NoteTags.insert(helper, notes[0]!!.pid, tags[0]!!.pid)

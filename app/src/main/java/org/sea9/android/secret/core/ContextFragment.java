@@ -12,10 +12,13 @@ import android.util.Log;
 import android.widget.Filter;
 import android.widget.Filterable;
 
+import org.sea9.android.secret.R;
+import org.sea9.android.secret.compat.CompatCryptoUtils;
 import org.sea9.android.secret.crypto.CryptoUtils;
 import org.sea9.android.secret.data.DbContract;
 import org.sea9.android.secret.data.DbHelper;
 import org.sea9.android.secret.data.NoteRecord;
+import org.sea9.android.secret.data.TagRecord;
 import org.sea9.android.secret.details.TagsAdaptor;
 import org.sea9.android.secret.io.FileChooserAdaptor;
 
@@ -24,6 +27,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.List;
 
 import javax.crypto.BadPaddingException;
 
@@ -35,6 +39,7 @@ public class ContextFragment extends Fragment implements
 		Filterable, Filter.FilterListener {
 	public static final String TAG = "secret.ctx_frag";
 	static final String EMPTY = "";
+	private static final String PURAL = "s";
 
 	private DbHelper dbHelper;
 	public final boolean isDbReady() {
@@ -284,7 +289,7 @@ public class ContextFragment extends Fragment implements
 	}
 	//================================================
 
-	/*=============================================================
+	/*===========================================================
 	 * @see org.sea9.android.secret.io.FileChooserAdaptor.Caller
 	 */
 	@Override
@@ -299,7 +304,16 @@ public class ContextFragment extends Fragment implements
 		callback.onFileSelected();
 		(new ImportTask(this)).execute(selected);
 	}
-	//=============================================================
+
+	private File tempFile;
+	private char[] tempPassword;
+	public void importOldFormat(char[] value) {
+		if (tempFile != null) {
+			tempPassword = value;
+			(new ImportOldFormatTask(this)).execute();
+		}
+	}
+	//===========================================================
 
 	/*=========================================
 	 * Callback interface to the main activity
@@ -312,6 +326,7 @@ public class ContextFragment extends Fragment implements
 		void onFilterCleared(int position);
 		void onDirectorySelected(File selected);
 		void onFileSelected();
+		void doCompatLogon();
 	}
 	private Callback callback;
 
@@ -409,6 +424,7 @@ public class ContextFragment extends Fragment implements
 	static class ImportTask extends AsyncTask<File, Void, Integer> {
 		private ContextFragment caller = null;
 		private static final String TAB = "\t";
+		private static final int OLD_FORMAT_COLUMN_COUNT = 6;
 
 		ImportTask(ContextFragment ctx) {
 			caller = ctx;
@@ -427,11 +443,13 @@ public class ContextFragment extends Fragment implements
 						if (isCancelled()) break;
 
 						row = line.split(TAB);
-						if ((row.length == 6) && (count == 0)) {
+						if ((row.length == OLD_FORMAT_COLUMN_COUNT) && (count == 0)) {
 							// Old Secret Pad format:
 							// ID, salt, category, title*, content*, modified
 							cancel(true);
-							break;
+							caller.tempFile = files[0];
+							count = row.length;
+							continue;
 						} else {
 							// TODO check column count!!!
 							Log.w(TAG, row.length + " columns found"); //TODO TEMP
@@ -466,6 +484,126 @@ public class ContextFragment extends Fragment implements
 		@Override
 		protected void onCancelled(Integer integer) {
 			Log.w(TAG, "ImportTask.onCancelled " + integer); //TODO TEMP
+			if (integer == OLD_FORMAT_COLUMN_COUNT) {
+				caller.callback.doCompatLogon();
+			}
+		}
+	}
+
+	/**
+	 * Import notes in old format.
+	 */
+	static class ImportOldFormatTask extends AsyncTask<Void, Void, Integer> {
+		private ContextFragment caller = null;
+		private static final String TAB = "\t";
+		private static final int OLD_FORMAT_COLUMN_COUNT = 6;
+
+		private StringBuilder errors;
+		ImportOldFormatTask(ContextFragment ctx) {
+			caller = ctx;
+			errors = new StringBuilder(EMPTY);
+		}
+
+		@Override
+		protected Integer doInBackground(Void... voids) {
+			String line;
+			String row[];
+			int count = 0;
+			BufferedReader reader = null;
+			try {
+				reader = new BufferedReader(new FileReader(caller.tempFile));
+				while ((line = reader.readLine()) != null) {
+					if (isCancelled()) break;
+
+					row = line.split(TAB);
+					if (row.length == OLD_FORMAT_COLUMN_COUNT) {
+						// ID, salt, category, title*, content*, modified
+						byte[] salt = CryptoUtils.decode(CryptoUtils.convert(row[1].toCharArray()));
+						String title = new String(CompatCryptoUtils.decrypt(row[3].toCharArray(), caller.tempPassword, salt));
+						String cntnt = new String(CompatCryptoUtils.decrypt(row[4].toCharArray(), caller.tempPassword, salt));
+
+						long tid = -1;
+						List<Long> tags = DbContract.Tags.Companion.search(caller.getDbHelper(), row[2]);
+						if (tags.size() > 0)
+							tid = tags.get(0);
+						else {
+							TagRecord tag = DbContract.Tags.Companion.insert(caller.getDbHelper(), row[2]);
+							if (tag != null)
+								tid = tag.getPid();
+							else
+								errors.append('\n').append("Insert tag ").append(row[2]).append(" failed (").append(count).append(")");
+						}
+
+						long nid = -1;
+						NoteRecord note = DbContract.Notes.Companion.insert(caller.getDbHelper(), title, cntnt, Long.parseLong(row[5]));
+						if (note != null)
+							nid = note.getPid();
+						else
+							errors.append('\n').append("Insert note failed (").append(count).append(")");
+
+						DbContract.NoteTags.Companion.insert(caller.getDbHelper(), nid, tid);
+					} else {
+						Log.w(TAG, "Invalid import format");
+						cancel(true);
+						continue;
+					}
+					count ++;
+				}
+				return count;
+			} catch (FileNotFoundException e) {
+				Log.w(TAG, e);
+				return -1;
+			} catch (IOException e) {
+				Log.w(TAG, e);
+				return -2;
+			} catch (RuntimeException e) {
+				Log.w(TAG, e);
+				return -3;
+			} finally {
+				if (reader != null) {
+					try {
+						reader.close();
+					} catch (IOException e) {
+						Log.d(TAG, e.getMessage());
+					}
+				}
+			}
+		}
+
+		@Override
+		protected void onPostExecute(Integer integer) {
+			if (integer >= 0) {
+				if (errors.toString().trim().length() <= 0)
+					caller.callback.doNotify(
+							String.format(caller.getString(R.string.msg_migrate_okay), integer, caller.tempFile.getPath(), (integer > 1)?PURAL:EMPTY)
+					);
+				else {
+					caller.callback.doNotify("Importing " + caller.tempFile.getPath() + errors.toString());
+					Log.w(TAG, "Importing " + caller.tempFile.getPath() + errors.toString());
+				}
+				caller.getAdaptor().select();
+				caller.getAdaptor().notifyDataSetChanged();
+			} else {
+				caller.callback.doNotify(
+						String.format(caller.getString(R.string.msg_migrate_fail), caller.tempFile.getPath(), integer)
+				);
+			}
+			cleanUp();
+		}
+
+		@Override
+		protected void onCancelled(Integer integer) {
+			caller.callback.doNotify(
+					String.format(caller.getString(R.string.msg_migrate_invalid), caller.tempFile.getPath(), integer)
+			);
+			cleanUp();
+		}
+
+		private void cleanUp() {
+			for (int i = 0; i < caller.tempPassword.length; i++)
+				caller.tempPassword[i] = 0;
+			caller.tempPassword = null;
+			caller.tempFile = null;
 		}
 	}
 }

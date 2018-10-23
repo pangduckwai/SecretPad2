@@ -80,9 +80,8 @@ public class FileChooserAdaptor extends RecyclerView.Adapter<FileChooserAdaptor.
 					selectedPos = -1;
 					if (selected.getPath().equals(FILE_PARENT)) {
 						Log.d(TAG, currentPath);
-						String slct = (new File(currentPath)).getParent();
-						select(slct);
-						caller.directorySelected(new File(slct));
+						select((new File(currentPath)).getParent());
+						caller.directorySelected(new File(currentPath));
 					} else if (!selected.getPath().equals(FILE_SELF)) {
 						select(selected.getPath());
 						caller.directorySelected(new File(selected.getPath()));
@@ -131,32 +130,33 @@ public class FileChooserAdaptor extends RecyclerView.Adapter<FileChooserAdaptor.
 	 * Data access methods.
 	 */
 	final void select(String current) {
-		currentPath = current;
 		if (ready) {
 			File curr = new File(current);
 			if (curr.exists()) {
 				if (curr.isDirectory()) {
 					File[] list = curr.listFiles(this);
-					cache = new ArrayList<>(list.length + 1);
+					if (list != null) {
+						currentPath = current;
+						cache = new ArrayList<>(list.length + 1);
 
-					if (hasPermission)
-						cache.add(new FileRecord(FILE_PARENT, FILE_PARENT, new Date(), 0, true));
-					cache.add(new FileRecord(FILE_SELF, FILE_SELF, new Date(), 0, true));
+						if (hasPermission)
+							cache.add(new FileRecord(FILE_PARENT, FILE_PARENT, new Date(), 0, true));
+						cache.add(new FileRecord(FILE_SELF, FILE_SELF, new Date(), 0, true));
 
-					for (File record : list) {
-						cache.add(new FileRecord(
-								  record.getPath()
-								, record.getName()
-								, new Date(record.lastModified())
-								, record.length()
-								, record.isDirectory()));
+						for (File record : list) {
+							cache.add(new FileRecord(
+									record.getPath()
+									, record.getName()
+									, new Date(record.lastModified())
+									, record.length()
+									, record.isDirectory()));
+						}
 					}
 				} else {
 					cache = new ArrayList<>(); //Should not reach here
 				}
 			}
 		}
-
 	}
 
 	@Override
