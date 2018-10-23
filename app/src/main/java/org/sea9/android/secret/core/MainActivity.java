@@ -39,7 +39,7 @@ import java.util.Locale;
 public class MainActivity extends AppCompatActivity implements
 		ContextFragment.Callback,
 		LogonDialog.Callback,
-		NewPasswordDialog.Callback,
+		LogonDialog2.Callback,
 		DetailFragment.Callback {
 	public static final String TAG = "secret.main";
 	private static final int READ_EXTERNAL_STORAGE_REQUEST = 123;
@@ -325,9 +325,9 @@ public class MainActivity extends AppCompatActivity implements
 	@Override
 	public void doLogon() {
 		if (ctxFrag.isDbEmpty()) {
-			NewPasswordDialog.Companion.getInstance().show(getSupportFragmentManager(), LogonDialog.TAG);
+			LogonDialog2.getInstance().show(getSupportFragmentManager(), LogonDialog2.TAG);
 		} else {
-			LogonDialog.Companion.getInstance().show(getSupportFragmentManager(), LogonDialog.TAG);
+			LogonDialog.getInstance().show(getSupportFragmentManager(), LogonDialog.TAG);
 		}
 	}
 

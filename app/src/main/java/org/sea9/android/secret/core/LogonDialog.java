@@ -20,29 +20,24 @@ import android.widget.EditText;
 import org.sea9.android.secret.R;
 import org.sea9.android.secret.crypto.CryptoUtils;
 
-import java.util.Arrays;
+public class LogonDialog extends DialogFragment {
+	public static final String TAG = "secret.logon_dialog";
 
-public class LogonDialog2 extends DialogFragment {
-	public static final String TAG = "secret.logon_dialog2";
-
-	public static LogonDialog2 getInstance() {
-		LogonDialog2 instance = new LogonDialog2();
+	public static LogonDialog getInstance() {
+		LogonDialog instance = new LogonDialog();
 		instance.setCancelable(false);
 		return instance;
 	}
 
 	private EditText txtPasswd;
-	private EditText txtConfrm;
 	private Button btnLogon;
 
 	@Override @Nullable
 	public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-		View view = inflater.inflate(R.layout.logon_dialog2, container, false);
+		View view = inflater.inflate(R.layout.logon_dialog, container, false);
 
 		txtPasswd = view.findViewById(R.id.password);
-
-		txtConfrm = view.findViewById(R.id.confirm);
-		txtConfrm.setOnEditorActionListener((v, actionId, event) -> {
+		txtPasswd.setOnEditorActionListener((v, actionId, event) -> {
 			if (actionId == EditorInfo.IME_ACTION_DONE) {
 				logon();
 			}
@@ -67,30 +62,17 @@ public class LogonDialog2 extends DialogFragment {
 	}
 
 	private boolean logon() {
-		Editable txt1 = txtPasswd.getText();
-		int len1 = txt1.length();
-		Editable txt2 = txtConfrm.getText();
-		int len2 = txt2.length();
-
-		if (len1 <= 0) {
+		Editable txt = txtPasswd.getText();
+		int len = txt.length();
+		if (len <= 0) {
 			Snackbar.make(btnLogon, getString(R.string.msg_passwd_needed), Snackbar.LENGTH_LONG).show();
-		} else if (len2 != len1) {
-			Snackbar.make(btnLogon, getString(R.string.msg_passwd_mismatch), Snackbar.LENGTH_LONG).show();
 		} else {
-			char[] c1 = new char[len1];
-			char[] c2 = new char[len2];
-			txt1.getChars(0, len1, c1, 0);
-			txt2.getChars(0, len2, c2, 0);
-			if (!Arrays.equals(c1, c2)) {
-				txt2.clear();
-				Snackbar.make(btnLogon, getString(R.string.msg_passwd_mismatch), Snackbar.LENGTH_LONG).show();
-			} else {
-				txt1.clear();
-				txt2.clear();
-				callback.onLogon(CryptoUtils.convert(CryptoUtils.encode(CryptoUtils.hash(CryptoUtils.convert(c1)))));
-				dismiss();
-				return true;
-			}
+			char[] ret = new char[len];
+			txt.getChars(0, len, ret, 0);
+			txt.clear();
+			callback.onLogon(CryptoUtils.convert(CryptoUtils.encode(CryptoUtils.hash(CryptoUtils.convert(ret)))));
+			dismiss();
+			return true;
 		}
 		return false;
 	}
@@ -115,7 +97,7 @@ public class LogonDialog2 extends DialogFragment {
 		try {
 			callback = (Callback) context;
 		} catch (ClassCastException e) {
-			throw new ClassCastException(context.toString() + " missing implementation of LogonDialog2.Callback");
+			throw new ClassCastException(context.toString() + " missing implementation of LogonDialog.Callback");
 		}
 	}
 
