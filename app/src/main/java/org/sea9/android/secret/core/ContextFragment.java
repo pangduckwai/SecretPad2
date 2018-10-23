@@ -25,9 +25,15 @@ import org.sea9.android.secret.io.FileChooserAdaptor;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import javax.crypto.BadPaddingException;
 
@@ -39,7 +45,8 @@ public class ContextFragment extends Fragment implements
 		Filterable, Filter.FilterListener {
 	public static final String TAG = "secret.ctx_frag";
 	public static final String PATTERN_DATE = "yyyy-MM-dd HH:mm:ss";
-	private static final String PURAL = "s";
+	public static final String TAB = "\t";
+	private static final String PLURAL = "s";
 	static final String EMPTY = "";
 
 	private DbHelper dbHelper;
@@ -316,6 +323,10 @@ public class ContextFragment extends Fragment implements
 	}
 	//===========================================================
 
+	public final void doExport(File destination) {
+		(new ExportTask(this)).execute(destination);
+	}
+
 	/*=========================================
 	 * Callback interface to the main activity
 	 */
@@ -444,7 +455,6 @@ public class ContextFragment extends Fragment implements
 	 * Import notes from exports.
 	 */
 	static class ImportTask extends AsyncTask<File, Void, Integer> {
-		private static final String TAB = "\t";
 		private static final int OLD_FORMAT_COLUMN_COUNT = 6;
 
 		private ContextFragment caller;
@@ -602,7 +612,7 @@ public class ContextFragment extends Fragment implements
 			if (integer >= 0) {
 				if (errors.toString().trim().length() <= 0)
 					caller.callback.doNotify(
-							String.format(caller.getString(R.string.msg_migrate_okay), integer, caller.tempFile.getPath(), (integer > 1)?PURAL:EMPTY)
+							String.format(caller.getString(R.string.msg_migrate_okay), integer, caller.tempFile.getPath(), (integer > 1)? PLURAL :EMPTY)
 					);
 				else {
 					caller.callback.doNotify("Importing " + caller.tempFile.getPath() + errors.toString());
@@ -631,6 +641,78 @@ public class ContextFragment extends Fragment implements
 				caller.tempPassword[i] = 0;
 			caller.tempPassword = null;
 			caller.tempFile = null;
+			caller.callback.setBusyState(false);
+		}
+	}
+
+	/**
+	 * Export notes in encrypted format.
+	 */
+	static class ExportTask extends AsyncTask<File, Void, Integer[]> {
+		private static final String PATTERN_TIMESTAMP = "yyyyMMddHHmmss";
+		private static final String EXPORT_SUFFIX = ".txt";
+		private ContextFragment caller;
+		private String exportFileName;
+
+		ExportTask(ContextFragment ctx) {
+			caller = ctx;
+			SimpleDateFormat formatter = new SimpleDateFormat(PATTERN_TIMESTAMP, Locale.getDefault());
+			Context context = caller.getContext();
+			if (context != null) {
+				exportFileName = context.getString(R.string.value_export) + formatter.format(new Date()) + EXPORT_SUFFIX;
+			}
+		}
+
+		@Override
+		protected void onPreExecute() {
+			caller.callback.setBusyState(true);
+		}
+
+		@Override
+		protected Integer[] doInBackground(File... files) {
+			if ((files.length > 0) && (files[0].isDirectory())) {
+				File export = new File(files[0], exportFileName);
+				if (export.exists()) {
+					Log.w(TAG, "File " + export.getPath() + " already exists");
+					return null;
+				}
+
+				PrintWriter writer = null;
+				Integer count[] = new Integer[] {0, 0, 0};
+				try {
+					writer = new PrintWriter(new OutputStreamWriter(new FileOutputStream(export)));
+					count[0] = DbContract.Tags.Companion.export(caller.dbHelper, writer);
+					count[1] = DbContract.Notes.Companion.export(caller.dbHelper, writer);
+					return count;
+				} catch (FileNotFoundException e) {
+					Log.w(TAG, e);
+					return null;
+				} finally {
+					if (writer != null) {
+						writer.flush();
+						writer.close();
+					}
+				}
+			}
+			return null;
+		}
+
+		@Override
+		protected void onPostExecute(Integer[] integers) {
+			if (integers == null) {
+				caller.callback.doNotify(caller.getString(R.string.msg_export_error));
+			} else if ((integers[0] >= 0) && (integers[1] >= 0) && (integers[2] >= 0)) {
+				caller.callback.doNotify(
+						String.format(caller.getString(R.string.msg_export_okay), integers[1], exportFileName, (integers[1] > 1)? PLURAL :EMPTY)
+				);
+			} else {
+				String error = EMPTY;
+				if (integers[0] < 0) error += "\n" + String.format(caller.getString(R.string.msg_export_fail), "Tags", exportFileName, integers[0]);
+				if (integers[1] < 0) error += "\n" + String.format(caller.getString(R.string.msg_export_fail), "Notes", exportFileName, integers[1]);
+				if (integers[2] < 0) error += "\n" + String.format(caller.getString(R.string.msg_export_fail), "NoteTags", exportFileName, integers[2]);
+				Log.w(TAG, "Export failed:" + error);
+				caller.callback.doNotify("Export failed:" + error);
+			}
 			caller.callback.setBusyState(false);
 		}
 	}

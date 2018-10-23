@@ -276,7 +276,7 @@ public class MainActivity extends AppCompatActivity implements
 			break;
 
 		case R.id.action_export:
-			Snackbar.make(getWindow().getDecorView(), "Exporting...", Snackbar.LENGTH_LONG).show(); //TODO TEMP
+			ctxFrag.doExport(getExternalFilesDir(null));
 			break;
 		case R.id.action_passwd:
 			Snackbar.make(getWindow().getDecorView(), "Change password", Snackbar.LENGTH_LONG).show(); //TODO TEMP

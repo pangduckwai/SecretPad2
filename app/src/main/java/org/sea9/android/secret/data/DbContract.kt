@@ -3,8 +3,11 @@ package org.sea9.android.secret.data
 import android.content.ContentValues
 import android.database.sqlite.SQLiteDatabase
 import android.provider.BaseColumns
+import org.sea9.android.secret.core.ContextFragment
 import org.sea9.android.secret.crypto.CryptoUtils
+import java.io.PrintWriter
 import java.lang.IllegalStateException
+import java.lang.StringBuilder
 import java.util.*
 
 object DbContract {
@@ -80,6 +83,30 @@ object DbContract {
 			}
 
 			/**
+			 * Export tags to a writer.
+			 */
+			fun export(helper: DbHelper, out: PrintWriter): Int {
+				val cursor = helper.readableDatabase
+						.query(TABLE, COLUMNS, null, null, null, null, COL_TAG_NAME)
+
+				val buff = StringBuilder()
+				var count = 0
+				with(cursor) {
+					while (moveToNext()) {
+						buff.setLength(0)
+						val pid = getLong(getColumnIndexOrThrow(PKEY))
+						val name = getString(getColumnIndexOrThrow(COL_TAG_NAME))
+						buff.append(pid).append(ContextFragment.TAB).append(name)
+						out.println(buff.toString())
+						count ++
+					}
+				}
+
+				cursor.close()
+				return count
+			}
+
+			/**
 			 * Insert a tag.
 			 */
 			fun insert(helper: DbHelper, tagName: String): TagRecord? {
@@ -115,8 +142,9 @@ object DbContract {
 
 			private val KEYS = arrayOf(PKEY, COL_KEY, COL_KEY_SALT, COMMON_MODF)
 			private val COLUMNS = arrayOf(PKEY, COL_CONTENT, COL_CONTENT_SALT, COMMON_MODF)
+			private val EXPORTS = arrayOf(PKEY, COL_KEY, COL_KEY_SALT, COL_CONTENT, COL_CONTENT_SALT, COMMON_MODF)
 
-			const val SQL_CREATE =
+					const val SQL_CREATE =
 					"create table $TABLE (" +
 					"$PKEY integer primary key autoincrement," +
 					"$COL_KEY_SALT text not null," +
@@ -210,6 +238,39 @@ object DbContract {
 						null
 					}
 				}
+			}
+
+			/**
+			 * Export notes in encrypted format.
+			 */
+			fun export(helper: DbHelper, out: PrintWriter): Int {
+				val cursor = helper.readableDatabase
+						.query(TABLE, EXPORTS, null, null, null, null, null)
+
+				val buff = StringBuilder()
+				var count = 0
+				with(cursor) {
+					while (moveToNext()) {
+						buff.setLength(0)
+						val pid = getLong((getColumnIndexOrThrow(PKEY)))
+						val kslt = getString(getColumnIndexOrThrow(COL_KEY_SALT))
+						val key = getString(getColumnIndexOrThrow(COL_KEY))
+						val cslt = getString(getColumnIndexOrThrow(COL_CONTENT_SALT))
+						val ctn = getString(getColumnIndexOrThrow(COL_CONTENT))
+						val modified = getLong(getColumnIndexOrThrow(COMMON_MODF))
+						buff.append(pid)
+								.append(ContextFragment.TAB).append(kslt)
+								.append(ContextFragment.TAB).append(key)
+								.append(ContextFragment.TAB).append(cslt)
+								.append(ContextFragment.TAB).append(ctn)
+								.append(ContextFragment.TAB).append(modified)
+						out.println(buff.toString())
+						count ++
+					}
+				}
+
+				cursor.close()
+				return count
 			}
 
 			/**

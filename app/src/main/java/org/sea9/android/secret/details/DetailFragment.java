@@ -141,7 +141,7 @@ public class DetailFragment extends DialogFragment {
 
 		view.findViewById(R.id.dtl_cancel).setOnClickListener(v -> close());
 
-		getDialog().setTitle(R.string.title_details);
+		getDialog().setTitle(R.string.value_details);
 
 		getDialog().setOnKeyListener((dialog, keyCode, event) -> {
 			if (keyCode == KeyEvent.KEYCODE_BACK) {
