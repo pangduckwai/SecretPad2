@@ -462,7 +462,7 @@ public class ContextFragment extends Fragment implements
 	/**
 	 * Import notes from exports.
 	 */
-	static class ImportTask extends AsyncTask<File, Void, Integer> {
+	static class ImportTask extends AsyncTask<File, Void, AsyncTaskResponse> {
 		private static final int OLD_FORMAT_COLUMN_COUNT = 6;
 
 		private ContextFragment caller;
@@ -476,7 +476,8 @@ public class ContextFragment extends Fragment implements
 		}
 
 		@Override
-		protected Integer doInBackground(File... files) {
+		protected AsyncTaskResponse doInBackground(File... files) {
+			AsyncTaskResponse response = new AsyncTaskResponse();
 			if (files.length > 0) {
 				String line;
 				String row[];
@@ -493,21 +494,29 @@ public class ContextFragment extends Fragment implements
 							// ID, salt, category, title*, content*, modified
 							cancel(true);
 							caller.tempFile = files[0];
-							count = row.length;
+							response.setStatus(row.length).setMessage("Old file format");
 							continue;
 						} else {
-							// TODO check column count!!!
-							Log.w(TAG, row.length + " columns found"); //TODO TEMP
+							switch (row.length) {
+								case 2:
+									break;
+								case 5:
+									break;
+								case 3:
+									break;
+								default:
+									break;
+							}
 						}
 						count ++;
 					}
-					return count;
+					return response;
 				} catch (FileNotFoundException e) {
 					Log.w(TAG, e);
-					return -1;
+					return response.setStatus(-3).setErrors(e.getMessage());
 				} catch (IOException e) {
 					Log.w(TAG, e);
-					return -2;
+					return response.setStatus(-2).setErrors(e.getMessage());
 				} finally {
 					if (reader != null) {
 						try {
@@ -518,19 +527,20 @@ public class ContextFragment extends Fragment implements
 					}
 				}
 			}
-			return -3;
+			return response;
 		}
 
 		@Override
-		protected void onPostExecute(Integer integer) {
-			Log.w(TAG, "ImportTask.onPostExecute " + integer); //TODO TEMP
+		protected void onPostExecute(AsyncTaskResponse response) {
+			Log.w(TAG, "ImportTask.onPostExecute " + response.getStatus()); //TODO TEMP
 		}
 
 		@Override
-		protected void onCancelled(Integer integer) {
-			Log.w(TAG, "ImportTask.onCancelled " + integer); //TODO TEMP
-			if (integer == OLD_FORMAT_COLUMN_COUNT) {
+		protected void onCancelled(AsyncTaskResponse response) {
+			if (response.getStatus() == OLD_FORMAT_COLUMN_COUNT) {
 				caller.callback.doCompatLogon();
+			} else {
+				caller.callback.doNotify(response.getErrors());
 			}
 		}
 	}
@@ -538,19 +548,18 @@ public class ContextFragment extends Fragment implements
 	/**
 	 * Import notes in old format.
 	 */
-	static class ImportOldFormatTask extends AsyncTask<Void, Void, Integer> {
+	static class ImportOldFormatTask extends AsyncTask<Void, Void, AsyncTaskResponse> {
 		private static final String TAB = "\t";
 		private static final int OLD_FORMAT_COLUMN_COUNT = 6;
 
-		private StringBuilder errors;
 		private ContextFragment caller;
 		ImportOldFormatTask(ContextFragment ctx) {
 			caller = ctx;
-			errors = new StringBuilder(EMPTY);
 		}
 
 		@Override
-		protected Integer doInBackground(Void... voids) {
+		protected AsyncTaskResponse doInBackground(Void... voids) {
+			AsyncTaskResponse response = new AsyncTaskResponse();
 			String line;
 			String row[];
 			int count = 0;
@@ -576,7 +585,7 @@ public class ContextFragment extends Fragment implements
 							if (tag != null)
 								tid = tag.getPid();
 							else
-								errors.append('\n').append("Insert tag ").append(row[2]).append(" failed (").append(count).append(")");
+								response.setErrors("Insert tag " + row[2] + " failed (" + count + ")");
 						}
 
 						long nid = -1;
@@ -584,9 +593,10 @@ public class ContextFragment extends Fragment implements
 						if (note != null)
 							nid = note.getPid();
 						else
-							errors.append('\n').append("Insert note failed (").append(count).append(")");
+							response.setErrors("Insert note failed (" + count + ")");
 
-						DbContract.NoteTags.Companion.insert(caller.getDbHelper(), nid, tid);
+						if (DbContract.NoteTags.Companion.insert(caller.getDbHelper(), nid, tid) < 0)
+							response.setErrors("Insert note_tag failed (" + count + ")");
 					} else {
 						Log.w(TAG, "Invalid import format");
 						cancel(true);
@@ -594,16 +604,16 @@ public class ContextFragment extends Fragment implements
 					}
 					count ++;
 				}
-				return count;
+				return response.setStatus(count);
 			} catch (FileNotFoundException e) {
 				Log.w(TAG, e);
-				return -1;
+				return response.setStatus(-3).setErrors(e.getMessage());
 			} catch (IOException e) {
 				Log.w(TAG, e);
-				return -2;
+				return response.setStatus(-2).setErrors(e.getMessage());
 			} catch (RuntimeException e) {
 				Log.w(TAG, e);
-				return -3;
+				return response.setStatus(-1).setErrors(e.getMessage());
 			} finally {
 				if (reader != null) {
 					try {
@@ -616,30 +626,30 @@ public class ContextFragment extends Fragment implements
 		}
 
 		@Override
-		protected void onPostExecute(Integer integer) {
-			if (integer >= 0) {
-				if (errors.toString().trim().length() <= 0)
+		protected void onPostExecute(AsyncTaskResponse response) {
+			if (response.getStatus() >= 0) {
+				if ((response.getErrors() == null) || (response.getErrors().trim().length() <= 0))
 					caller.callback.doNotify(
-							String.format(caller.getString(R.string.msg_migrate_okay), integer, caller.tempFile.getPath(), (integer > 1)? PLURAL :EMPTY)
+							String.format(caller.getString(R.string.msg_migrate_okay), response.getStatus(), caller.tempFile.getPath(), (response.getStatus() > 1)? PLURAL :EMPTY)
 					);
 				else {
-					caller.callback.doNotify("Importing " + caller.tempFile.getPath() + errors.toString());
-					Log.w(TAG, "Importing " + caller.tempFile.getPath() + errors.toString());
+					caller.callback.doNotify("Importing " + caller.tempFile.getPath() + response.getErrors());
+					Log.w(TAG, "Importing " + caller.tempFile.getPath() + response.getErrors());
 				}
 				caller.getAdaptor().select();
 				caller.getAdaptor().notifyDataSetChanged();
 			} else {
 				caller.callback.doNotify(
-						String.format(caller.getString(R.string.msg_migrate_fail), caller.tempFile.getPath(), integer)
+						String.format(caller.getString(R.string.msg_migrate_fail), caller.tempFile.getPath(), response.getStatus())
 				);
 			}
 			cleanUp();
 		}
 
 		@Override
-		protected void onCancelled(Integer integer) {
+		protected void onCancelled(AsyncTaskResponse response) {
 			caller.callback.doNotify(
-					String.format(caller.getString(R.string.msg_migrate_invalid), caller.tempFile.getPath(), integer)
+					String.format(caller.getString(R.string.msg_migrate_invalid), caller.tempFile.getPath(), response.getStatus())
 			);
 			cleanUp();
 		}

@@ -252,18 +252,16 @@ object DbContract {
 				with(cursor) {
 					while (moveToNext()) {
 						buff.setLength(0)
-						val pid = getLong((getColumnIndexOrThrow(PKEY)))
 						val kslt = getString(getColumnIndexOrThrow(COL_KEY_SALT))
 						val key = getString(getColumnIndexOrThrow(COL_KEY))
 						val cslt = getString(getColumnIndexOrThrow(COL_CONTENT_SALT))
 						val ctn = getString(getColumnIndexOrThrow(COL_CONTENT))
 						val modified = getLong(getColumnIndexOrThrow(COMMON_MODF))
-						buff.append(pid)
-								.append(ContextFragment.TAB).append(kslt)
-								.append(ContextFragment.TAB).append(key)
-								.append(ContextFragment.TAB).append(cslt)
-								.append(ContextFragment.TAB).append(ctn)
-								.append(ContextFragment.TAB).append(modified)
+						buff.append(kslt)
+							.append(ContextFragment.TAB).append(key)
+							.append(ContextFragment.TAB).append(cslt)
+							.append(ContextFragment.TAB).append(ctn)
+							.append(ContextFragment.TAB).append(modified)
 						out.println(buff.toString())
 						count ++
 					}
