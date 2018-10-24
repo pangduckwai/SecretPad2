@@ -42,6 +42,7 @@ public class MainActivity extends AppCompatActivity implements
 		ContextFragment.Callback,
 		LogonDialog.Callback,
 		LogonDialog2.Callback,
+		PasswdDialog.Callback,
 		CompatLogonDialog.Callback,
 		DetailFragment.Callback {
 	public static final String TAG = "secret.main";
@@ -80,6 +81,8 @@ public class MainActivity extends AppCompatActivity implements
 				doNotify(getString(R.string.msg_not_logon));
 			} else if (ctxFrag.isFiltered()) {
 				doNotify(getString(R.string.msg_filter_active));
+			} else if (ctxFrag.isBusy()) {
+				doNotify(getString(R.string.msg_system_busy));
 			} else {
 				ctxFrag.getAdaptor().clearSelection();
 				ctxFrag.getAdaptor().notifyDataSetChanged();
@@ -227,7 +230,7 @@ public class MainActivity extends AppCompatActivity implements
 
 	@Override
 	public boolean onPrepareOptionsMenu(Menu menu) {
-		if (!ctxFrag.isLogon() || ctxFrag.isFiltered()) {
+		if (!ctxFrag.isLogon() || ctxFrag.isFiltered() || ctxFrag.isBusy()) {
 			menu.findItem(R.id.action_cleanup).setEnabled(false);
 			menu.findItem(R.id.action_import).setEnabled(false);
 			menu.findItem(R.id.action_export).setEnabled(false);
@@ -278,16 +281,12 @@ public class MainActivity extends AppCompatActivity implements
 		case R.id.action_export:
 			AlertDialog.Builder export = new AlertDialog.Builder(this);
 			export.setMessage(getString(R.string.msg_confirm_export));
-			export.setPositiveButton(R.string.btn_okay, (dialog, which) -> ctxFrag.doExport(getExternalFilesDir(null)));
+			export.setPositiveButton(R.string.btn_okay, (dialog, which) -> ctxFrag.onExport(getExternalFilesDir(null)));
 			export.setNegativeButton(R.string.btn_cancel, null);
 			export.create().show();
 			break;
 		case R.id.action_passwd:
-			AlertDialog.Builder passwd = new AlertDialog.Builder(this);
-			passwd.setMessage(getString(R.string.msg_confirm_passwd));
-			passwd.setPositiveButton(R.string.btn_okay, (dialog, which) -> Snackbar.make(getWindow().getDecorView(), "Change password", Snackbar.LENGTH_LONG).show()); //TODO TEMP
-			passwd.setNegativeButton(R.string.btn_cancel, null);
-			passwd.create().show();
+			PasswdDialog.getInstance().show(getSupportFragmentManager(), PasswdDialog.TAG);
 			break;
 		case R.id.action_about:
 			AboutDialog.Companion.getInstance().show(getSupportFragmentManager(), AboutDialog.TAG);
@@ -320,6 +319,7 @@ public class MainActivity extends AppCompatActivity implements
 	 * Common method to several Callback interfaces.
 	 */
 	public void setBusyState(boolean isBusy) {
+		ctxFrag.setBusy(isBusy);
 		progress.setVisibility(isBusy ? View.VISIBLE : View.INVISIBLE);
 	}
 
@@ -395,17 +395,27 @@ public class MainActivity extends AppCompatActivity implements
 	}
 	//========================================================
 
+	/*=========================================================
+	 * @see org.sea9.android.secret.core.PasswdDialog.Callback
+	 */
+	@Override
+	public void onChangePassword(char[] oldValue, char[] newValue) {
+		if ((oldValue != null) && (newValue != null)) {
+			ctxFrag.onChangePassword(oldValue, newValue);
+		}
+	}
+	//=========================================================
+
 	/*==============================================================
 	 * @see org.sea9.android.secret.core.CompatLogonDialog.Callback
 	 */
-
 	@Override
 	public void onCompatLogon(char[] value) {
 		if (value != null) {
 			ctxFrag.importOldFormat(value);
 		}
 	}
-//==============================================================
+	//==============================================================
 
 	/*==============================================================
 	 * @see org.sea9.android.secret.details.DetailFragment.Callback

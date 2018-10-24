@@ -22,35 +22,39 @@ import org.sea9.android.secret.crypto.CryptoUtils;
 
 import java.util.Arrays;
 
-public class LogonDialog2 extends DialogFragment {
-	public static final String TAG = "secret.logon_dialog2";
+public class PasswdDialog extends DialogFragment {
+	public static final String TAG = "secret.change_password";
 
-	public static LogonDialog2 getInstance() {
-		LogonDialog2 instance = new LogonDialog2();
+	public static PasswdDialog getInstance() {
+		PasswdDialog instance = new PasswdDialog();
 		instance.setCancelable(false);
 		return instance;
 	}
 
+	private EditText txtCurrnt;
 	private EditText txtPasswd;
 	private EditText txtConfrm;
 	private Button btnLogon;
 
-	@Override @Nullable
+	@Nullable
+	@Override
 	public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-		View view = inflater.inflate(R.layout.logon_dialog2, container, false);
+		View view = inflater.inflate(R.layout.passwd_dialog, container, false);
 
-		txtPasswd = view.findViewById(R.id.password);
+		txtCurrnt = view.findViewById(R.id.old_password);
 
-		txtConfrm = view.findViewById(R.id.confirm);
+		txtPasswd = view.findViewById(R.id.new_password);
+
+		txtConfrm = view.findViewById(R.id.new_confirm);
 		txtConfrm.setOnEditorActionListener((v, actionId, event) -> {
 			if (actionId == EditorInfo.IME_ACTION_DONE) {
-				logon();
+				change();
 			}
 			return false;
 		});
 
 		btnLogon = view.findViewById(R.id.logon);
-		btnLogon.setOnClickListener(v -> logon());
+		btnLogon.setOnClickListener(v -> change());
 
 		getDialog().setOnKeyListener((dialog, keyCode, event) -> {
 			if (keyCode == KeyEvent.KEYCODE_BACK) {
@@ -66,13 +70,17 @@ public class LogonDialog2 extends DialogFragment {
 		return view;
 	}
 
-	private boolean logon() {
+	private void change() {
+		Editable txt0 = txtCurrnt.getText();
+		int len0 = txt0.length();
 		Editable txt1 = txtPasswd.getText();
 		int len1 = txt1.length();
 		Editable txt2 = txtConfrm.getText();
 		int len2 = txt2.length();
 
-		if (len1 <= 0) {
+		if (len0 <= 0) {
+			Snackbar.make(btnLogon, getString(R.string.msg_passwd_current), Snackbar.LENGTH_LONG).show();
+		} else if (len1 <= 0) {
 			Snackbar.make(btnLogon, getString(R.string.msg_passwd_needed), Snackbar.LENGTH_LONG).show();
 		} else if (len2 != len1) {
 			Snackbar.make(btnLogon, getString(R.string.msg_passwd_mismatch), Snackbar.LENGTH_LONG).show();
@@ -85,30 +93,36 @@ public class LogonDialog2 extends DialogFragment {
 				txt2.clear();
 				Snackbar.make(btnLogon, getString(R.string.msg_passwd_mismatch), Snackbar.LENGTH_LONG).show();
 			} else {
+				char[] c0 = new char[len0];
+				txt0.getChars(0, len0, c0, 0);
+				txt0.clear();
 				txt1.clear();
 				txt2.clear();
-				callback.onLogon(CryptoUtils.convert(CryptoUtils.encode(CryptoUtils.hash(CryptoUtils.convert(c1)))));
+				callback.onChangePassword(
+						  CryptoUtils.convert(CryptoUtils.encode(CryptoUtils.hash(CryptoUtils.convert(c0))))
+						, CryptoUtils.convert(CryptoUtils.encode(CryptoUtils.hash(CryptoUtils.convert(c1))))
+				);
 				dismiss();
-				return true;
 			}
 		}
-		return false;
 	}
 
 	private void cancel() {
+		Editable txt0 = txtCurrnt.getText();
 		Editable txt1 = txtPasswd.getText();
 		Editable txt2 = txtConfrm.getText();
+		txt0.clear();
 		txt1.clear();
 		txt2.clear();
-		callback.onLogon(null);
+		callback.onChangePassword(null, null);
 		dismiss();
 	}
 
-	/*=========================================
+	/*========================================
 	 * Callback interface to the MainActivity
 	 */
 	public interface Callback {
-		void onLogon(char[] value);
+		void onChangePassword(char[] oldValue, char[] newValue);
 	}
 	private Callback callback;
 
@@ -119,7 +133,7 @@ public class LogonDialog2 extends DialogFragment {
 		try {
 			callback = (Callback) context;
 		} catch (ClassCastException e) {
-			throw new ClassCastException(context.toString() + " missing implementation of LogonDialog2.Callback");
+			throw new ClassCastException(context.toString() + " missing implementation of PasswdDialog.Callback");
 		}
 	}
 

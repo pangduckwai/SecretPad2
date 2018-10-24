@@ -43,7 +43,6 @@ public class DetailFragment extends DialogFragment {
 	private EditText editKey;
 	private EditText editCtn;
 	private EditText editTag;
-	private TextView textMod;
 	private ImageButton bttnAdd;
 	private ImageButton bttnSav;
 	private boolean isNew;
@@ -76,9 +75,9 @@ public class DetailFragment extends DialogFragment {
 		editKey = view.findViewById(R.id.edit_key);
 		editCtn = view.findViewById(R.id.edit_content);
 		editTag = view.findViewById(R.id.edit_tag);
-		textMod = view.findViewById(R.id.modify_time);
 		bttnAdd = view.findViewById(R.id.tag_add);
 		bttnSav = view.findViewById(R.id.dtl_save);
+		TextView textMod = view.findViewById(R.id.modify_time);
 
 		SimpleDateFormat formatter = new SimpleDateFormat(ContextFragment.PATTERN_DATE, Locale.getDefault());
 		Bundle args = getArguments();
@@ -86,7 +85,8 @@ public class DetailFragment extends DialogFragment {
 			isNew = args.getBoolean(TAG);
 			editCtn.setText(args.getString(CTN));
 			editKey.setText(args.getString(KEY));
-			textMod.setText(formatter.format(new Date(args.getLong(MOD))));
+			long mod = args.getLong(MOD);
+			textMod.setText(formatter.format((mod > 0) ? new Date(mod) : new Date()));
 		}
 
 		tagList.setHasFixedSize(true);

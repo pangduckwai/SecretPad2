@@ -12,6 +12,7 @@ import android.util.Log;
 import android.widget.Filter;
 import android.widget.Filterable;
 
+import org.jetbrains.annotations.NotNull;
 import org.sea9.android.secret.R;
 import org.sea9.android.secret.compat.CompatCryptoUtils;
 import org.sea9.android.secret.crypto.CryptoUtils;
@@ -323,9 +324,17 @@ public class ContextFragment extends Fragment implements
 	}
 	//===========================================================
 
-	public final void doExport(File destination) {
+	public final void onExport(File destination) {
 		(new ExportTask(this)).execute(destination);
 	}
+
+	public final void onChangePassword(char[] oldPassword, char[] newPassword) {
+		(new ChangePasswordTask(this)).execute(oldPassword, newPassword);
+	}
+
+	private boolean busy = false;
+	public final boolean isBusy() { return busy; }
+	public final void setBusy(boolean flag) { busy = flag; }
 
 	/*========================================
 	 * Callback interface to the MainActivity
@@ -715,6 +724,72 @@ public class ContextFragment extends Fragment implements
 				if (integers[3] < 0) error += "\n" + String.format(caller.getString(R.string.msg_export_fail), "NoteTags", exportFileName, integers[3]);
 				Log.w(TAG, "Export failed:" + error);
 				caller.callback.doNotify("Export failed:" + error);
+			}
+			caller.callback.setBusyState(false);
+		}
+	}
+
+	/**
+	 * Change password used to encrypt notes.
+	 */
+	static class ChangePasswordTask extends AsyncTask<char[], Void, char[]> {
+		private ContextFragment caller;
+		ChangePasswordTask(ContextFragment ctx) {
+			caller = ctx;
+		}
+
+		@Override
+		protected void onPreExecute() {
+			caller.callback.setBusyState(true);
+		}
+
+		@Override
+		protected char[] doInBackground(char[]... passwords) {
+			if (passwords.length == 2) {
+				int result = DbContract.Notes.Companion.passwd(caller.dbHelper, new DbHelper.Crypto() {
+					@Override
+					public char[] decrypt(@NotNull char[] input, @NotNull byte[] salt) {
+						try {
+							return CryptoUtils.decrypt(input, passwords[0], salt);
+						} catch (BadPaddingException e) {
+							Log.i(TAG, e.getMessage(), e);
+							caller.callback.doNotify(e.getMessage());
+							return null;
+						}
+					}
+
+					@Override @NotNull
+					public char[] encrypt(@NotNull char[] input, @NotNull byte[] salt) {
+						try {
+							return CryptoUtils.encrypt(input, passwords[1], salt);
+						} catch (BadPaddingException e) {
+							throw new RuntimeException(e);
+						}
+					}
+				});
+
+				for (int i = 0; i < passwords[0].length; i++)
+					passwords[0][i] = 0;
+				passwords[0] = null;
+
+				if (result == 0) {
+					return passwords[1];
+				} else {
+					for (int i = 0; i < passwords[1].length; i++)
+						passwords[1][i] = 0;
+					passwords[1] = null;
+				}
+			}
+			return null;
+		}
+
+		@Override
+		protected void onPostExecute(char[] result) {
+			if (result != null) {
+				caller.password = result;
+				caller.callback.doNotify(caller.getString(R.string.msg_passwd_changed));
+			} else {
+				caller.callback.doNotify(caller.getString(R.string.msg_passwd_change_failed));
 			}
 			caller.callback.setBusyState(false);
 		}

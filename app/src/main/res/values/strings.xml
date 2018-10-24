@@ -17,7 +17,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
 	<string name="value_export">SecretPad2Export</string>
 	<string name="hint_password">Password</string>
 	<string name="hint_confirm">Confirm Password</string>
-	<string name="hint_old_password">Enter the Old Password</string>
+	<string name="hint_old_password">Old Password</string>
 	<string name="hint_search">Search secrets</string>
 	<string name="hint_content">Content</string>
 	<string name="hint_key">Name</string>
@@ -31,8 +31,12 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
 	<string name="ctn_save">Save</string>
 	<string name="ctn_cancel">Cancel</string>
 	<string name="ctn_add">Add</string>
+	<string name="msg_passwd_first">Please provide a new master password</string>
 	<string name="msg_passwd_needed">Please provide a password</string>
 	<string name="msg_passwd_mismatch">Confirm password mismatched</string>
+	<string name="msg_passwd_current">Please provide the current password</string>
+	<string name="msg_passwd_changed">Password changed successfully</string>
+	<string name="msg_passwd_change_failed">Failed to change password</string>
 	<string name="msg_insert_okay">Item %s inserted successfully</string>
 	<string name="msg_insert_fail">Insert item failed</string>
 	<string name="msg_insert_duplicated">Item already exists</string>
@@ -50,6 +54,8 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
 	<string name="msg_delete_tags_cancel">Delete unused tags Cancelled</string>
 	<string name="msg_filter_active">Function disabled, filter is active</string>
 	<string name="msg_not_logon">Not yet logon</string>
+	<string name="msg_system_busy">System busy, please wait…</string>
+	<string name="msg_migrate_logon">Please enter the password of the old version Secret Pad</string>
 	<string name="msg_migrate_okay">%1$d note%3$s migrated successfully from %2$s</string>
 	<string name="msg_migrate_fail">Migrating notes from %s failed (%d)</string>
 	<string name="msg_migrate_invalid">Migrating notes from %s failed, invalid data file format at row %d</string>

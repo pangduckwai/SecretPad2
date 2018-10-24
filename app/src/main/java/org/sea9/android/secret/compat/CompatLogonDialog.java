@@ -1,5 +1,6 @@
 package org.sea9.android.secret.compat;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -28,7 +29,7 @@ public class CompatLogonDialog extends DialogFragment {
 		AlertDialog.Builder builder = new AlertDialog.Builder(activity);
 		if (activity != null) {
 			LayoutInflater inflater = activity.getLayoutInflater();
-			View view = inflater.inflate(R.layout._compat_logon, null);
+			@SuppressLint("InflateParams") View view = inflater.inflate(R.layout._compat_logon, null);
 			txtPasswd = view.findViewById(R.id.password);
 			txtPasswd.setOnEditorActionListener((v, actionId, event) -> {
 				if (actionId == EditorInfo.IME_ACTION_DONE) {
@@ -38,9 +39,7 @@ public class CompatLogonDialog extends DialogFragment {
 			});
 
 			builder.setView(view)
-					.setPositiveButton(R.string.btn_logon, (dialog, id) -> {
-						logon();
-					})
+					.setPositiveButton(R.string.btn_logon, (dialog, id) -> logon())
 					.setNegativeButton(R.string.btn_cancel, (dialog, id) -> CompatLogonDialog.this.getDialog().cancel());
 		}
 		return builder.create();

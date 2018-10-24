@@ -78,6 +78,8 @@ public class LogonDialog extends DialogFragment {
 	}
 
 	private void cancel() {
+		Editable txt = txtPasswd.getText();
+		txt.clear();
 		callback.onLogon(null);
 		dismiss();
 	}

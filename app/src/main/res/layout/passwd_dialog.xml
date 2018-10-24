@@ -11,19 +11,14 @@
 	android:background="@color/colorDialog"
 	android:orientation="vertical">
 
-	<TextView
-		android:layout_width="match_parent"
-		android:layout_height="wrap_content"
-		android:textSize="@dimen/text_normal"
-		android:text="@string/msg_passwd_first"/>
-
 	<EditText
-		android:id="@+id/password"
+		android:id="@+id/old_password"
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
 		android:layout_marginTop="@dimen/fab_margin"
+		android:layout_marginBottom="@dimen/fab_margin"
 		android:ems="10"
-		android:hint="@string/hint_password"
+		android:hint="@string/hint_old_password"
 		android:inputType="textPassword"
 		android:selectAllOnFocus="true"
 		android:imeOptions="actionNext">
@@ -31,7 +26,18 @@
 	</EditText>
 
 	<EditText
-		android:id="@+id/confirm"
+		android:id="@+id/new_password"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:layout_marginTop="@dimen/fab_margin"
+		android:ems="10"
+		android:hint="@string/hint_password"
+		android:inputType="textPassword"
+		android:selectAllOnFocus="true"
+		android:imeOptions="actionNext" />
+
+	<EditText
+		android:id="@+id/new_confirm"
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
 		android:layout_marginTop="@dimen/fab_margin"
@@ -41,14 +47,6 @@
 		android:selectAllOnFocus="true"
 		android:imeOptions="actionDone" />
 
-	<ImageView
-		android:layout_width="match_parent"
-		android:layout_height="wrap_content"
-		android:layout_marginTop="@dimen/fab_margin"
-		android:layout_marginBottom="@dimen/fab_margin"
-		android:contentDescription="@string/app_name"
-		android:src="@drawable/logo" />
-
 	<Button
 		android:id="@+id/logon"
 		android:layout_width="wrap_content"
@@ -56,5 +54,5 @@
 		android:layout_gravity="center"
 		android:layout_marginTop="@dimen/fab_margin"
 		android:background="?android:attr/selectableItemBackground"
-		android:text="@string/btn_logon" />
+		android:text="@string/btn_okay" />
 </LinearLayout>
