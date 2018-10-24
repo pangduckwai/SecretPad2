@@ -197,8 +197,8 @@ public class DetailFragment extends DialogFragment {
 		}
 	}
 
-	/*=========================================
-	 * Callback interface to the main activity
+	/*========================================
+	 * Callback interface to the MainActivity
 	 */
 	public interface Callback {
 		void onAdd(String t);

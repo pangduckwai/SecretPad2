@@ -41,15 +41,13 @@ class SecretPad2InstrumentedTest {
 				override fun getContext(): Context? {
 					return context
 				}
-
 				override fun onReady() {
 					Log.w("secret.instrumented_test", "DB test connection ready")
 				}
-
+			}, object : DbHelper.Crypto {
 				override fun encrypt(input: CharArray, salt: ByteArray): CharArray {
 					return CryptoUtils.encrypt(input, password, salt)
 				}
-
 				override fun decrypt(input: CharArray, salt: ByteArray): CharArray {
 					return CryptoUtils.decrypt(input, password, salt)
 				}
@@ -151,30 +149,30 @@ class SecretPad2InstrumentedTest {
 		DbContract.Tags.insert(helper, "One")
 	}
 
-	@Test
-	fun testRecordCount() {
-		var associationCount = 0
-		val tagCount = DbContract.Tags.select(helper).size
-		val noteList = DbContract.Notes.select(helper)
-		for (record in noteList!!) {
-			associationCount += DbContract.NoteTags.select(helper, record.pid).size
-		}
-		assertEquals(5, tagCount)
-		assertEquals(7, noteList.size)
-		assertEquals(13, associationCount)
-	}
-
-	@Test
-	fun testReadEncryptedFields() {
-		var count = -1
-		val list = DbContract.Notes.select(helper)
-		count ++
-		for (record in list!!) {
-			DbContract.Notes.select(helper, record.pid)
-			count ++
-		}
-		assertTrue(count >= 0)
-	}
+//	@Test
+//	fun testRecordCount() {
+//		var associationCount = 0
+//		val tagCount = DbContract.Tags.select(helper).size
+//		val noteList = DbContract.Notes.select(helper)
+//		for (record in noteList!!) {
+//			associationCount += DbContract.NoteTags.select(helper, record.pid).size
+//		}
+//		assertEquals(5, tagCount)
+//		assertEquals(7, noteList.size)
+//		assertEquals(13, associationCount)
+//	}
+//
+//	@Test
+//	fun testReadEncryptedFields() {
+//		var count = -1
+//		val list = DbContract.Notes.select(helper)
+//		count ++
+//		for (record in list!!) {
+//			DbContract.Notes.select(helper, record.pid)
+//			count ++
+//		}
+//		assertTrue(count >= 0)
+//	}
 
 	@Test
 	fun testDeleteUnusedTags() {
@@ -183,6 +181,20 @@ class SecretPad2InstrumentedTest {
 		val deleted = DbContract.Tags.delete(helper)
 		val after = DbContract.Tags.select(helper).size
 		assertTrue((before == (after + deleted)) && (deleted > 0))
+	}
+
+	@Test
+	fun testChangePassword() {
+		val newpassword = CryptoUtils.convert(CryptoUtils.encode(CryptoUtils.hash(CryptoUtils.convert("1234abcd".toCharArray()))))
+		val result = DbContract.Notes.passwd(helper, object : DbHelper.Crypto {
+			override fun encrypt(input: CharArray, salt: ByteArray): CharArray {
+				return CryptoUtils.encrypt(input, newpassword, salt)
+			}
+			override fun decrypt(input: CharArray, salt: ByteArray): CharArray {
+				return CryptoUtils.decrypt(input, password, salt)
+			}
+		})
+		assertTrue(result == 0)
 	}
 /*
 	// List notes with tags

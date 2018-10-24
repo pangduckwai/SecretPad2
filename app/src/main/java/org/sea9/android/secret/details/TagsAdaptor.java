@@ -155,8 +155,8 @@ public class TagsAdaptor extends RecyclerView.Adapter<TagsAdaptor.ViewHolder> {
 	}
 	//=============
 
-	/*============================================
-	 * Callback interface to the context fragment
+	/*==========================================
+	 * Access interface to the ContextFragment
 	 */
 	public interface Caller {
 		DbHelper getDbHelper();

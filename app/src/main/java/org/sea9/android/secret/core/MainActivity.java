@@ -283,7 +283,11 @@ public class MainActivity extends AppCompatActivity implements
 			export.create().show();
 			break;
 		case R.id.action_passwd:
-			Snackbar.make(getWindow().getDecorView(), "Change password", Snackbar.LENGTH_LONG).show(); //TODO TEMP
+			AlertDialog.Builder passwd = new AlertDialog.Builder(this);
+			passwd.setMessage(getString(R.string.msg_confirm_passwd));
+			passwd.setPositiveButton(R.string.btn_okay, (dialog, which) -> Snackbar.make(getWindow().getDecorView(), "Change password", Snackbar.LENGTH_LONG).show()); //TODO TEMP
+			passwd.setNegativeButton(R.string.btn_cancel, null);
+			passwd.create().show();
 			break;
 		case R.id.action_about:
 			AboutDialog.Companion.getInstance().show(getSupportFragmentManager(), AboutDialog.TAG);

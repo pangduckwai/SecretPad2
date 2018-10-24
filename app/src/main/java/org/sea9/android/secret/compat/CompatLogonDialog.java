@@ -60,8 +60,8 @@ public class CompatLogonDialog extends DialogFragment {
 		dismiss();
 	}
 
-	/*=========================================
-	 * Callback interface to the main activity
+	/*========================================
+	 * Callback interface to the MainActivity
 	 */
 	public interface Callback {
 		void onCompatLogon(char[] value);

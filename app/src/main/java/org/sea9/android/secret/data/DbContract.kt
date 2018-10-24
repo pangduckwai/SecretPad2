@@ -188,7 +188,7 @@ object DbContract {
 						val slt = getString(getColumnIndexOrThrow(COL_KEY_SALT))
 						val key = getString(getColumnIndexOrThrow(COL_KEY))
 
-						val txt = helper.decrypt(key.toCharArray(), CryptoUtils.decode(CryptoUtils.convert(slt.toCharArray())))
+						val txt = helper.crypto.decrypt(key.toCharArray(), CryptoUtils.decode(CryptoUtils.convert(slt.toCharArray())))
 						if (txt != null) {
 							result.add(NoteRecord(pid, String(txt), null, modified))
 						} else {
@@ -231,7 +231,7 @@ object DbContract {
 				if (rowCount != 1) {
 					throw IllegalStateException("Corrupted database table")
 				} else {
-					val ret = helper.decrypt(ctn.toCharArray(), CryptoUtils.decode(CryptoUtils.convert(slt.toCharArray())))
+					val ret = helper.crypto.decrypt(ctn.toCharArray(), CryptoUtils.decode(CryptoUtils.convert(slt.toCharArray())))
 					return if (ret != null) {
 						String(ret)
 					} else {
@@ -279,8 +279,8 @@ object DbContract {
 			fun insert(helper: DbHelper, key: String, content: String, timestamp: Long): NoteRecord? {
 				val ksalt = CryptoUtils.generateSalt()
 				val csalt = CryptoUtils.generateSalt()
-				val kcphr = helper.encrypt(key.toCharArray(), ksalt)
-				val ccphr = helper.encrypt(content.toCharArray(), csalt)
+				val kcphr = helper.crypto.encrypt(key.toCharArray(), ksalt)
+				val ccphr = helper.crypto.encrypt(content.toCharArray(), csalt)
 
 				val newRow = ContentValues().apply {
 					put(COL_KEY_SALT, String(CryptoUtils.convert(CryptoUtils.encode(ksalt))))
@@ -305,8 +305,8 @@ object DbContract {
 
 				val ksalt = CryptoUtils.generateSalt()
 				val csalt = CryptoUtils.generateSalt()
-				val kcphr = helper.encrypt(key.toCharArray(), ksalt)
-				val ccphr = helper.encrypt(content.toCharArray(), csalt)
+				val kcphr = helper.crypto.encrypt(key.toCharArray(), ksalt)
+				val ccphr = helper.crypto.encrypt(content.toCharArray(), csalt)
 
 				val newRow = ContentValues().apply {
 					put(COL_KEY_SALT, String(CryptoUtils.convert(CryptoUtils.encode(ksalt))))
@@ -344,7 +344,7 @@ object DbContract {
 				var ret = -1
 
 				val salt = CryptoUtils.generateSalt()
-				val cphr = helper.encrypt(content.toCharArray(), salt)
+				val cphr = helper.crypto.encrypt(content.toCharArray(), salt)
 
 				val newRow = ContentValues().apply {
 					put(COL_CONTENT_SALT, String(CryptoUtils.convert(CryptoUtils.encode(salt))))
@@ -394,6 +394,65 @@ object DbContract {
 				} finally {
 					db.endTransaction()
 				}
+			}
+
+			/**
+			 * Re-encrypt, thus effectively changing the password.
+			 * @return 0 if successful, negative otherwise.
+			 */
+			fun passwd(helper: DbHelper, crypto: DbHelper.Crypto): Int {
+				val db = helper.writableDatabase
+				var count = 0
+				var succd = 0
+
+				db.beginTransactionNonExclusive()
+				try {
+					val cursor = helper.readableDatabase
+							.query(TABLE, EXPORTS, null, null, null, null, null)
+
+					with(cursor) {
+						while (moveToNext()) {
+							val pid = getLong((getColumnIndexOrThrow(PKEY)))
+							val kslt = getString(getColumnIndexOrThrow(COL_KEY_SALT))
+							val ekey = getString(getColumnIndexOrThrow(COL_KEY))
+							val cslt = getString(getColumnIndexOrThrow(COL_CONTENT_SALT))
+							val ectn = getString(getColumnIndexOrThrow(COL_CONTENT))
+
+							// Decrypt using old password
+							val ckey = crypto.decrypt(ekey.toCharArray(), CryptoUtils.decode(CryptoUtils.convert(kslt.toCharArray())))
+							val cctn = crypto.decrypt(ectn.toCharArray(), CryptoUtils.decode(CryptoUtils.convert(cslt.toCharArray())))
+
+							val nkst = CryptoUtils.generateSalt()
+							val ncst = CryptoUtils.generateSalt()
+
+							// Encrypt using new password
+							val nkey = crypto.encrypt(ckey!!, nkst)
+							val nctn = crypto.encrypt(cctn!!, ncst)
+
+							val args = arrayOf(pid.toString())
+							val newRow = ContentValues().apply {
+								put(COL_KEY_SALT, String(CryptoUtils.convert(CryptoUtils.encode(nkst))))
+								put(COL_KEY, String(nkey))
+								put(COL_CONTENT_SALT, String(CryptoUtils.convert(CryptoUtils.encode(ncst))))
+								put(COL_CONTENT, String(nctn))
+								put(COMMON_MODF, Date().time)
+							}
+
+							if (db.update(TABLE, newRow, COMMON_PKEY, args) == 1) succd ++
+							count ++
+						}
+
+						if (succd == count) {
+							db.setTransactionSuccessful()
+						}
+					}
+
+					cursor.close()
+				} finally {
+					db.endTransaction()
+				}
+
+				return (succd - count)
 			}
 		}
 	}

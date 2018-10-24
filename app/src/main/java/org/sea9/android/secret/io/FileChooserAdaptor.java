@@ -185,8 +185,8 @@ public class FileChooserAdaptor extends RecyclerView.Adapter<FileChooserAdaptor.
 	}
 	//=============
 
-	/*============================================
-	 * Callback interface to the context fragment
+	/*=========================================
+	 * Access interface to the ContextFragment
 	 */
 	public interface Caller {
 		Context getContext();

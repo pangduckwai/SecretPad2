@@ -38,7 +38,7 @@ import java.util.Locale;
 import javax.crypto.BadPaddingException;
 
 public class ContextFragment extends Fragment implements
-		DbHelper.Caller,
+		DbHelper.Caller, DbHelper.Crypto,
 		NotesAdaptor.Caller,
 		TagsAdaptor.Caller,
 		FileChooserAdaptor.Caller,
@@ -327,8 +327,8 @@ public class ContextFragment extends Fragment implements
 		(new ExportTask(this)).execute(destination);
 	}
 
-	/*=========================================
-	 * Callback interface to the main activity
+	/*========================================
+	 * Callback interface to the MainActivity
 	 */
 	public interface Callback {
 		void doNotify(String message);
@@ -365,7 +365,6 @@ public class ContextFragment extends Fragment implements
 	/*====================================
 	 * Worker running on separate threads
 	 */
-
 	/**
 	 * Async initialize DB since the first call to getXxxDatabase() can be slow
 	 */
@@ -382,7 +381,7 @@ public class ContextFragment extends Fragment implements
 
 		@Override
 		protected Void doInBackground(Void... voids) {
-			caller.dbHelper = new DbHelper(caller);
+			caller.dbHelper = new DbHelper(caller, caller);
 			caller.dbHelper.getWritableDatabase().execSQL(DbContract.SQL_CONFIG);
 			return null;
 		}

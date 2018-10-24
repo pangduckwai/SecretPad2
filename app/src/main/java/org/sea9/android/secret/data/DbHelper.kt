@@ -5,12 +5,12 @@ import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
 
-class DbHelper(private val caller: Caller, isTest: Boolean):
+class DbHelper(private val caller: Caller, val crypto: Crypto, isTest: Boolean):
 		SQLiteOpenHelper(caller.getContext()
 				, DB_NAME + (if (isTest) "_test" else "")
 				, null
 				, DB_VERN) {
-	constructor(caller: Caller): this(caller, false)
+	constructor(caller: Caller, crypto: Crypto): this(caller, crypto, false)
 
 	companion object {
 		const val TAG = "secret.db_helper"
@@ -58,17 +58,15 @@ class DbHelper(private val caller: Caller, isTest: Boolean):
 		caller.onReady()
 	}
 
-	fun encrypt(input: CharArray, salt: ByteArray): CharArray {
-		return caller.encrypt(input, salt)
-	}
-
-	fun decrypt(input: CharArray, salt: ByteArray): CharArray? {
-		return caller.decrypt(input, salt)
-	}
-
+	/*=========================================
+	 * Access interfaces to the ContextFragment
+	 */
 	interface Caller {
 		fun getContext(): Context?
 		fun onReady()
+	}
+
+	interface Crypto {
 		fun encrypt(input: CharArray, salt: ByteArray): CharArray
 		fun decrypt(input: CharArray, salt: ByteArray): CharArray?
 	}
