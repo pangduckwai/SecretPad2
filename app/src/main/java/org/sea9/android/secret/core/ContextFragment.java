@@ -670,23 +670,27 @@ public class ContextFragment extends Fragment implements
 
 		@Override
 		protected Integer[] doInBackground(File... files) {
+			Integer count[] = new Integer[] {-1, 0, 0, 0};
 			if ((files.length > 0) && (files[0].isDirectory())) {
 				File export = new File(files[0], exportFileName);
 				if (export.exists()) {
 					Log.w(TAG, "File " + export.getPath() + " already exists");
-					return null;
+					count[0] = -3;
+					return count;
 				}
 
 				PrintWriter writer = null;
-				Integer count[] = new Integer[] {0, 0, 0};
 				try {
 					writer = new PrintWriter(new OutputStreamWriter(new FileOutputStream(export)));
-					count[0] = DbContract.Tags.Companion.export(caller.dbHelper, writer);
-					count[1] = DbContract.Notes.Companion.export(caller.dbHelper, writer);
+					count[1] = DbContract.Tags.Companion.export(caller.dbHelper, writer);
+					count[2] = DbContract.Notes.Companion.export(caller.dbHelper, writer);
+					count[3] = DbContract.NoteTags.Companion.export(caller.getDbHelper(), writer);
+					count[0] = 0;
 					return count;
 				} catch (FileNotFoundException e) {
 					Log.w(TAG, e);
-					return null;
+					count[0] = -2;
+					return count;
 				} finally {
 					if (writer != null) {
 						writer.flush();
@@ -694,22 +698,22 @@ public class ContextFragment extends Fragment implements
 					}
 				}
 			}
-			return null;
+			return count;
 		}
 
 		@Override
 		protected void onPostExecute(Integer[] integers) {
-			if (integers == null) {
-				caller.callback.doNotify(caller.getString(R.string.msg_export_error));
-			} else if ((integers[0] >= 0) && (integers[1] >= 0) && (integers[2] >= 0)) {
+			if (integers[0] < 0) {
+				caller.callback.doNotify(String.format(caller.getString(R.string.msg_export_error), integers[0]));
+			} else if ((integers[1] >= 0) && (integers[2] >= 0) && (integers[3] >= 0)) {
 				caller.callback.doNotify(
-						String.format(caller.getString(R.string.msg_export_okay), integers[1], exportFileName, (integers[1] > 1)? PLURAL :EMPTY)
+						String.format(caller.getString(R.string.msg_export_okay), integers[2], exportFileName, (integers[2] > 1)? PLURAL :EMPTY)
 				);
 			} else {
 				String error = EMPTY;
-				if (integers[0] < 0) error += "\n" + String.format(caller.getString(R.string.msg_export_fail), "Tags", exportFileName, integers[0]);
-				if (integers[1] < 0) error += "\n" + String.format(caller.getString(R.string.msg_export_fail), "Notes", exportFileName, integers[1]);
-				if (integers[2] < 0) error += "\n" + String.format(caller.getString(R.string.msg_export_fail), "NoteTags", exportFileName, integers[2]);
+				if (integers[1] < 0) error += "\n" + String.format(caller.getString(R.string.msg_export_fail), "Tags", exportFileName, integers[1]);
+				if (integers[2] < 0) error += "\n" + String.format(caller.getString(R.string.msg_export_fail), "Notes", exportFileName, integers[2]);
+				if (integers[3] < 0) error += "\n" + String.format(caller.getString(R.string.msg_export_fail), "NoteTags", exportFileName, integers[3]);
 				Log.w(TAG, "Export failed:" + error);
 				caller.callback.doNotify("Export failed:" + error);
 			}

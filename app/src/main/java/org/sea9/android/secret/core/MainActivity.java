@@ -251,17 +251,17 @@ public class MainActivity extends AppCompatActivity implements
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case R.id.action_cleanup:
-			AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-			builder.setMessage(getString(R.string.msg_confirm_delete_tags));
-			builder.setPositiveButton(R.string.btn_okay, (dialog, which) -> {
+			AlertDialog.Builder cleanup = new AlertDialog.Builder(this);
+			cleanup.setMessage(getString(R.string.msg_confirm_delete_tags));
+			cleanup.setPositiveButton(R.string.btn_okay, (dialog, which) -> {
 				int del = ctxFrag.getTagsAdaptor().delete();
 				String msg = (del < 0) ?
 						getString(R.string.msg_delete_tags_fail) :
 						String.format(Locale.getDefault(), getString(R.string.msg_delete_tags_okay), Integer.toString(del));
-				Snackbar.make(recycler, msg, Snackbar.LENGTH_LONG).show();
+				doNotify(msg);
 			});
-			builder.setNegativeButton(R.string.btn_cancel, (dialog, which) -> Snackbar.make(recycler, getString(R.string.msg_delete_tags_cancel), Snackbar.LENGTH_LONG).show());
-			(builder.create()).show();
+			cleanup.setNegativeButton(R.string.btn_cancel, (dialog, which) -> doNotify(getString(R.string.msg_delete_tags_cancel)));
+			cleanup.create().show();
 			break;
 
 		case R.id.action_import:
@@ -276,7 +276,11 @@ public class MainActivity extends AppCompatActivity implements
 			break;
 
 		case R.id.action_export:
-			ctxFrag.doExport(getExternalFilesDir(null));
+			AlertDialog.Builder export = new AlertDialog.Builder(this);
+			export.setMessage(getString(R.string.msg_confirm_export));
+			export.setPositiveButton(R.string.btn_okay, (dialog, which) -> ctxFrag.doExport(getExternalFilesDir(null)));
+			export.setNegativeButton(R.string.btn_cancel, null);
+			export.create().show();
 			break;
 		case R.id.action_passwd:
 			Snackbar.make(getWindow().getDecorView(), "Change password", Snackbar.LENGTH_LONG).show(); //TODO TEMP

@@ -87,7 +87,7 @@ public class CryptoUtils {
 	 * @return the Base64-encoded byte array.
 	 */
 	public static byte[] encode(byte[] inp) {
-		return Base64.encode(inp, Base64.DEFAULT);
+		return Base64.encode(inp, Base64.NO_WRAP);
 	}
 
 	/**
@@ -96,7 +96,7 @@ public class CryptoUtils {
 	 * @return the decoded byte array.
 	 */
 	public static byte[] decode(byte[] inp) {
-		return Base64.decode(inp, Base64.DEFAULT);
+		return Base64.decode(inp, Base64.NO_WRAP);
 	}
 
 	/**

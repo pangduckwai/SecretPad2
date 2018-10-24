@@ -43,6 +43,8 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
 	<string name="msg_discard_changes">Confirm to discard changes?</string>
 	<string name="msg_confirm_delete">Confirm to delete item %s?</string>
 	<string name="msg_confirm_delete_tags">Confirm to delete unused tags?</string>
+	<string name="msg_confirm_export">Confirm to export data?</string>
+	<string name="msg_confirm_passwd">Confirm to change password?</string>
 	<string name="msg_delete_tags_okay">%s unused tags deleted successfully</string>
 	<string name="msg_delete_tags_fail">Delete unused tags failed</string>
 	<string name="msg_delete_tags_cancel">Delete unused tags Cancelled</string>
@@ -55,5 +57,5 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
 	<string name="msg_import_fail">Importing notes from %s failed</string>
 	<string name="msg_export_okay">%1$d note%3$s exported successfully to %2$s</string>
 	<string name="msg_export_fail">Exporting %s to %s failed (%d)</string>
-	<string name="msg_export_error">Exporting data failed</string>
+	<string name="msg_export_error">Exporting data failed (%d)</string>
 </resources>
