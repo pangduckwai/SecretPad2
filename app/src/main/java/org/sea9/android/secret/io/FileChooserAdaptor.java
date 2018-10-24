@@ -74,22 +74,25 @@ public class FileChooserAdaptor extends RecyclerView.Adapter<FileChooserAdaptor.
 				//Un-select
 				selectedPos = -1;
 			} else {
-				//Select
-				FileRecord selected = cache.get(position);
-				if (selected.isDirectory()) {
-					selectedPos = -1;
-					if (selected.getPath().equals(FILE_PARENT)) {
-						Log.d(TAG, currentPath);
-						select((new File(currentPath)).getParent());
-						caller.directorySelected(new File(currentPath));
-					} else if (!selected.getPath().equals(FILE_SELF)) {
-						select(selected.getPath());
-						caller.directorySelected(new File(selected.getPath()));
+				selectedPos = position;
+
+				recyclerView.postDelayed(() -> {
+					FileRecord selected = cache.get(position);
+					if (selected.isDirectory()) {
+						selectedPos = -1;
+						if (selected.getPath().equals(FILE_PARENT)) {
+							Log.d(TAG, currentPath);
+							select((new File(currentPath)).getParent());
+							caller.directorySelected(new File(currentPath));
+						} else if (!selected.getPath().equals(FILE_SELF)) {
+							select(selected.getPath());
+							caller.directorySelected(new File(selected.getPath()));
+						}
+					} else {
+						caller.fileSelected(new File(selected.getPath()));
 					}
-				} else {
-					selectedPos = position;
-					caller.fileSelected(new File(selected.getPath()));
-				}
+					notifyDataSetChanged();
+				}, 200);
 			}
 			notifyDataSetChanged();
 		});

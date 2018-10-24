@@ -1,8 +1,6 @@
 package org.sea9.android.secret.core;
 
-import java.io.File;
-
-public class AsyncTaskResponse {
+class AsyncTaskResponse {
 	private int status;
 	private String message;
 	private String errors;

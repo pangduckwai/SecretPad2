@@ -83,30 +83,6 @@ object DbContract {
 			}
 
 			/**
-			 * Export tags to a writer.
-			 */
-			fun export(helper: DbHelper, out: PrintWriter): Int {
-				val cursor = helper.readableDatabase
-						.query(TABLE, COLUMNS, null, null, null, null, COL_TAG_NAME)
-
-				val buff = StringBuilder()
-				var count = 0
-				with(cursor) {
-					while (moveToNext()) {
-						buff.setLength(0)
-						val pid = getLong(getColumnIndexOrThrow(PKEY))
-						val name = getString(getColumnIndexOrThrow(COL_TAG_NAME))
-						buff.append(pid).append(ContextFragment.TAB).append(name)
-						out.println(buff.toString())
-						count ++
-					}
-				}
-
-				cursor.close()
-				return count
-			}
-
-			/**
 			 * Insert a tag.
 			 */
 			fun insert(helper: DbHelper, tagName: String): TagRecord? {
@@ -252,6 +228,7 @@ object DbContract {
 				with(cursor) {
 					while (moveToNext()) {
 						buff.setLength(0)
+						val pid = getLong(getColumnIndexOrThrow(PKEY))
 						val kslt = getString(getColumnIndexOrThrow(COL_KEY_SALT))
 						val key = getString(getColumnIndexOrThrow(COL_KEY))
 						val cslt = getString(getColumnIndexOrThrow(COL_CONTENT_SALT))
@@ -262,6 +239,12 @@ object DbContract {
 							.append(ContextFragment.TAB).append(cslt)
 							.append(ContextFragment.TAB).append(ctn)
 							.append(ContextFragment.TAB).append(modified)
+
+						val tags = NoteTags.select(helper, pid);
+						for (record in tags) {
+							buff.append(ContextFragment.TAB).append(record.tag)
+						}
+
 						out.println(buff.toString())
 						count ++
 					}
@@ -461,7 +444,7 @@ object DbContract {
 			const val COL_NID = "noteId"
 			const val COL_TID = "tagId"
 
-			private val COLUMNS = arrayOf(PKEY, COL_NID, COL_TID, COMMON_MODF)
+//			private val COLUMNS = arrayOf(PKEY, COL_NID, COL_TID, COMMON_MODF)
 
 			const val SQL_CREATE =
 					"create table $TABLE (" +
@@ -499,33 +482,6 @@ object DbContract {
 
 				cursor.close()
 				return result
-			}
-
-			/**
-			 * Export notes in encrypted format.
-			 */
-			fun export(helper: DbHelper, out: PrintWriter): Int {
-				val cursor = helper.readableDatabase
-						.query(TABLE, COLUMNS, null, null, null, null, null)
-
-				val buff = StringBuilder()
-				var count = 0
-				with(cursor) {
-					while (moveToNext()) {
-						buff.setLength(0)
-						val pid = getLong((getColumnIndexOrThrow(PKEY)))
-						val nid = getLong(getColumnIndexOrThrow(COL_NID))
-						val tid = getLong(getColumnIndexOrThrow(COL_TID))
-						buff.append(pid)
-								.append(ContextFragment.TAB).append(nid)
-								.append(ContextFragment.TAB).append(tid)
-						out.println(buff.toString())
-						count ++
-					}
-				}
-
-				cursor.close()
-				return count
 			}
 
 			/**

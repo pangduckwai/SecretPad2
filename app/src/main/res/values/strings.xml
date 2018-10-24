@@ -31,7 +31,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
 	<string name="ctn_save">Save</string>
 	<string name="ctn_cancel">Cancel</string>
 	<string name="ctn_add">Add</string>
-	<string name="msg_passwd_first">Please provide a new master password</string>
+	<string name="msg_passwd_first">Enter a new master password</string>
 	<string name="msg_passwd_needed">Please provide a password</string>
 	<string name="msg_passwd_mismatch">Confirm password mismatched</string>
 	<string name="msg_passwd_current">Please provide the current password</string>
@@ -60,7 +60,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
 	<string name="msg_migrate_fail">Migrating notes from %s failed (%d)</string>
 	<string name="msg_migrate_invalid">Migrating notes from %s failed, invalid data file format at row %d</string>
 	<string name="msg_import_okay">%1$d note%3$s imported successfully from %2%s</string>
-	<string name="msg_import_fail">Importing notes from %s failed</string>
+	<string name="msg_import_fail">Importing notes from %s failed (%d)</string>
 	<string name="msg_export_okay">%1$d note%3$s exported successfully to %2$s</string>
 	<string name="msg_export_fail">Exporting %s to %s failed (%d)</string>
 	<string name="msg_export_error">Exporting data failed (%d)</string>

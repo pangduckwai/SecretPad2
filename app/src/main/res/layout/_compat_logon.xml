@@ -4,17 +4,19 @@
 	android:layout_width="match_parent"
 	android:layout_height="wrap_content"
 	android:minWidth="@dimen/dialog_minWidth"
-	android:paddingTop="@dimen/margin_narrow"
-	android:paddingLeft="@dimen/margin_narrow"
-	android:paddingRight="@dimen/margin_narrow"
-	android:paddingBottom="@dimen/margin_normal"
 	android:background="@color/colorDialog"
 	android:orientation="vertical">
 
 	<TextView
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
+		android:minHeight="@dimen/row_height"
+		android:paddingBottom="@dimen/margin_normal"
+		android:paddingEnd="@dimen/margin_normal"
+		android:paddingStart="@dimen/margin_normal"
+		android:paddingTop="@dimen/margin_narrow"
 		android:textSize="@dimen/text_normal"
+		android:background="@color/colorTitleBar"
 		android:text="@string/msg_migrate_logon"/>
 
 	<EditText
@@ -22,6 +24,8 @@
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
 		android:layout_marginBottom="@dimen/fab_margin"
+		android:layout_marginEnd="@dimen/margin_narrow"
+		android:layout_marginStart="@dimen/margin_narrow"
 		android:layout_marginTop="@dimen/fab_margin"
 		android:ems="10"
 		android:hint="@string/hint_old_password"

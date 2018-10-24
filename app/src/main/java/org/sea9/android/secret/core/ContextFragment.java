@@ -2,6 +2,7 @@ package org.sea9.android.secret.core;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -49,6 +50,8 @@ public class ContextFragment extends Fragment implements
 	public static final String TAB = "\t";
 	private static final String PLURAL = "s";
 	static final String EMPTY = "";
+
+	private long versionCode = -1;
 
 	private DbHelper dbHelper;
 	public final boolean isDbReady() {
@@ -358,8 +361,11 @@ public class ContextFragment extends Fragment implements
 		Log.d(TAG, "onAttach");
 		try {
 			callback = (Callback) context;
+			versionCode = context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionCode;
 		} catch (ClassCastException e) {
 			throw new ClassCastException(context.toString() + " missing implementation of ContextFragment.Callback");
+		} catch (PackageManager.NameNotFoundException e) {
+			versionCode = -2;
 		}
 	}
 
@@ -482,16 +488,19 @@ public class ContextFragment extends Fragment implements
 				String line;
 				String row[];
 				int count = 0;
+				int succd = 0;
 				BufferedReader reader = null;
 				try {
 					reader = new BufferedReader(new FileReader(files[0]));
 					while ((line = reader.readLine()) != null) {
-						if (isCancelled()) break;
+						if (isCancelled()) {
+							return response;
+						}
 
 						row = line.split(TAB);
 						if ((row.length == OLD_FORMAT_COLUMN_COUNT) && (count == 0)) {
-							// Old Secret Pad format:
-							// ID, salt, category, title*, content*, modified
+							Log.d(TAG, "Old file format");
+							// Old Secret Pad format: ID, salt, category, title*, content*, modified
 							cancel(true);
 							caller.tempFile = files[0];
 							response.setStatus(row.length).setMessage("Old file format");
@@ -499,10 +508,27 @@ public class ContextFragment extends Fragment implements
 						} else {
 							switch (row.length) {
 								case 2:
+									List<Long> tags = DbContract.Tags.Companion.search(caller.getDbHelper(), row[1]);
+									if (tags.size() <= 0) {
+										if (DbContract.Tags.Companion.insert(caller.getDbHelper(), row[1]) == null)
+											response.setErrors("Insert tag " + row[1] + " failed (" + count + ")");
+									}
 									break;
 								case 5:
+									char[] ckey = caller.getDbHelper().getCrypto().decrypt(row[1].toCharArray(), CryptoUtils.decode(CryptoUtils.convert(row[0].toCharArray())));
+									char[] cctn = caller.getDbHelper().getCrypto().decrypt(row[3].toCharArray(), CryptoUtils.decode(CryptoUtils.convert(row[2].toCharArray())));
+									if ((ckey != null) && (cctn != null)) {
+										if (DbContract.Notes.Companion.insert(caller.getDbHelper(), new String(ckey), new String(cctn), Long.parseLong(row[4])) != null)
+											succd ++;
+										else
+											response.setErrors("Insert note failed (" + count + ")");
+									}
 									break;
 								case 3:
+									Long nid = Long.parseLong(row[1]);
+									Long tid = Long.parseLong(row[2]);
+									if (DbContract.NoteTags.Companion.insert(caller.getDbHelper(), nid, tid) < 0)
+										response.setErrors("Insert note_tag failed (" + count + ")");
 									break;
 								default:
 									break;
@@ -510,7 +536,7 @@ public class ContextFragment extends Fragment implements
 						}
 						count ++;
 					}
-					return response;
+					return response.setStatus(succd).setMessage(files[0].getPath());
 				} catch (FileNotFoundException e) {
 					Log.w(TAG, e);
 					return response.setStatus(-3).setErrors(e.getMessage());
@@ -532,7 +558,24 @@ public class ContextFragment extends Fragment implements
 
 		@Override
 		protected void onPostExecute(AsyncTaskResponse response) {
-			Log.w(TAG, "ImportTask.onPostExecute " + response.getStatus()); //TODO TEMP
+			if (response.getStatus() >= 0) {
+				if ((response.getErrors() == null) || (response.getErrors().trim().length() <= 0))
+					caller.callback.doNotify(
+							String.format(caller.getString(R.string.msg_import_okay), response.getStatus(), response.getMessage(), (response.getStatus() > 1)? PLURAL :EMPTY)
+					);
+				else {
+					String rspn = "Importing " + response.getMessage() + '\n' + response.getErrors();
+					caller.callback.doNotify(rspn);
+					Log.w(TAG, rspn);
+				}
+				caller.getAdaptor().select();
+				caller.getAdaptor().notifyDataSetChanged();
+			} else {
+				caller.callback.doNotify(
+						String.format(caller.getString(R.string.msg_import_fail), response.getMessage(), response.getStatus())
+				);
+			}
+			caller.callback.setBusyState(false);
 		}
 
 		@Override
@@ -541,6 +584,7 @@ public class ContextFragment extends Fragment implements
 				caller.callback.doCompatLogon();
 			} else {
 				caller.callback.doNotify(response.getErrors());
+				caller.callback.setBusyState(false);
 			}
 		}
 	}
@@ -633,8 +677,9 @@ public class ContextFragment extends Fragment implements
 							String.format(caller.getString(R.string.msg_migrate_okay), response.getStatus(), caller.tempFile.getPath(), (response.getStatus() > 1)? PLURAL :EMPTY)
 					);
 				else {
-					caller.callback.doNotify("Importing " + caller.tempFile.getPath() + response.getErrors());
-					Log.w(TAG, "Importing " + caller.tempFile.getPath() + response.getErrors());
+					String rspn = "Importing " + caller.tempFile.getPath() + '\n' + response.getErrors();
+					caller.callback.doNotify(rspn);
+					Log.w(TAG, rspn);
 				}
 				caller.getAdaptor().select();
 				caller.getAdaptor().notifyDataSetChanged();
@@ -666,7 +711,7 @@ public class ContextFragment extends Fragment implements
 	/**
 	 * Export notes in encrypted format.
 	 */
-	static class ExportTask extends AsyncTask<File, Void, Integer[]> {
+	static class ExportTask extends AsyncTask<File, Void, AsyncTaskResponse> {
 		private static final String PATTERN_TIMESTAMP = "yyyyMMddHHmmss";
 		private static final String EXPORT_SUFFIX = ".txt";
 		private ContextFragment caller;
@@ -687,28 +732,23 @@ public class ContextFragment extends Fragment implements
 		}
 
 		@Override
-		protected Integer[] doInBackground(File... files) {
-			Integer count[] = new Integer[] {-1, 0, 0, 0};
+		protected AsyncTaskResponse doInBackground(File... files) {
+			AsyncTaskResponse response = new AsyncTaskResponse();
 			if ((files.length > 0) && (files[0].isDirectory())) {
 				File export = new File(files[0], exportFileName);
 				if (export.exists()) {
 					Log.w(TAG, "File " + export.getPath() + " already exists");
-					count[0] = -3;
-					return count;
+					return response.setStatus(-3);
 				}
 
 				PrintWriter writer = null;
 				try {
 					writer = new PrintWriter(new OutputStreamWriter(new FileOutputStream(export)));
-					count[1] = DbContract.Tags.Companion.export(caller.dbHelper, writer);
-					count[2] = DbContract.Notes.Companion.export(caller.dbHelper, writer);
-					count[3] = DbContract.NoteTags.Companion.export(caller.getDbHelper(), writer);
-					count[0] = 0;
-					return count;
+					writer.println(caller.getString(R.string.app_name) + TAB + caller.versionCode + TAB + (new Date()).getTime()); //Header
+					return response.setStatus(DbContract.Notes.Companion.export(caller.dbHelper, writer));
 				} catch (FileNotFoundException e) {
 					Log.w(TAG, e);
-					count[0] = -2;
-					return count;
+					return response.setStatus(-2);
 				} finally {
 					if (writer != null) {
 						writer.flush();
@@ -716,24 +756,17 @@ public class ContextFragment extends Fragment implements
 					}
 				}
 			}
-			return count;
+			return response;
 		}
 
 		@Override
-		protected void onPostExecute(Integer[] integers) {
-			if (integers[0] < 0) {
-				caller.callback.doNotify(String.format(caller.getString(R.string.msg_export_error), integers[0]));
-			} else if ((integers[1] >= 0) && (integers[2] >= 0) && (integers[3] >= 0)) {
-				caller.callback.doNotify(
-						String.format(caller.getString(R.string.msg_export_okay), integers[2], exportFileName, (integers[2] > 1)? PLURAL :EMPTY)
-				);
+		protected void onPostExecute(AsyncTaskResponse response) {
+			if (response.getStatus() < 0) {
+				caller.callback.doNotify(String.format(caller.getString(R.string.msg_export_error), response.getStatus()));
 			} else {
-				String error = EMPTY;
-				if (integers[1] < 0) error += "\n" + String.format(caller.getString(R.string.msg_export_fail), "Tags", exportFileName, integers[1]);
-				if (integers[2] < 0) error += "\n" + String.format(caller.getString(R.string.msg_export_fail), "Notes", exportFileName, integers[2]);
-				if (integers[3] < 0) error += "\n" + String.format(caller.getString(R.string.msg_export_fail), "NoteTags", exportFileName, integers[3]);
-				Log.w(TAG, "Export failed:" + error);
-				caller.callback.doNotify("Export failed:" + error);
+				caller.callback.doNotify(
+						String.format(caller.getString(R.string.msg_export_okay), response.getStatus(), exportFileName, (response.getStatus() > 1)? PLURAL :EMPTY)
+				);
 			}
 			caller.callback.setBusyState(false);
 		}
