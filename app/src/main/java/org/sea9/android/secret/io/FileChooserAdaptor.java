@@ -69,15 +69,17 @@ public class FileChooserAdaptor extends RecyclerView.Adapter<FileChooserAdaptor.
 	public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
 		View item = LayoutInflater.from(parent.getContext()).inflate(R.layout.filechooser_item, parent, false);
 		item.setOnClickListener(view -> {
+			if (caller.isBusy()) return;
+
 			int position = recyclerView.getChildLayoutPosition(view);
 			if (position == selectedPos) {
 				//Un-select
 				selectedPos = -1;
-			} else {
+			} else if (cache.size() > position) {
+				caller.setBusy(true);
 				selectedPos = position;
-
+				FileRecord selected = cache.get(position);
 				recyclerView.postDelayed(() -> {
-					FileRecord selected = cache.get(position);
 					if (selected.isDirectory()) {
 						selectedPos = -1;
 						if (selected.getPath().equals(FILE_PARENT)) {
@@ -91,6 +93,7 @@ public class FileChooserAdaptor extends RecyclerView.Adapter<FileChooserAdaptor.
 					} else {
 						caller.fileSelected(new File(selected.getPath()));
 					}
+					caller.setBusy(false);
 					notifyDataSetChanged();
 				}, 200);
 			}
@@ -195,6 +198,8 @@ public class FileChooserAdaptor extends RecyclerView.Adapter<FileChooserAdaptor.
 		Context getContext();
 		void directorySelected(File selected);
 		void fileSelected(File selected);
+		boolean isBusy();
+		void setBusy(boolean flag);
 	}
 	private Caller caller;
 }

@@ -20,7 +20,6 @@ import org.sea9.android.secret.crypto.CryptoUtils;
 import org.sea9.android.secret.data.DbContract;
 import org.sea9.android.secret.data.DbHelper;
 import org.sea9.android.secret.data.NoteRecord;
-import org.sea9.android.secret.data.TagRecord;
 import org.sea9.android.secret.details.TagsAdaptor;
 import org.sea9.android.secret.io.FileChooserAdaptor;
 
@@ -34,7 +33,6 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.List;
 import java.util.Locale;
 
 import javax.crypto.BadPaddingException;
@@ -465,12 +463,11 @@ public class ContextFragment extends Fragment implements
 		}
 	}
 
+	private static final int OLD_FORMAT_COLUMN_COUNT = 6;
 	/**
 	 * Import notes from exports.
 	 */
 	static class ImportTask extends AsyncTask<File, Void, AsyncTaskResponse> {
-		private static final int OLD_FORMAT_COLUMN_COUNT = 6;
-
 		private ContextFragment caller;
 		ImportTask(ContextFragment ctx) {
 			caller = ctx;
@@ -498,41 +495,26 @@ public class ContextFragment extends Fragment implements
 						}
 
 						row = line.split(TAB);
-						if ((row.length == OLD_FORMAT_COLUMN_COUNT) && (count == 0)) {
-							Log.d(TAG, "Old file format");
-							// Old Secret Pad format: ID, salt, category, title*, content*, modified
-							cancel(true);
-							caller.tempFile = files[0];
-							response.setStatus(row.length).setMessage("Old file format");
-							continue;
-						} else {
-							switch (row.length) {
-								case 2:
-									List<Long> tags = DbContract.Tags.Companion.search(caller.getDbHelper(), row[1]);
-									if (tags.size() <= 0) {
-										if (DbContract.Tags.Companion.insert(caller.getDbHelper(), row[1]) == null)
-											response.setErrors("Insert tag " + row[1] + " failed (" + count + ")");
-									}
-									break;
-								case 5:
-									char[] ckey = caller.getDbHelper().getCrypto().decrypt(row[1].toCharArray(), CryptoUtils.decode(CryptoUtils.convert(row[0].toCharArray())));
-									char[] cctn = caller.getDbHelper().getCrypto().decrypt(row[3].toCharArray(), CryptoUtils.decode(CryptoUtils.convert(row[2].toCharArray())));
-									if ((ckey != null) && (cctn != null)) {
-										if (DbContract.Notes.Companion.insert(caller.getDbHelper(), new String(ckey), new String(cctn), Long.parseLong(row[4])) != null)
-											succd ++;
-										else
-											response.setErrors("Insert note failed (" + count + ")");
-									}
-									break;
-								case 3:
-									Long nid = Long.parseLong(row[1]);
-									Long tid = Long.parseLong(row[2]);
-									if (DbContract.NoteTags.Companion.insert(caller.getDbHelper(), nid, tid) < 0)
-										response.setErrors("Insert note_tag failed (" + count + ")");
-									break;
-								default:
-									break;
+						if (count == 0) { // First row in the import data file
+							if (row.length == OLD_FORMAT_COLUMN_COUNT) {
+								// Old Secret Pad format: ID, salt, category, title*, content*, modified
+								// Need to exit the task, ask for old password, and run import again...
+								Log.d(TAG, "Old file format");
+								cancel(true);
+								caller.tempFile = files[0];
+								response.setStatus(row.length).setMessage("Old file format");
+								continue;
+							} else if (row.length != 3) { // First row has 3 columns: App name, version and export time
+								Log.d(TAG, "Invalid file format");
+								cancel(true);
+								response.setStatus(-4).setErrors("Invalid file format");
+								continue;
 							}
+						} else if (row.length >= DbContract.Notes.EXPORT_FORMAT_MIN_COLUMN) {
+							if (DbContract.Notes.Companion.doImport(caller.getDbHelper(), caller, row) >= 0)
+								succd ++;
+						} else {
+							response.setErrors("Invalid file format at row " + count);
 						}
 						count ++;
 					}
@@ -584,8 +566,8 @@ public class ContextFragment extends Fragment implements
 				caller.callback.doCompatLogon();
 			} else {
 				caller.callback.doNotify(response.getErrors());
-				caller.callback.setBusyState(false);
 			}
+			caller.callback.setBusyState(false);
 		}
 	}
 
@@ -593,62 +575,62 @@ public class ContextFragment extends Fragment implements
 	 * Import notes in old format.
 	 */
 	static class ImportOldFormatTask extends AsyncTask<Void, Void, AsyncTaskResponse> {
-		private static final String TAB = "\t";
-		private static final int OLD_FORMAT_COLUMN_COUNT = 6;
-
 		private ContextFragment caller;
 		ImportOldFormatTask(ContextFragment ctx) {
 			caller = ctx;
 		}
 
 		@Override
+		protected void onPreExecute() {
+			caller.callback.setBusyState(true);
+		}
+
+		@Override
 		protected AsyncTaskResponse doInBackground(Void... voids) {
 			AsyncTaskResponse response = new AsyncTaskResponse();
 			String line;
-			String row[];
+			String old[];
 			int count = 0;
+			int succd = 0;
 			BufferedReader reader = null;
 			try {
 				reader = new BufferedReader(new FileReader(caller.tempFile));
 				while ((line = reader.readLine()) != null) {
-					if (isCancelled()) break;
+					old = line.split(TAB);
+					if (old.length == OLD_FORMAT_COLUMN_COUNT) {
+						// Old format: ID, salt, category, title*, content*, modified
+						// New format: salt1, key*, salt2, content*, modified, TAG1, TAG2, ...
+						String row[] = new String[] {
+								old[1], old[3], old[1], old[4], old[5], old[2]
+						};
+						if (DbContract.Notes.Companion.doImport(caller.getDbHelper(), new DbHelper.Crypto() {
+							@Override
+							public char[] decrypt(@NotNull char[] input, @NotNull byte[] salt) {
+								try {
+									return CompatCryptoUtils.decrypt(input, caller.tempPassword, salt);
+								} catch (RuntimeException e) {
+									Log.i(TAG, e.getMessage(), e);
+									caller.callback.doNotify(e.getMessage());
+									return null;
+								}
+							}
 
-					row = line.split(TAB);
-					if (row.length == OLD_FORMAT_COLUMN_COUNT) {
-						// ID, salt, category, title*, content*, modified
-						byte[] salt = CryptoUtils.decode(CryptoUtils.convert(row[1].toCharArray()));
-						String title = new String(CompatCryptoUtils.decrypt(row[3].toCharArray(), caller.tempPassword, salt));
-						String cntnt = new String(CompatCryptoUtils.decrypt(row[4].toCharArray(), caller.tempPassword, salt));
-
-						long tid = -1;
-						List<Long> tags = DbContract.Tags.Companion.search(caller.getDbHelper(), row[2]);
-						if (tags.size() > 0)
-							tid = tags.get(0);
-						else {
-							TagRecord tag = DbContract.Tags.Companion.insert(caller.getDbHelper(), row[2]);
-							if (tag != null)
-								tid = tag.getPid();
-							else
-								response.setErrors("Insert tag " + row[2] + " failed (" + count + ")");
-						}
-
-						long nid = -1;
-						NoteRecord note = DbContract.Notes.Companion.insert(caller.getDbHelper(), title, cntnt, Long.parseLong(row[5]));
-						if (note != null)
-							nid = note.getPid();
-						else
-							response.setErrors("Insert note failed (" + count + ")");
-
-						if (DbContract.NoteTags.Companion.insert(caller.getDbHelper(), nid, tid) < 0)
-							response.setErrors("Insert note_tag failed (" + count + ")");
+							@Override @NotNull
+							public char[] encrypt(@NotNull char[] input, @NotNull byte[] salt) {
+								try {
+									return CryptoUtils.encrypt(input, caller.password, salt);
+								} catch (BadPaddingException e) {
+									throw new RuntimeException(e);
+								}
+							}
+						}, row) >= 0)
+							succd ++;
 					} else {
-						Log.w(TAG, "Invalid import format");
-						cancel(true);
-						continue;
+						response.setErrors("Invalid file format at row " + count);
 					}
 					count ++;
 				}
-				return response.setStatus(count);
+				return response.setStatus(succd);
 			} catch (FileNotFoundException e) {
 				Log.w(TAG, e);
 				return response.setStatus(-3).setErrors(e.getMessage());
@@ -688,14 +670,6 @@ public class ContextFragment extends Fragment implements
 						String.format(caller.getString(R.string.msg_migrate_fail), caller.tempFile.getPath(), response.getStatus())
 				);
 			}
-			cleanUp();
-		}
-
-		@Override
-		protected void onCancelled(AsyncTaskResponse response) {
-			caller.callback.doNotify(
-					String.format(caller.getString(R.string.msg_migrate_invalid), caller.tempFile.getPath(), response.getStatus())
-			);
 			cleanUp();
 		}
 
@@ -745,7 +719,7 @@ public class ContextFragment extends Fragment implements
 				try {
 					writer = new PrintWriter(new OutputStreamWriter(new FileOutputStream(export)));
 					writer.println(caller.getString(R.string.app_name) + TAB + caller.versionCode + TAB + (new Date()).getTime()); //Header
-					return response.setStatus(DbContract.Notes.Companion.export(caller.dbHelper, writer));
+					return response.setStatus(DbContract.Notes.Companion.doExport(caller.dbHelper, writer));
 				} catch (FileNotFoundException e) {
 					Log.w(TAG, e);
 					return response.setStatus(-2);

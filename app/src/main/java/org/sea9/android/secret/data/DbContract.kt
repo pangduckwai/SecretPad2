@@ -131,6 +131,8 @@ object DbContract {
 			const val SQL_DROP = "drop table if exists $TABLE"
 			private const val QUERY_COUNT = "select count($PKEY) from $TABLE"
 
+			const val EXPORT_FORMAT_MIN_COLUMN = 5
+
 			fun count(helper: DbHelper): Int {
 				val cursor = helper.readableDatabase.rawQuery(QUERY_COUNT, null)
 				var result = -1
@@ -214,44 +216,6 @@ object DbContract {
 						null
 					}
 				}
-			}
-
-			/**
-			 * Export notes in encrypted format.
-			 */
-			fun export(helper: DbHelper, out: PrintWriter): Int {
-				val cursor = helper.readableDatabase
-						.query(TABLE, EXPORTS, null, null, null, null, null)
-
-				val buff = StringBuilder()
-				var count = 0
-				with(cursor) {
-					while (moveToNext()) {
-						buff.setLength(0)
-						val pid = getLong(getColumnIndexOrThrow(PKEY))
-						val kslt = getString(getColumnIndexOrThrow(COL_KEY_SALT))
-						val key = getString(getColumnIndexOrThrow(COL_KEY))
-						val cslt = getString(getColumnIndexOrThrow(COL_CONTENT_SALT))
-						val ctn = getString(getColumnIndexOrThrow(COL_CONTENT))
-						val modified = getLong(getColumnIndexOrThrow(COMMON_MODF))
-						buff.append(kslt)
-							.append(ContextFragment.TAB).append(key)
-							.append(ContextFragment.TAB).append(cslt)
-							.append(ContextFragment.TAB).append(ctn)
-							.append(ContextFragment.TAB).append(modified)
-
-						val tags = NoteTags.select(helper, pid);
-						for (record in tags) {
-							buff.append(ContextFragment.TAB).append(record.tag)
-						}
-
-						out.println(buff.toString())
-						count ++
-					}
-				}
-
-				cursor.close()
-				return count
 			}
 
 			/**
@@ -378,6 +342,100 @@ object DbContract {
 			}
 
 			/**
+			 * Export notes in encrypted format.
+			 */
+			fun doExport(helper: DbHelper, out: PrintWriter): Int {
+				val cursor = helper.readableDatabase
+						.query(TABLE, EXPORTS, null, null, null, null, null)
+
+				val buff = StringBuilder()
+				var count = 0
+				with(cursor) {
+					while (moveToNext()) {
+						buff.setLength(0)
+						val pid = getLong(getColumnIndexOrThrow(PKEY))
+						val kslt = getString(getColumnIndexOrThrow(COL_KEY_SALT))
+						val key = getString(getColumnIndexOrThrow(COL_KEY))
+						val cslt = getString(getColumnIndexOrThrow(COL_CONTENT_SALT))
+						val ctn = getString(getColumnIndexOrThrow(COL_CONTENT))
+						val modified = getLong(getColumnIndexOrThrow(COMMON_MODF))
+						buff.append(kslt)
+								.append(ContextFragment.TAB).append(key)
+								.append(ContextFragment.TAB).append(cslt)
+								.append(ContextFragment.TAB).append(ctn)
+								.append(ContextFragment.TAB).append(modified)
+
+						val tags = NoteTags.select(helper, pid)
+						for (record in tags) {
+							buff.append(ContextFragment.TAB).append(record.tag)
+						}
+
+						out.println(buff.toString())
+						count ++
+					}
+				}
+
+				cursor.close()
+				return count
+			}
+
+			/**
+			 * Import one note with tag relations and (if any) new tags.
+			 */
+			fun doImport(helper: DbHelper, crypto: DbHelper.Crypto, data: Array<String>): Long {
+				if (data.size >= EXPORT_FORMAT_MIN_COLUMN) {
+					val db = helper.writableDatabase
+
+					db.beginTransactionNonExclusive()
+					try {
+						// Decrypt using old password and old methods
+						val dkey = crypto.decrypt(data[1].toCharArray(), CryptoUtils.decode(CryptoUtils.convert(data[0].toCharArray())))
+						val dctn = crypto.decrypt(data[3].toCharArray(), CryptoUtils.decode(CryptoUtils.convert(data[2].toCharArray())))
+
+						val kslt = CryptoUtils.generateSalt()
+						val cslt = CryptoUtils.generateSalt()
+
+						// Encrypt using new password
+						val kcph = crypto.encrypt(dkey!!, kslt)
+						val ccph = crypto.encrypt(dctn!!, cslt)
+
+						val newRow = ContentValues().apply {
+							put(COL_KEY_SALT, String(CryptoUtils.convert(CryptoUtils.encode(kslt))))
+							put(COL_KEY, String(kcph))
+							put(COL_CONTENT_SALT, String(CryptoUtils.convert(CryptoUtils.encode(cslt))))
+							put(COL_CONTENT, String(ccph))
+							put(COMMON_MODF, data[4].toLong())
+						}
+
+						val nid = helper.writableDatabase.insertOrThrow(TABLE, null, newRow)
+						if (nid >= 0) {
+							var count = 0
+							if (data.size > EXPORT_FORMAT_MIN_COLUMN) {
+								for (i in EXPORT_FORMAT_MIN_COLUMN until data.size) {
+									val tags = Tags.search(helper, data[i])
+									val tid = if (tags.isNotEmpty())
+										tags[0]
+									else
+										Tags.insert(helper, data[i])?.pid
+
+									if ((tid != null) && (tid >= 0)) {
+										if (NoteTags.insert(helper, nid, tid) >= 0)
+											count++
+									}
+								}
+							}
+							if (count == (data.size - EXPORT_FORMAT_MIN_COLUMN))
+								db.setTransactionSuccessful()
+						}
+						return nid
+					} finally {
+						db.endTransaction()
+					}
+				}
+				return -1 // Incoming data with invalid format
+			}
+
+			/**
 			 * Re-encrypt, thus effectively changing the password.
 			 * @return 0 if successful, negative otherwise.
 			 */
@@ -423,16 +481,13 @@ object DbContract {
 							count ++
 						}
 
-						if (succd == count) {
+						if (succd == count)
 							db.setTransactionSuccessful()
-						}
 					}
-
 					cursor.close()
 				} finally {
 					db.endTransaction()
 				}
-
 				return (succd - count)
 			}
 		}
@@ -443,8 +498,6 @@ object DbContract {
 			const val TABLE = "NoteTags"
 			const val COL_NID = "noteId"
 			const val COL_TID = "tagId"
-
-//			private val COLUMNS = arrayOf(PKEY, COL_NID, COL_TID, COMMON_MODF)
 
 			const val SQL_CREATE =
 					"create table $TABLE (" +
