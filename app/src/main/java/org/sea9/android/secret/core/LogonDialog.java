@@ -39,7 +39,7 @@ public class LogonDialog extends DialogFragment {
 		txtPasswd = view.findViewById(R.id.password);
 		txtPasswd.setOnEditorActionListener((v, actionId, event) -> {
 			if (actionId == EditorInfo.IME_ACTION_DONE) {
-				logon();
+				return logon();
 			}
 			return false;
 		});
@@ -70,7 +70,7 @@ public class LogonDialog extends DialogFragment {
 			char[] ret = new char[len];
 			txt.getChars(0, len, ret, 0);
 			txt.clear();
-			callback.onLogon(CryptoUtils.convert(CryptoUtils.encode(CryptoUtils.hash(CryptoUtils.convert(ret)))));
+			callback.onLogon(CryptoUtils.convert(CryptoUtils.encode(CryptoUtils.hash(CryptoUtils.convert(ret)))), false);
 			dismiss();
 			return true;
 		}
@@ -80,7 +80,7 @@ public class LogonDialog extends DialogFragment {
 	private void cancel() {
 		Editable txt = txtPasswd.getText();
 		txt.clear();
-		callback.onLogon(null);
+		callback.onLogon(null, false);
 		dismiss();
 	}
 
@@ -88,7 +88,7 @@ public class LogonDialog extends DialogFragment {
 	 * Callback interface to the MainActivity
 	 */
 	public interface Callback {
-		void onLogon(char[] value);
+		void onLogon(char[] value, boolean isNew);
 	}
 	private Callback callback;
 

@@ -78,11 +78,11 @@ public class MainActivity extends AppCompatActivity implements
 		fab = findViewById(R.id.fab);
 		fab.setOnClickListener(view -> {
 			if (!ctxFrag.isLogon()) {
-				doNotify(getString(R.string.msg_not_logon));
+				doNotify(getString(R.string.msg_not_logon), false);
 			} else if (ctxFrag.isFiltered()) {
-				doNotify(getString(R.string.msg_filter_active));
+				doNotify(getString(R.string.msg_filter_active), false);
 			} else if (ctxFrag.isBusy()) {
-				doNotify(getString(R.string.msg_system_busy));
+				doNotify(getString(R.string.msg_system_busy), false);
 			} else {
 				ctxFrag.getAdaptor().clearSelection();
 				ctxFrag.getAdaptor().notifyDataSetChanged();
@@ -261,9 +261,9 @@ public class MainActivity extends AppCompatActivity implements
 				String msg = (del < 0) ?
 						getString(R.string.msg_delete_tags_fail) :
 						String.format(Locale.getDefault(), getString(R.string.msg_delete_tags_okay), Integer.toString(del));
-				doNotify(msg);
+				doNotify(msg, false);
 			});
-			cleanup.setNegativeButton(R.string.btn_cancel, (dialog, which) -> doNotify(getString(R.string.msg_delete_tags_cancel)));
+			cleanup.setNegativeButton(R.string.btn_cancel, (dialog, which) -> doNotify(getString(R.string.msg_delete_tags_cancel), false));
 			cleanup.create().show();
 			break;
 
@@ -311,8 +311,15 @@ public class MainActivity extends AppCompatActivity implements
 	/*
 	 * Common method to several Callback interfaces.
 	 */
-	public void doNotify(String message) {
-		Snackbar.make(fab, message, Snackbar.LENGTH_LONG).show();
+	public void doNotify(String message, boolean stay) {
+		if (stay || (message.length() >= 70)) {
+			AlertDialog.Builder alert = new AlertDialog.Builder(this);
+			alert.setMessage(message);
+			alert.setPositiveButton(R.string.btn_okay, null);
+			alert.create().show();
+		} else {
+			Snackbar.make(fab, message, Snackbar.LENGTH_LONG).show();
+		}
 	}
 
 	/*
@@ -346,10 +353,10 @@ public class MainActivity extends AppCompatActivity implements
 
 	@Override
 	public void doLogon() {
-		if (ctxFrag.isDbEmpty()) {
-			LogonDialog2.getInstance().show(getSupportFragmentManager(), LogonDialog2.TAG);
-		} else {
+		if (!ctxFrag.isDbEmpty()) {
 			LogonDialog.getInstance().show(getSupportFragmentManager(), LogonDialog.TAG);
+		} else {
+			LogonDialog2.getInstance().show(getSupportFragmentManager(), LogonDialog2.TAG);
 		}
 	}
 
@@ -386,11 +393,11 @@ public class MainActivity extends AppCompatActivity implements
 	 * @see org.sea9.android.secret.core.LogonDialog.Callback
 	 */
 	@Override
-	public void onLogon(char[] value) {
+	public void onLogon(char[] value, boolean isNew) {
 		if (value == null) {
 			finish();
 		} else {
-			ctxFrag.onLogon(value);
+			ctxFrag.onLogon(value, isNew);
 		}
 	}
 	//========================================================

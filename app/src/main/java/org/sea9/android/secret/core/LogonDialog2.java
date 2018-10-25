@@ -44,7 +44,7 @@ public class LogonDialog2 extends DialogFragment {
 		txtConfrm = view.findViewById(R.id.confirm);
 		txtConfrm.setOnEditorActionListener((v, actionId, event) -> {
 			if (actionId == EditorInfo.IME_ACTION_DONE) {
-				logon();
+				return logon();
 			}
 			return false;
 		});
@@ -85,9 +85,10 @@ public class LogonDialog2 extends DialogFragment {
 				txt2.clear();
 				Snackbar.make(btnLogon, getString(R.string.msg_passwd_mismatch), Snackbar.LENGTH_LONG).show();
 			} else {
+				Log.w(TAG, "!!!!!!!!!!!!!!!!!!!!!!!!!! HERE"); //TODO TEMP
 				txt1.clear();
 				txt2.clear();
-				callback.onLogon(CryptoUtils.convert(CryptoUtils.encode(CryptoUtils.hash(CryptoUtils.convert(c1)))));
+				callback.onLogon(CryptoUtils.convert(CryptoUtils.encode(CryptoUtils.hash(CryptoUtils.convert(c1)))), true);
 				dismiss();
 				return true;
 			}
@@ -100,7 +101,7 @@ public class LogonDialog2 extends DialogFragment {
 		Editable txt2 = txtConfrm.getText();
 		txt1.clear();
 		txt2.clear();
-		callback.onLogon(null);
+		callback.onLogon(null, true);
 		dismiss();
 	}
 
@@ -108,7 +109,7 @@ public class LogonDialog2 extends DialogFragment {
 	 * Callback interface to the MainActivity
 	 */
 	public interface Callback {
-		void onLogon(char[] value);
+		void onLogon(char[] value, boolean isNew);
 	}
 	private Callback callback;
 

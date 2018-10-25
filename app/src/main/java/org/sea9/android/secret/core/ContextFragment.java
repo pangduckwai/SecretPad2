@@ -170,9 +170,9 @@ public class ContextFragment extends Fragment implements
 	 * Called after logon.
 	 * @param value Hash value of the password.
 	 */
-	public void onLogon(char[] value) {
+	public void onLogon(char[] value, boolean isNew) {
 		password = value;
-		new AppInitTask(this).execute();
+		if (!isNew) new AppInitTask(this).execute();
 	}
 
 	/**
@@ -225,7 +225,7 @@ public class ContextFragment extends Fragment implements
 			return CryptoUtils.decrypt(input, password, salt);
 		} catch (BadPaddingException e) {
 			Log.i(TAG, e.getMessage(), e);
-			callback.doNotify(e.getMessage());
+			callback.doNotify(e.getMessage(), false);
 			return null;
 		}
 	}
@@ -341,7 +341,7 @@ public class ContextFragment extends Fragment implements
 	 * Callback interface to the MainActivity
 	 */
 	public interface Callback {
-		void doNotify(String message);
+		void doNotify(String message, boolean stay);
 		void setBusyState(boolean isBusy);
 		void doLogon();
 		void onLogoff();
@@ -543,18 +543,20 @@ public class ContextFragment extends Fragment implements
 			if (response.getStatus() >= 0) {
 				if ((response.getErrors() == null) || (response.getErrors().trim().length() <= 0))
 					caller.callback.doNotify(
-							String.format(caller.getString(R.string.msg_import_okay), response.getStatus(), response.getMessage(), (response.getStatus() > 1)? PLURAL :EMPTY)
+							String.format(caller.getString(R.string.msg_import_okay), response.getStatus(), response.getMessage(), (response.getStatus() > 1)? PLURAL :EMPTY),
+							false
 					);
 				else {
 					String rspn = "Importing " + response.getMessage() + '\n' + response.getErrors();
-					caller.callback.doNotify(rspn);
+					caller.callback.doNotify(rspn, true);
 					Log.w(TAG, rspn);
 				}
 				caller.getAdaptor().select();
 				caller.getAdaptor().notifyDataSetChanged();
 			} else {
 				caller.callback.doNotify(
-						String.format(caller.getString(R.string.msg_import_fail), response.getMessage(), response.getStatus())
+						String.format(caller.getString(R.string.msg_import_fail), response.getMessage(), response.getStatus()),
+						true
 				);
 			}
 			caller.callback.setBusyState(false);
@@ -565,7 +567,7 @@ public class ContextFragment extends Fragment implements
 			if (response.getStatus() == OLD_FORMAT_COLUMN_COUNT) {
 				caller.callback.doCompatLogon();
 			} else {
-				caller.callback.doNotify(response.getErrors());
+				caller.callback.doNotify(response.getErrors(), true);
 			}
 			caller.callback.setBusyState(false);
 		}
@@ -610,7 +612,7 @@ public class ContextFragment extends Fragment implements
 									return CompatCryptoUtils.decrypt(input, caller.tempPassword, salt);
 								} catch (RuntimeException e) {
 									Log.i(TAG, e.getMessage(), e);
-									caller.callback.doNotify(e.getMessage());
+									caller.callback.doNotify(e.getMessage(), false);
 									return null;
 								}
 							}
@@ -656,18 +658,20 @@ public class ContextFragment extends Fragment implements
 			if (response.getStatus() >= 0) {
 				if ((response.getErrors() == null) || (response.getErrors().trim().length() <= 0))
 					caller.callback.doNotify(
-							String.format(caller.getString(R.string.msg_migrate_okay), response.getStatus(), caller.tempFile.getPath(), (response.getStatus() > 1)? PLURAL :EMPTY)
+							String.format(caller.getString(R.string.msg_migrate_okay), response.getStatus(), caller.tempFile.getPath(), (response.getStatus() > 1)? PLURAL :EMPTY),
+							false
 					);
 				else {
 					String rspn = "Importing " + caller.tempFile.getPath() + '\n' + response.getErrors();
-					caller.callback.doNotify(rspn);
+					caller.callback.doNotify(rspn, true);
 					Log.w(TAG, rspn);
 				}
 				caller.getAdaptor().select();
 				caller.getAdaptor().notifyDataSetChanged();
 			} else {
 				caller.callback.doNotify(
-						String.format(caller.getString(R.string.msg_migrate_fail), caller.tempFile.getPath(), response.getStatus())
+						String.format(caller.getString(R.string.msg_migrate_fail), caller.tempFile.getPath(), response.getStatus()),
+						true
 				);
 			}
 			cleanUp();
@@ -736,10 +740,11 @@ public class ContextFragment extends Fragment implements
 		@Override
 		protected void onPostExecute(AsyncTaskResponse response) {
 			if (response.getStatus() < 0) {
-				caller.callback.doNotify(String.format(caller.getString(R.string.msg_export_error), response.getStatus()));
+				caller.callback.doNotify(String.format(caller.getString(R.string.msg_export_error), response.getStatus()), true);
 			} else {
 				caller.callback.doNotify(
-						String.format(caller.getString(R.string.msg_export_okay), response.getStatus(), exportFileName, (response.getStatus() > 1)? PLURAL :EMPTY)
+						String.format(caller.getString(R.string.msg_export_okay), response.getStatus(), exportFileName, (response.getStatus() > 1)? PLURAL :EMPTY),
+						false
 				);
 			}
 			caller.callback.setBusyState(false);
@@ -770,7 +775,7 @@ public class ContextFragment extends Fragment implements
 							return CryptoUtils.decrypt(input, passwords[0], salt);
 						} catch (BadPaddingException e) {
 							Log.i(TAG, e.getMessage(), e);
-							caller.callback.doNotify(e.getMessage());
+							caller.callback.doNotify(e.getMessage(), false);
 							return null;
 						}
 					}
@@ -804,9 +809,9 @@ public class ContextFragment extends Fragment implements
 		protected void onPostExecute(char[] result) {
 			if (result != null) {
 				caller.password = result;
-				caller.callback.doNotify(caller.getString(R.string.msg_passwd_changed));
+				caller.callback.doNotify(caller.getString(R.string.msg_passwd_changed), false);
 			} else {
-				caller.callback.doNotify(caller.getString(R.string.msg_passwd_change_failed));
+				caller.callback.doNotify(caller.getString(R.string.msg_passwd_change_failed), false);
 			}
 			caller.callback.setBusyState(false);
 		}
