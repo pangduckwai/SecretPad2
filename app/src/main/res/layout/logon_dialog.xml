@@ -8,7 +8,6 @@
 	android:paddingLeft="@dimen/margin_narrow"
 	android:paddingRight="@dimen/margin_narrow"
 	android:paddingBottom="@dimen/margin_normal"
-	android:background="@color/colorDialog"
 	android:orientation="vertical">
 
 	<EditText

@@ -57,7 +57,6 @@ public class DetailFragment extends DialogFragment {
 			args.putLong(MOD, record.getModified());
 		}
 		dialog.setArguments(args);
-		dialog.setStyle(DialogFragment.STYLE_NORMAL, R.style.TitleDialog);
 
 		return dialog;
 	}
@@ -96,7 +95,7 @@ public class DetailFragment extends DialogFragment {
 
 			@Override
 			public void onTextChanged(CharSequence s, int start, int before, int count) {
-				if ((before != 0) || (count != 0)) {
+				if (((before != 0) || (count != 0)) && !((start == 0) && (before == count))) {
 					callback.dataUpdated();
 				}
 			}
@@ -138,8 +137,6 @@ public class DetailFragment extends DialogFragment {
 		});
 
 		view.findViewById(R.id.dtl_cancel).setOnClickListener(v -> close());
-
-		getDialog().setTitle(R.string.value_details);
 
 		getDialog().setOnKeyListener((dialog, keyCode, event) -> {
 			if (keyCode == KeyEvent.KEYCODE_BACK) {

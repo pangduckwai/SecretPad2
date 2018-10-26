@@ -10,7 +10,6 @@
 		android:minWidth="@dimen/dialog_minWidth"
 		android:paddingTop="@dimen/margin_narrow"
 		android:paddingBottom="@dimen/margin_normal"
-		android:background="@color/colorDialog"
 		android:focusable="true"
 		android:focusableInTouchMode="true"
 		android:orientation="vertical">

@@ -300,6 +300,10 @@ public class ContextFragment extends Fragment implements
 		else
 			callback.onRowSelectionChanged(EMPTY);
 	}
+
+	public void longPressed() {
+		callback.longPressed();
+	}
 	//================================================
 
 	/*===========================================================
@@ -353,6 +357,7 @@ public class ContextFragment extends Fragment implements
 		void onDirectorySelected(File selected);
 		void onFileSelected();
 		void doCompatLogon();
+		void longPressed();
 	}
 	private Callback callback;
 

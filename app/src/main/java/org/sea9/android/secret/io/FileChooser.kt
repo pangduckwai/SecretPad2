@@ -48,7 +48,7 @@ class FileChooser : DialogFragment() {
 			}
 		}
 
-		dialog.setTitle(R.string.app_name)
+		dialog.setTitle(R.string.action_import)
 
 		return view
 	}

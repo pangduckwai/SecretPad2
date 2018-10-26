@@ -91,11 +91,23 @@ public class MainActivity extends AppCompatActivity implements
 			} else if (ctxFrag.isBusy()) {
 				doNotify(getString(R.string.msg_system_busy), false);
 			} else {
-				ctxFrag.getAdaptor().clearSelection();
-				ctxFrag.getAdaptor().notifyDataSetChanged();
-				ctxFrag.getTagsAdaptor().selectTags(null);
-				ctxFrag.clearUpdated();
-				DetailFragment.getInstance(true, null, null).show(getSupportFragmentManager(), DetailFragment.TAG);
+				int position = ctxFrag.getAdaptor().getSelectedPosition();
+				if (position >= 0) {
+					recycler.smoothScrollToPosition(position); // Scroll list to the selected row
+					NoteRecord record = ctxFrag.getAdaptor().getRecord(position);
+					if (record != null) {
+						String text = content.getText().toString();
+						ctxFrag.getTagsAdaptor().selectTags(record.getTags());
+						ctxFrag.clearUpdated();
+						DetailFragment.getInstance(false, record, text).show(getSupportFragmentManager(), DetailFragment.TAG);
+					}
+				} else {
+					ctxFrag.getAdaptor().clearSelection();
+					ctxFrag.getAdaptor().notifyDataSetChanged();
+					ctxFrag.getTagsAdaptor().selectTags(null);
+					ctxFrag.clearUpdated();
+					DetailFragment.getInstance(true, null, null).show(getSupportFragmentManager(), DetailFragment.TAG);
+				}
 			}
 		});
 
@@ -109,13 +121,6 @@ public class MainActivity extends AppCompatActivity implements
 			int position = ctxFrag.getAdaptor().getSelectedPosition();
 			if (position >= 0) {
 				recycler.smoothScrollToPosition(position); // Scroll list to the selected row
-				NoteRecord record = ctxFrag.getAdaptor().getRecord(position);
-				String content = ((TextView) view).getText().toString();
-				if (record != null) {
-					ctxFrag.getTagsAdaptor().selectTags(record.getTags());
-					ctxFrag.clearUpdated();
-					DetailFragment.getInstance(false, record, content).show(getSupportFragmentManager(), DetailFragment.TAG);
-				}
 			}
 		});
 
@@ -192,9 +197,6 @@ public class MainActivity extends AppCompatActivity implements
 
 		frag = (LogonDialog2) manager.findFragmentByTag(LogonDialog2.TAG);
 		if (frag != null) frag.dismiss();
-
-//		frag = (AboutDialog) manager.findFragmentByTag(AboutDialog.TAG);
-//		if (frag != null) frag.dismiss();
 	}
 
 	@Override
@@ -396,6 +398,20 @@ public class MainActivity extends AppCompatActivity implements
 	public void doCompatLogon() {
 		DialogFragment dialog = new CompatLogonDialog();
 		dialog.show(getSupportFragmentManager(), CompatLogonDialog.TAG);
+	}
+
+	@Override
+	public void longPressed() {
+		int position = ctxFrag.getAdaptor().getSelectedPosition();
+		if (position >= 0) {
+			NoteRecord record = ctxFrag.getAdaptor().getRecord(position);
+			if (record != null) {
+				String text = content.getText().toString();
+				ctxFrag.getTagsAdaptor().selectTags(record.getTags());
+				ctxFrag.clearUpdated();
+				DetailFragment.getInstance(false, record, text).show(getSupportFragmentManager(), DetailFragment.TAG);
+			}
+		}
 	}
 	//============================================================
 

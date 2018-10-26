@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-	<color name="colorPrimary">#3F3F3F</color>
-	<color name="colorPrimaryDark">#303030</color>
-	<color name="colorAccent">#F00000</color>
+	<!--<color name="colorPrimary">#3F3F3F</color>-->
+	<!--<color name="colorPrimaryDark">#303030</color>-->
+	<!--<color name="colorAccent">#F00000</color>-->
 	<color name="colorTitleBar">#580000</color>
 	<color name="colorSelect">#636363</color>
-	<color name="colorDialog">#333333</color>
+	<!--<color name="colorDialog">#333333</color>-->
 </resources>

@@ -1,10 +1,12 @@
 package org.sea9.android.secret.core;
 
+import android.annotation.SuppressLint;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -106,10 +108,21 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 		recyclerView = recycler;
 	}
 
+	@SuppressLint("ClickableViewAccessibility")
 	@Override @NonNull
 	public final ViewHolder onCreateViewHolder(@NonNull final ViewGroup parent, int viewType) {
 		// create a new view
 		View item = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_item, parent, false);
+
+		item.setOnTouchListener((view, event) -> {
+			if (event.getAction() == MotionEvent.ACTION_DOWN) {
+				if (view.isSelected())
+					view.setSelected(false);
+				else
+					view.setSelected(true);
+			}
+			return false;
+		});
 
 		// Click listener
 		item.setOnClickListener(view -> {
@@ -123,8 +136,11 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 		});
 
 		item.setOnLongClickListener(view -> {
-			Snackbar.make(parent, "Long pressed...", Snackbar.LENGTH_LONG).show(); //TODO TEMP
-			return false;
+			int position = recyclerView.getChildLayoutPosition(view);
+			selectRow(position);
+			caller.longPressed();
+			notifyDataSetChanged();
+			return true;
 		});
 
 		return new ViewHolder(item);
@@ -264,6 +280,7 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 	 */
 	public interface Caller {
 		DbHelper getDbHelper();
+		void longPressed();
 		void updateContent(String content);
 		void logoff();
 	}
