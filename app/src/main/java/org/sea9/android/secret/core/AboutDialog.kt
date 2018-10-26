@@ -1,12 +1,10 @@
 package org.sea9.android.secret.core
 
 import android.content.Context
+import android.content.DialogInterface
 import android.os.Bundle
 import android.support.v4.app.DialogFragment
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.view.Window
+import android.view.*
 import android.widget.TextView
 import org.sea9.android.secret.R
 
@@ -15,7 +13,9 @@ class AboutDialog : DialogFragment() {
 		const val TAG = "secret.about_dialog"
 
 		fun getInstance() : AboutDialog {
-			return AboutDialog()
+			val instance = AboutDialog()
+			instance.isCancelable = false
+			return instance
 		}
 	}
 
@@ -27,6 +27,15 @@ class AboutDialog : DialogFragment() {
 		val txtVer = view.findViewById<TextView>(R.id.version)
 		version?.let {
 			txtVer.text = String.format(getString(R.string.app_version), it)
+		}
+
+		dialog.setOnKeyListener { _, keyCode, event ->
+			if (keyCode == KeyEvent.KEYCODE_BACK) {
+				if (event.action == KeyEvent.ACTION_UP) dismiss()
+				true
+			} else {
+				false
+			}
 		}
 
 		val win = dialog.window
