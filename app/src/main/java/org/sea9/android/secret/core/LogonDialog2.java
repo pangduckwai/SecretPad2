@@ -85,7 +85,6 @@ public class LogonDialog2 extends DialogFragment {
 				txt2.clear();
 				Snackbar.make(btnLogon, getString(R.string.msg_passwd_mismatch), Snackbar.LENGTH_LONG).show();
 			} else {
-				Log.w(TAG, "!!!!!!!!!!!!!!!!!!!!!!!!!! HERE"); //TODO TEMP
 				txt1.clear();
 				txt2.clear();
 				callback.onLogon(CryptoUtils.convert(CryptoUtils.encode(CryptoUtils.hash(CryptoUtils.convert(c1)))), true);

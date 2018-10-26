@@ -172,7 +172,10 @@ public class ContextFragment extends Fragment implements
 	 */
 	public void onLogon(char[] value, boolean isNew) {
 		password = value;
-		if (!isNew) new AppInitTask(this).execute();
+		if (!isNew)
+			new AppInitTask(this).execute();
+		else
+			callback.setBusyState(false);
 	}
 
 	/**

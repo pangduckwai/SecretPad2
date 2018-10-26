@@ -183,6 +183,9 @@ public class MainActivity extends AppCompatActivity implements
 		DialogFragment frag = (LogonDialog) manager.findFragmentByTag(LogonDialog.TAG);
 		if (frag != null) frag.dismiss();
 
+		frag = (LogonDialog2) manager.findFragmentByTag(LogonDialog2.TAG);
+		if (frag != null) frag.dismiss();
+
 		frag = (AboutDialog) manager.findFragmentByTag(AboutDialog.TAG);
 		if (frag != null) frag.dismiss();
 	}
