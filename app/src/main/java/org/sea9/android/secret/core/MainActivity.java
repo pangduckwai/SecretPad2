@@ -4,6 +4,7 @@ import android.Manifest;
 import android.animation.LayoutTransition;
 import android.app.SearchManager;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -28,6 +29,7 @@ import android.widget.ProgressBar;
 import android.widget.SearchView;
 import android.widget.TextView;
 
+import org.jetbrains.annotations.NotNull;
 import org.sea9.android.secret.compat.CompatLogonDialog;
 import org.sea9.android.secret.data.NoteRecord;
 import org.sea9.android.secret.details.DetailFragment;
@@ -38,6 +40,7 @@ import org.sea9.android.secret.io.FileChooserAdaptor;
 import org.sea9.android.secret.ui.AboutDialog;
 import org.sea9.android.secret.ui.LogonDialog;
 import org.sea9.android.secret.ui.LogonDialog2;
+import org.sea9.android.secret.ui.MessageDialog;
 import org.sea9.android.secret.ui.PasswdDialog;
 
 import java.io.File;
@@ -51,7 +54,8 @@ public class MainActivity extends AppCompatActivity implements
 		CompatLogonDialog.Callback,
 		PasswdDialog.Callback,
 		FileChooser.Callback,
-		DetailFragment.Callback {
+		DetailFragment.Callback,
+		MessageDialog.Callback {
 	public static final String TAG = "secret.main";
 	private static final int READ_EXTERNAL_STORAGE_REQUEST = 17523;
 
@@ -291,11 +295,13 @@ public class MainActivity extends AppCompatActivity implements
 			break;
 
 		case R.id.action_export:
-			AlertDialog.Builder export = new AlertDialog.Builder(this);
-			export.setMessage(getString(R.string.msg_confirm_export));
-			export.setPositiveButton(R.string.btn_okay, (dialog, which) -> ctxFrag.onExport(getExternalFilesDir(null)));
-			export.setNegativeButton(R.string.btn_cancel, null);
-			export.create().show();
+//			AlertDialog.Builder export = new AlertDialog.Builder(this);
+//			export.setMessage(getString(R.string.msg_confirm_export));
+//			export.setPositiveButton(R.string.btn_okay, (dialog, which) -> ctxFrag.onExport(getExternalFilesDir(null)));
+//			export.setNegativeButton(R.string.btn_cancel, null);
+//			export.create().show();
+			MessageDialog.Companion.getOkayCancelDialog(902, getString(R.string.msg_confirm_export))
+					.show(getSupportFragmentManager(), MessageDialog.TAG);
 			break;
 		case R.id.action_passwd:
 			PasswdDialog.getInstance().show(getSupportFragmentManager(), PasswdDialog.TAG);
@@ -325,10 +331,7 @@ public class MainActivity extends AppCompatActivity implements
 	 */
 	public void doNotify(String message, boolean stay) {
 		if (stay || (message.length() >= 70)) {
-			AlertDialog.Builder alert = new AlertDialog.Builder(this);
-			alert.setMessage(message);
-			alert.setPositiveButton(R.string.btn_okay, null);
-			alert.create().show();
+			MessageDialog.Companion.getInstance(901, message).show(getSupportFragmentManager(), MessageDialog.TAG);
 		} else {
 			Snackbar.make(fab, message, Snackbar.LENGTH_LONG).show();
 		}
@@ -396,8 +399,7 @@ public class MainActivity extends AppCompatActivity implements
 
 	@Override
 	public void doCompatLogon() {
-		DialogFragment dialog = new CompatLogonDialog();
-		dialog.show(getSupportFragmentManager(), CompatLogonDialog.TAG);
+		new CompatLogonDialog().show(getSupportFragmentManager(), CompatLogonDialog.TAG);
 	}
 
 	@Override
@@ -523,5 +525,45 @@ public class MainActivity extends AppCompatActivity implements
 		Snackbar.make(recycler,
 				String.format(Locale.getDefault(), msg, Integer.toString(position+1)),
 				Snackbar.LENGTH_LONG).show();
+	}
+	//==============================================================
+
+	/*========================================================
+	 * @see org.sea9.android.secret.ui.MessageDialog.Callback
+	 */
+	@Override
+	public void neutral(int reference, @NotNull DialogInterface dialog, int id) {
+		Log.w(TAG, "!!!!!!!!!!!!!! NEU " + reference); //TODO TEMP
+		switch (reference) {
+			case 901:
+				dialog.dismiss();
+				break;
+			case 902:
+				break;
+		}
+	}
+
+	@Override
+	public void positive(int reference, @NotNull DialogInterface dialog, int id) {
+		Log.w(TAG, "!!!!!!!!!!!!!! POS " + reference); //TODO TEMP
+		switch (reference) {
+			case 901:
+				break;
+			case 902:
+				ctxFrag.onExport(getExternalFilesDir(null));
+				break;
+		}
+	}
+
+	@Override
+	public void negative(int reference, @NotNull DialogInterface dialog, int id) {
+		Log.w(TAG, "!!!!!!!!!!!!!! NEG " + reference); //TODO TEMP
+		switch (reference) {
+			case 901:
+				break;
+			case 902:
+				dialog.dismiss();
+				break;
+		}
 	}
 }

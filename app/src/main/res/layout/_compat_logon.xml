@@ -30,6 +30,7 @@
 		android:hint="@string/hint_old_password"
 		android:inputType="textPassword"
 		android:selectAllOnFocus="true"
-		android:imeOptions="actionDone" />
-	<requestFocus />
+		android:imeOptions="actionDone">
+		<requestFocus />
+	</EditText>
 </LinearLayout>
