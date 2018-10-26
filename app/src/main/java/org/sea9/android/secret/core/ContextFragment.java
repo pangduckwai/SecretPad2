@@ -470,7 +470,7 @@ public class ContextFragment extends Fragment implements
 	/**
 	 * Import notes from exports.
 	 */
-	static class ImportTask extends AsyncTask<File, Void, AsyncTaskResponse> {
+	static class ImportTask extends AsyncTask<File, Void, Response> {
 		private ContextFragment caller;
 		ImportTask(ContextFragment ctx) {
 			caller = ctx;
@@ -482,8 +482,8 @@ public class ContextFragment extends Fragment implements
 		}
 
 		@Override
-		protected AsyncTaskResponse doInBackground(File... files) {
-			AsyncTaskResponse response = new AsyncTaskResponse();
+		protected Response doInBackground(File... files) {
+			Response response = new Response();
 			if (files.length > 0) {
 				String line;
 				String row[];
@@ -542,7 +542,7 @@ public class ContextFragment extends Fragment implements
 		}
 
 		@Override
-		protected void onPostExecute(AsyncTaskResponse response) {
+		protected void onPostExecute(Response response) {
 			if (response.getStatus() >= 0) {
 				if ((response.getErrors() == null) || (response.getErrors().trim().length() <= 0))
 					caller.callback.doNotify(
@@ -566,7 +566,7 @@ public class ContextFragment extends Fragment implements
 		}
 
 		@Override
-		protected void onCancelled(AsyncTaskResponse response) {
+		protected void onCancelled(Response response) {
 			if (response.getStatus() == OLD_FORMAT_COLUMN_COUNT) {
 				caller.callback.doCompatLogon();
 			} else {
@@ -579,7 +579,7 @@ public class ContextFragment extends Fragment implements
 	/**
 	 * Import notes in old format.
 	 */
-	static class ImportOldFormatTask extends AsyncTask<Void, Void, AsyncTaskResponse> {
+	static class ImportOldFormatTask extends AsyncTask<Void, Void, Response> {
 		private ContextFragment caller;
 		ImportOldFormatTask(ContextFragment ctx) {
 			caller = ctx;
@@ -591,8 +591,8 @@ public class ContextFragment extends Fragment implements
 		}
 
 		@Override
-		protected AsyncTaskResponse doInBackground(Void... voids) {
-			AsyncTaskResponse response = new AsyncTaskResponse();
+		protected Response doInBackground(Void... voids) {
+			Response response = new Response();
 			String line;
 			String old[];
 			int count = 0;
@@ -657,7 +657,7 @@ public class ContextFragment extends Fragment implements
 		}
 
 		@Override
-		protected void onPostExecute(AsyncTaskResponse response) {
+		protected void onPostExecute(Response response) {
 			if (response.getStatus() >= 0) {
 				if ((response.getErrors() == null) || (response.getErrors().trim().length() <= 0))
 					caller.callback.doNotify(
@@ -692,7 +692,7 @@ public class ContextFragment extends Fragment implements
 	/**
 	 * Export notes in encrypted format.
 	 */
-	static class ExportTask extends AsyncTask<File, Void, AsyncTaskResponse> {
+	static class ExportTask extends AsyncTask<File, Void, Response> {
 		private static final String PATTERN_TIMESTAMP = "yyyyMMddHHmmss";
 		private static final String EXPORT_SUFFIX = ".txt";
 		private ContextFragment caller;
@@ -713,8 +713,8 @@ public class ContextFragment extends Fragment implements
 		}
 
 		@Override
-		protected AsyncTaskResponse doInBackground(File... files) {
-			AsyncTaskResponse response = new AsyncTaskResponse();
+		protected Response doInBackground(File... files) {
+			Response response = new Response();
 			if ((files.length > 0) && (files[0].isDirectory())) {
 				File export = new File(files[0], exportFileName);
 				if (export.exists()) {
@@ -741,7 +741,7 @@ public class ContextFragment extends Fragment implements
 		}
 
 		@Override
-		protected void onPostExecute(AsyncTaskResponse response) {
+		protected void onPostExecute(Response response) {
 			if (response.getStatus() < 0) {
 				caller.callback.doNotify(String.format(caller.getString(R.string.msg_export_error), response.getStatus()), true);
 			} else {
@@ -817,6 +817,40 @@ public class ContextFragment extends Fragment implements
 				caller.callback.doNotify(caller.getString(R.string.msg_passwd_change_failed), false);
 			}
 			caller.callback.setBusyState(false);
+		}
+	}
+
+	static class Response {
+		private int status;
+		private String message;
+		private String errors;
+
+		Response() {
+			status = -1;
+			message = null;
+			errors = null;
+		}
+
+		final int getStatus() { return status; }
+		final Response setStatus(int status) {
+			this.status = status;
+			return this;
+		}
+
+		final String getMessage() { return message; }
+		final Response setMessage(String message) {
+			this.message = message;
+			return this;
+		}
+
+		final String getErrors() { return errors; }
+		final Response setErrors(String error) {
+			if (errors == null) {
+				errors = error;
+			} else {
+				errors += '\n' + error;
+			}
+			return this;
 		}
 	}
 }

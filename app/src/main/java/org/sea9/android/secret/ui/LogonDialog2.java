@@ -1,4 +1,4 @@
-package org.sea9.android.secret.core;
+package org.sea9.android.secret.ui;
 
 import android.content.Context;
 import android.os.Bundle;

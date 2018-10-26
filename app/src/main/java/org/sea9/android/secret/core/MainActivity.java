@@ -35,6 +35,10 @@ import org.sea9.android.secret.R;
 import org.sea9.android.secret.details.TagsAdaptor;
 import org.sea9.android.secret.io.FileChooser;
 import org.sea9.android.secret.io.FileChooserAdaptor;
+import org.sea9.android.secret.ui.AboutDialog;
+import org.sea9.android.secret.ui.LogonDialog;
+import org.sea9.android.secret.ui.LogonDialog2;
+import org.sea9.android.secret.ui.PasswdDialog;
 
 import java.io.File;
 import java.util.List;
