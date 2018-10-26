@@ -1,5 +1,6 @@
 package org.sea9.android.secret.io
 
+import android.content.Context
 import android.os.Bundle
 import android.support.v4.app.DialogFragment
 import android.support.v7.widget.LinearLayoutManager
@@ -10,7 +11,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import org.sea9.android.secret.R
-import org.sea9.android.secret.core.ContextFragment
 
 class FileChooser : DialogFragment() {
 	companion object {
@@ -24,7 +24,6 @@ class FileChooser : DialogFragment() {
 		}
 	}
 
-	private lateinit var ctxFrag: ContextFragment
 	private lateinit var fileList: RecyclerView
 
 	private lateinit var currentPath: TextView
@@ -56,11 +55,33 @@ class FileChooser : DialogFragment() {
 
 	override fun onResume() {
 		super.onResume()
-		ctxFrag = fragmentManager?.findFragmentByTag(ContextFragment.TAG) as ContextFragment
-		fileList.adapter = ctxFrag.fileAdaptor
+		val adaptor = callback?.getFileAdaptor()
+		fileList.adapter = adaptor
 
-		val root = context?.getExternalFilesDir(null)?.path
-		ctxFrag.fileAdaptor.select(root)
-		setCurrentPath(root)
+//		val root = context?.getExternalFilesDir(null)?.path
+		adaptor?.select(null)
+//		setCurrentPath(root)
+	}
+
+	/*========================================
+	 * Callback interface to the MainActivity
+	 */
+	interface Callback {
+		fun getFileAdaptor(): FileChooserAdaptor
+	}
+	private var callback: Callback? = null
+
+	override fun onAttach(context: Context?) {
+		super.onAttach(context)
+		try {
+			callback = context as Callback
+		} catch (e: ClassCastException) {
+			throw ClassCastException("$context missing implementation of FileChooser.Callback")
+		}
+	}
+
+	override fun onDetach() {
+		super.onDetach()
+		callback = null
 	}
 }

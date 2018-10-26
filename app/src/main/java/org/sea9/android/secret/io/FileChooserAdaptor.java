@@ -53,6 +53,16 @@ public class FileChooserAdaptor extends RecyclerView.Adapter<FileChooserAdaptor.
 
 		String state = Environment.getExternalStorageState();
 		ready = (Environment.MEDIA_MOUNTED.equals(state) || Environment.MEDIA_MOUNTED_READ_ONLY.equals(state));
+
+		if (ready) {
+			Context context = caller.getContext();
+			if (context != null) {
+				File root = context.getExternalFilesDir(null);
+				if (root != null) {
+					currentPath = root.getPath();
+				}
+			}
+		}
 	}
 
 	/*=====================================================
@@ -137,12 +147,13 @@ public class FileChooserAdaptor extends RecyclerView.Adapter<FileChooserAdaptor.
 	 */
 	final void select(String current) {
 		if (ready) {
-			File curr = new File(current);
+			File curr = new File((current == null) ? currentPath : current);
+			if (current == null) caller.directorySelected(curr);
 			if (curr.exists()) {
 				if (curr.isDirectory()) {
 					File[] list = curr.listFiles(this);
 					if (list != null) {
-						currentPath = current;
+						if (current != null) currentPath = current;
 						cache = new ArrayList<>(list.length + 1);
 
 						if (hasPermission)

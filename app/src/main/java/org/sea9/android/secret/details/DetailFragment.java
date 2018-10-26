@@ -6,7 +6,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -38,7 +37,6 @@ public class DetailFragment extends DialogFragment {
 	public static final String MOD = "secret.modified";
 	private static final String EMPTY = "";
 
-	private ContextFragment ctxFrag;
 	private RecyclerView tagList;
 	private EditText editKey;
 	private EditText editCtn;
@@ -99,7 +97,7 @@ public class DetailFragment extends DialogFragment {
 			@Override
 			public void onTextChanged(CharSequence s, int start, int before, int count) {
 				if ((before != 0) || (count != 0)) {
-					if (ctxFrag != null) ctxFrag.dataUpdated();
+					callback.dataUpdated();
 				}
 			}
 
@@ -116,7 +114,7 @@ public class DetailFragment extends DialogFragment {
 
 			@Override
 			public void afterTextChanged(Editable s) {
-				if (ctxFrag != null) ctxFrag.dataUpdated();
+				callback.dataUpdated();
 			}
 		});
 
@@ -131,7 +129,7 @@ public class DetailFragment extends DialogFragment {
 		});
 
 		bttnSav.setOnClickListener(v -> {
-			if ((ctxFrag != null) && ctxFrag.isUpdated() && (tagList.getAdapter() != null)) {
+			if (callback.isUpdated() && (tagList.getAdapter() != null)) {
 				String k = (editKey.getText() != null) ? editKey.getText().toString() : EMPTY;
 				String c = (editCtn.getText() != null) ? editCtn.getText().toString() : EMPTY;
 				callback.onSave(isNew, k, c, ((TagsAdaptor) tagList.getAdapter()).getSelectedTags());
@@ -164,26 +162,19 @@ public class DetailFragment extends DialogFragment {
 			editKey.setFilters(new InputFilter[] {(src, start, end, dst, dstart, dend) -> dst.subSequence(dstart, dend)});
 		}
 
-		FragmentManager manager = getFragmentManager();
-		if (manager != null) {
-			ctxFrag = (ContextFragment) manager.findFragmentByTag(ContextFragment.TAG);
-			if (ctxFrag != null) {
-				tagList.setAdapter(ctxFrag.getTagsAdaptor());
-
-				if (ctxFrag.isFiltered()) {
-					editTag.setEnabled(false);
-					bttnAdd.setEnabled(false);
-					bttnSav.setEnabled(false);
-					editCtn.setFilters(new InputFilter[]{(src, start, end, dst, dstart, dend) -> dst.subSequence(dstart, dend)});
-				} else {
-					editCtn.setFilters(new InputFilter[]{});
-				}
-			}
+		tagList.setAdapter(callback.getTagsAdaptor());
+		if (callback.isFiltered()) {
+			editTag.setEnabled(false);
+			bttnAdd.setEnabled(false);
+			bttnSav.setEnabled(false);
+			editCtn.setFilters(new InputFilter[]{(src, start, end, dst, dstart, dend) -> dst.subSequence(dstart, dend)});
+		} else {
+			editCtn.setFilters(new InputFilter[]{});
 		}
 	}
 
 	private void close() {
-		if ((ctxFrag != null) && !ctxFrag.isFiltered() && ctxFrag.isUpdated()) {
+		if (!callback.isFiltered() && callback.isUpdated()) {
 			FragmentActivity activity = getActivity();
 			if (activity != null) {
 				AlertDialog.Builder builder = new AlertDialog.Builder(activity);
@@ -201,6 +192,10 @@ public class DetailFragment extends DialogFragment {
 	 * Callback interface to the MainActivity
 	 */
 	public interface Callback {
+		boolean isFiltered();
+		boolean isUpdated();
+		void dataUpdated();
+		TagsAdaptor getTagsAdaptor();
 		void onAdd(String t);
 		void onSave(boolean isNew, String k, String c, List<Long> t);
 	}

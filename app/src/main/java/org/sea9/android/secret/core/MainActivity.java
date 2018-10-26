@@ -32,7 +32,9 @@ import org.sea9.android.secret.compat.CompatLogonDialog;
 import org.sea9.android.secret.data.NoteRecord;
 import org.sea9.android.secret.details.DetailFragment;
 import org.sea9.android.secret.R;
+import org.sea9.android.secret.details.TagsAdaptor;
 import org.sea9.android.secret.io.FileChooser;
+import org.sea9.android.secret.io.FileChooserAdaptor;
 
 import java.io.File;
 import java.util.List;
@@ -42,8 +44,9 @@ public class MainActivity extends AppCompatActivity implements
 		ContextFragment.Callback,
 		LogonDialog.Callback,
 		LogonDialog2.Callback,
-		PasswdDialog.Callback,
 		CompatLogonDialog.Callback,
+		PasswdDialog.Callback,
+		FileChooser.Callback,
 		DetailFragment.Callback {
 	public static final String TAG = "secret.main";
 	private static final int READ_EXTERNAL_STORAGE_REQUEST = 17523;
@@ -427,9 +430,38 @@ public class MainActivity extends AppCompatActivity implements
 	}
 	//==============================================================
 
+	/*======================================================
+	 * @sea org.sea9.android.secret.io.FileChooser.Callback
+	 */
+	@Override @NonNull
+	public FileChooserAdaptor getFileAdaptor() {
+		return ctxFrag.getFileAdaptor();
+	}
+	//======================================================
+
 	/*==============================================================
 	 * @see org.sea9.android.secret.details.DetailFragment.Callback
 	 */
+	@Override
+	public boolean isFiltered() {
+		return ctxFrag.isFiltered();
+	}
+
+	@Override
+	public boolean isUpdated() {
+		return ctxFrag.isUpdated();
+	}
+
+	@Override
+	public void dataUpdated() {
+		ctxFrag.dataUpdated();
+	}
+
+	@Override @NonNull
+	public TagsAdaptor getTagsAdaptor() {
+		return ctxFrag.getTagsAdaptor();
+	}
+
 	@Override
 	public void onAdd(String t) {
 		int position = ctxFrag.getTagsAdaptor().insert(t);
