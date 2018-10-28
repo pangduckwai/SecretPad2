@@ -109,12 +109,14 @@ public class DetailFragment extends DialogFragment {
 			public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
 
 			@Override
-			public void onTextChanged(CharSequence s, int start, int before, int count) { }
+			public void onTextChanged(CharSequence s, int start, int before, int count) {
+				if (((before != 0) || (count != 0)) && !((start == 0) && (before == count))) {
+					callback.dataUpdated();
+				}
+			}
 
 			@Override
-			public void afterTextChanged(Editable s) {
-				callback.dataUpdated();
-			}
+			public void afterTextChanged(Editable s) { }
 		});
 
 		bttnAdd.setOnClickListener(v -> {

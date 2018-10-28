@@ -3,7 +3,6 @@
 	xmlns:app="http://schemas.android.com/apk/res-auto"
 	android:layout_width="match_parent"
 	android:layout_height="wrap_content"
-	android:minHeight="450dp"
 	android:focusable="true"
 	android:focusableInTouchMode="true">
 
@@ -20,7 +19,8 @@
 		android:background="@color/colorTitleBar"
 		android:text="@string/value_details"
 		app:layout_constraintStart_toStartOf="parent"
-		app:layout_constraintTop_toTopOf="parent" />
+		app:layout_constraintTop_toTopOf="parent"
+		app:layout_constraintBottom_toTopOf="@+id/divider_v" />
 
 	<EditText
 		android:id="@+id/edit_key"
@@ -84,21 +84,22 @@
 		android:id="@+id/tag_add"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-		android:layout_marginBottom="@dimen/fab_margin"
+		android:layout_marginTop="@dimen/fab_margin"
 		android:layout_marginEnd="@dimen/margin_tiny"
 		android:contentDescription="@string/ctn_add"
 		android:minWidth="0dp"
 		android:minHeight="0dp"
 		android:padding="0dp"
 		android:background="?android:attr/selectableItemBackground"
-		app:layout_constraintBottom_toTopOf="@+id/edit_tags"
 		app:layout_constraintEnd_toEndOf="parent"
+		app:layout_constraintTop_toTopOf="parent"
 		app:srcCompat="@android:drawable/ic_input_add" />
 
 	<android.support.v7.widget.RecyclerView
 		android:id="@+id/edit_tags"
 		android:layout_width="100dp"
 		android:layout_height="0dp"
+		android:minHeight="200dp"
 		android:layout_marginTop="@dimen/margin_narrow"
 		android:layout_marginEnd="@dimen/margin_normal"
 		android:layout_marginBottom="@dimen/margin_narrow"
@@ -143,12 +144,12 @@
 	<View
 		android:id="@+id/divider_v"
 		android:layout_width="1dp"
-		android:layout_height="0dp"
+		android:layout_height="350dp"
 		android:background="@android:color/darker_gray"
+		android:layout_marginTop="@dimen/margin_narrow"
 		android:layout_marginBottom="@dimen/margin_narrow"
 		app:layout_constraintBottom_toBottomOf="parent"
-		app:layout_constraintStart_toEndOf="@+id/edit_content"
-		app:layout_constraintTop_toTopOf="@+id/edit_key"/>
+		app:layout_constraintStart_toEndOf="@+id/edit_content"/>
 
 	<View
 		android:id="@+id/divider_h"
