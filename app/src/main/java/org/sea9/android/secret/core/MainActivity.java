@@ -66,6 +66,8 @@ public class MainActivity extends AppCompatActivity implements
 	private TextView content;
 	private SearchView searchView;
 
+	private int lastPos;
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -120,10 +122,23 @@ public class MainActivity extends AppCompatActivity implements
 		recycler.setHasFixedSize(true); // improve performance since content changes do not affect layout size of the RecyclerView
 		recycler.setLayoutManager(new LinearLayoutManager(this)); // use a linear layout manager
 
+		lastPos = -1; //Put it here instead of the ContextFragment deliberately so last selected position will reset after rotate
 		content.setOnClickListener(view -> {
 			int position = ctxFrag.getAdaptor().getSelectedPosition();
 			if (position >= 0) {
 				recycler.smoothScrollToPosition(position); // Scroll list to the selected row
+				if (position == lastPos) {
+					ctxFrag.getAdaptor().clearSelection();
+					ctxFrag.getAdaptor().notifyDataSetChanged();
+				} else {
+					lastPos = position;
+				}
+			} else {
+				if (lastPos >= 0) {
+					ctxFrag.getAdaptor().selectRow(lastPos);
+					ctxFrag.getAdaptor().notifyDataSetChanged();
+					lastPos = -1;
+				}
 			}
 		});
 

@@ -35,7 +35,7 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 		caller.updateContent(null);
 	}
 
-	private void selectRow(int position) {
+	void selectRow(int position) {
 		selectedPos = position;
 		selectDetails(position);
 	}
