@@ -89,7 +89,7 @@ public class ContextFragment extends Fragment implements
 		fileAdaptor = new FileChooserAdaptor(this);
 
 		updated = false;
-		filtered = false;
+		filterQuery = null;
 	}
 
 	@Override
@@ -173,7 +173,7 @@ public class ContextFragment extends Fragment implements
 	public void onLogon(char[] value, boolean isNew) {
 		password = value;
 		if (!isNew)
-			new AppInitTask(this).execute();
+			new DbReadTask(this).execute(-1);
 		else
 			callback.setBusyState(false);
 	}
@@ -197,7 +197,7 @@ public class ContextFragment extends Fragment implements
 			Activity activity = getActivity();
 			if (activity != null) activity.runOnUiThread(() -> callback.doLogon());
 		} else {
-			new AppInitTask(this).execute(); // Keep it here just in case DB somehow closed, normally won't reach here
+			new DbReadTask(this).execute(-1); // Keep it here just in case DB somehow closed, normally won't reach here
 		}
 	}
 
@@ -237,10 +237,12 @@ public class ContextFragment extends Fragment implements
 	/*================================
 	 * @see android.widget.Filterable
 	 */
-	private boolean filtered;
+	private String filterQuery;
+	public final String getFilterQuery() { return filterQuery; }
 
-	@Override public boolean isFiltered() {
-		return filtered;
+	@Override
+	public boolean isFiltered() {
+		return (filterQuery != null);
 	}
 
 	@Override
@@ -258,12 +260,10 @@ public class ContextFragment extends Fragment implements
 			int pos = adaptor.getSelectedPosition();
 			if (pos >= 0) r = adaptor.getRecord(pos);
 
-			filtered = false;
-			adaptor.select();
-			adaptor.notifyDataSetChanged();
-			if (r != null) {
-				callback.onFilterCleared(adaptor.selectRow(r.getKey()));
-			}
+			filterQuery = null;
+			int position = -1;
+			if (r != null) position = adaptor.selectRow(r.getKey());
+			new DbReadTask(this).execute(position);
 		}
 	}
 
@@ -284,8 +284,8 @@ public class ContextFragment extends Fragment implements
 
 			@Override
 			protected void publishResults(CharSequence constraint, FilterResults results) {
-				adaptor.filterRecords((String) results.values);
-				filtered = true;
+				filterQuery = (String) results.values;
+				adaptor.filterRecords(filterQuery);
 			}
 		};
 	}
@@ -412,9 +412,9 @@ public class ContextFragment extends Fragment implements
 	 * Invoke a separate thread to read the database after DB init to avoid an IllegalStateException
 	 * which complained 'getDatabase' is called recursively.
 	 */
-	static class AppInitTask extends AsyncTask<Void, Void, Void> {
+	static class DbReadTask extends AsyncTask<Integer, Void, Integer> {
 		private ContextFragment caller;
-		AppInitTask(ContextFragment ctx) {
+		DbReadTask(ContextFragment ctx) {
 			caller = ctx;
 		}
 
@@ -424,14 +424,19 @@ public class ContextFragment extends Fragment implements
 		}
 
 		@Override
-		protected Void doInBackground(Void... voids) {
+		protected Integer doInBackground(Integer... positions) {
 			caller.getAdaptor().select();
-			return null;
+			if ((positions != null) && (positions.length > 0)) {
+				return positions[0];
+			} else {
+				return -1;
+			}
 		}
 
 		@Override
-		protected void onPostExecute(Void nothing) {
+		protected void onPostExecute(Integer position) {
 			caller.getAdaptor().notifyDataSetChanged();
+			if (position >= 0) caller.callback.onFilterCleared(position);
 			caller.callback.setBusyState(false);
 		}
 	}

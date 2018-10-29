@@ -225,7 +225,8 @@ public class MainActivity extends AppCompatActivity implements
 
 		SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
 		if (searchManager != null) {
-			searchView = (SearchView) menu.findItem(R.id.menu_search).getActionView();
+			MenuItem menuItem = menu.findItem(R.id.menu_search);
+			searchView = (SearchView) menuItem.getActionView();
 			searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
 
 			LayoutTransition transit = new LayoutTransition();
@@ -233,6 +234,13 @@ public class MainActivity extends AppCompatActivity implements
 			((ViewGroup) searchView.findViewById(searchView.getContext().getResources()
 					.getIdentifier("android:id/search_bar", null, null)))
 					.setLayoutTransition(transit);
+
+			if (ctxFrag.isFiltered()) {
+				menuItem.expandActionView();
+				searchView.setQuery(ctxFrag.getFilterQuery(), true);
+				searchView.setIconified(false);
+				searchView.clearFocus();
+			}
 
 			searchView.findViewById(searchView.getContext().getResources()
 					.getIdentifier("android:id/search_close_btn", null, null))
