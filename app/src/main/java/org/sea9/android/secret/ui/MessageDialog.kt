@@ -23,7 +23,7 @@ class MessageDialog : DialogFragment() {
 			val instance = MessageDialog()
 			instance.isCancelable = false
 
-			val args = if (bundle == null) Bundle() else bundle
+			val args = bundle ?: Bundle()
 			var flag = 0
 			args.putInt(REF, reference)
 			args.putString(MSG, message)

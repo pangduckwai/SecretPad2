@@ -58,9 +58,7 @@ class FileChooser : DialogFragment() {
 		val adaptor = callback?.getFileAdaptor()
 		fileList.adapter = adaptor
 
-//		val root = context?.getExternalFilesDir(null)?.path
 		adaptor?.select(null)
-//		setCurrentPath(root)
 	}
 
 	/*========================================

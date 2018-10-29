@@ -184,7 +184,7 @@ public class ContextFragment extends Fragment implements
 	/**
 	 * Called by the logoff async task after logged off.
 	 */
-	public void onLogoff() {
+	private void onLogoff() {
 		Log.d(TAG, "onLogoff");
 		callback.onLogoff();
 	}
