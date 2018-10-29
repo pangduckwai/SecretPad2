@@ -91,7 +91,6 @@ public class FileChooserAdaptor extends RecyclerView.Adapter<FileChooserAdaptor.
 				FileRecord selected = cache.get(position);
 				recyclerView.postDelayed(() -> {
 					if (selected.isDirectory()) {
-						selectedPos = -1;
 						if (selected.getPath().equals(FILE_PARENT)) {
 							Log.d(TAG, currentPath);
 							select((new File(currentPath)).getParent());
@@ -103,6 +102,7 @@ public class FileChooserAdaptor extends RecyclerView.Adapter<FileChooserAdaptor.
 					} else {
 						caller.fileSelected(new File(selected.getPath()));
 					}
+					selectedPos = -1;
 					caller.setBusy(false);
 					notifyDataSetChanged();
 				}, 200);

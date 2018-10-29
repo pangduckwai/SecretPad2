@@ -53,8 +53,8 @@ public class LogonDialog2 extends DialogFragment {
 		btnLogon.setOnClickListener(v -> logon());
 
 		getDialog().setOnKeyListener((dialog, keyCode, event) -> {
-			if (keyCode == KeyEvent.KEYCODE_BACK) {
-				if (event.getAction() == KeyEvent.ACTION_UP) cancel();
+			if ((keyCode == KeyEvent.KEYCODE_BACK) && (event.getAction() == KeyEvent.ACTION_UP)) {
+				cancel();
 				return true;
 			} else {
 				return false;

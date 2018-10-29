@@ -29,7 +29,6 @@ import android.widget.ProgressBar;
 import android.widget.SearchView;
 import android.widget.TextView;
 
-import org.jetbrains.annotations.NotNull;
 import org.sea9.android.secret.compat.CompatLogonDialog;
 import org.sea9.android.secret.data.NoteRecord;
 import org.sea9.android.secret.details.DetailFragment;
@@ -140,24 +139,12 @@ public class MainActivity extends AppCompatActivity implements
 
 				final int position = viewHolder.getAdapterPosition();
 
-				AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-				builder.setMessage(
-						String.format(Locale.getDefault(), getString(R.string.msg_confirm_delete), Integer.toString(position+1)));
-				builder.setPositiveButton(R.string.btn_okay, (dialog, which) -> {
-					int del = ctxFrag.getAdaptor().delete(position);
-					String msg = (del >= 0) ?
-							getString(R.string.msg_delete_okay) :
-							getString(R.string.msg_delete_fail);
-					Snackbar.make(recycler,
-							String.format(Locale.getDefault(), msg, Integer.toString(position+1)),
-							Snackbar.LENGTH_LONG).show();
-				});
-				builder.setNegativeButton(R.string.btn_cancel, (dialog, which) -> {
-					if (recycler.getAdapter() != null)
-						recycler.getAdapter().notifyDataSetChanged();
-				});
-				(builder.create()).show();
-
+				Bundle bundle = new Bundle();
+				bundle.putInt(TAG, position);
+				MessageDialog.Companion.getOkayCancelDialog(MSG_DIALOG_DELETE
+						, String.format(Locale.getDefault(), getString(R.string.msg_confirm_delete), Integer.toString(position+1))
+						, bundle)
+					.show(getSupportFragmentManager(), MessageDialog.TAG);
 			}
 		});
 		itemTouchHelper.attachToRecyclerView(recycler);
@@ -270,17 +257,8 @@ public class MainActivity extends AppCompatActivity implements
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case R.id.action_cleanup:
-			AlertDialog.Builder cleanup = new AlertDialog.Builder(this);
-			cleanup.setMessage(getString(R.string.msg_confirm_delete_tags));
-			cleanup.setPositiveButton(R.string.btn_okay, (dialog, which) -> {
-				int del = ctxFrag.getTagsAdaptor().delete();
-				String msg = (del < 0) ?
-						getString(R.string.msg_delete_tags_fail) :
-						String.format(Locale.getDefault(), getString(R.string.msg_delete_tags_okay), Integer.toString(del));
-				doNotify(msg, false);
-			});
-			cleanup.setNegativeButton(R.string.btn_cancel, (dialog, which) -> doNotify(getString(R.string.msg_delete_tags_cancel), false));
-			cleanup.create().show();
+			MessageDialog.Companion.getOkayCancelDialog(MSG_DIALOG_CLEANUP, getString(R.string.msg_confirm_delete_tags), null)
+					.show(getSupportFragmentManager(), MessageDialog.TAG);
 			break;
 
 		case R.id.action_import:
@@ -295,12 +273,7 @@ public class MainActivity extends AppCompatActivity implements
 			break;
 
 		case R.id.action_export:
-//			AlertDialog.Builder export = new AlertDialog.Builder(this);
-//			export.setMessage(getString(R.string.msg_confirm_export));
-//			export.setPositiveButton(R.string.btn_okay, (dialog, which) -> ctxFrag.onExport(getExternalFilesDir(null)));
-//			export.setNegativeButton(R.string.btn_cancel, null);
-//			export.create().show();
-			MessageDialog.Companion.getOkayCancelDialog(902, getString(R.string.msg_confirm_export))
+			MessageDialog.Companion.getOkayCancelDialog(MSG_DIALOG_EXPORT, getString(R.string.msg_confirm_export), null)
 					.show(getSupportFragmentManager(), MessageDialog.TAG);
 			break;
 		case R.id.action_passwd:
@@ -331,7 +304,7 @@ public class MainActivity extends AppCompatActivity implements
 	 */
 	public void doNotify(String message, boolean stay) {
 		if (stay || (message.length() >= 70)) {
-			MessageDialog.Companion.getInstance(901, message).show(getSupportFragmentManager(), MessageDialog.TAG);
+			MessageDialog.Companion.getInstance(MSG_DIALOG_NOTIFY, message, null).show(getSupportFragmentManager(), MessageDialog.TAG);
 		} else {
 			Snackbar.make(fab, message, Snackbar.LENGTH_LONG).show();
 		}
@@ -531,38 +504,60 @@ public class MainActivity extends AppCompatActivity implements
 	/*========================================================
 	 * @see org.sea9.android.secret.ui.MessageDialog.Callback
 	 */
+	private static final int MSG_DIALOG_NOTIFY  = 90001;
+	private static final int MSG_DIALOG_EXPORT  = 90002;
+	private static final int MSG_DIALOG_DELETE  = 90003;
+	private static final int MSG_DIALOG_CLEANUP = 90004;
+	public static final int MSG_DIALOG_DISCARD  = 80005;
+
 	@Override
-	public void neutral(int reference, @NotNull DialogInterface dialog, int id) {
-		Log.w(TAG, "!!!!!!!!!!!!!! NEU " + reference); //TODO TEMP
+	public void neutral(DialogInterface dialog, int which, int reference, Bundle args) {
 		switch (reference) {
-			case 901:
+			case MSG_DIALOG_NOTIFY:
 				dialog.dismiss();
-				break;
-			case 902:
 				break;
 		}
 	}
 
 	@Override
-	public void positive(int reference, @NotNull DialogInterface dialog, int id) {
-		Log.w(TAG, "!!!!!!!!!!!!!! POS " + reference); //TODO TEMP
+	public void positive(DialogInterface dialog, int which, int reference, Bundle args) {
+		int del;
+		String msg;
 		switch (reference) {
-			case 901:
-				break;
-			case 902:
+			case MSG_DIALOG_EXPORT:
 				ctxFrag.onExport(getExternalFilesDir(null));
 				break;
+			case MSG_DIALOG_DELETE:
+				int position = args.getInt(TAG);
+				del = ctxFrag.getAdaptor().delete(position);
+				msg = (del >= 0) ? getString(R.string.msg_delete_okay) : getString(R.string.msg_delete_fail);
+				doNotify(String.format(Locale.getDefault(), msg, Integer.toString(position+1)), false);
+				break;
+			case MSG_DIALOG_CLEANUP:
+				del = ctxFrag.getTagsAdaptor().delete();
+				msg = (del < 0) ?
+						getString(R.string.msg_delete_tags_fail) :
+						String.format(Locale.getDefault(), getString(R.string.msg_delete_tags_okay), Integer.toString(del));
+				doNotify(msg, false);
+				break;
+			case MSG_DIALOG_DISCARD:
+				DetailFragment frag = (DetailFragment) getSupportFragmentManager().findFragmentByTag(DetailFragment.TAG);
+				if (frag != null) {
+					frag.dismiss();
+				}
+				break;
 		}
 	}
 
 	@Override
-	public void negative(int reference, @NotNull DialogInterface dialog, int id) {
-		Log.w(TAG, "!!!!!!!!!!!!!! NEG " + reference); //TODO TEMP
+	public void negative(DialogInterface dialog, int which, int reference, Bundle args) {
 		switch (reference) {
-			case 901:
+			case MSG_DIALOG_DELETE:
+				if (recycler.getAdapter() != null)
+					recycler.getAdapter().notifyDataSetChanged();
 				break;
-			case 902:
-				dialog.dismiss();
+			case MSG_DIALOG_CLEANUP:
+				doNotify(getString(R.string.msg_delete_tags_cancel), false);
 				break;
 		}
 	}

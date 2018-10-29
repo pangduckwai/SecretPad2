@@ -1,12 +1,12 @@
 package org.sea9.android.secret.ui
 
-import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.app.Dialog
 import android.content.Context
 import android.content.DialogInterface
 import android.os.Bundle
 import android.support.v4.app.DialogFragment
+import android.view.KeyEvent
 import org.sea9.android.secret.R
 
 class MessageDialog : DialogFragment() {
@@ -19,11 +19,11 @@ class MessageDialog : DialogFragment() {
 		const val POS = "secret.positive"
 		const val NEG = "secret.negative"
 
-		fun getInstance(reference: Int, buttons: Int, title: String?, message: String, neutral: String?, positive: String?, negative: String?) : MessageDialog {
+		fun getInstance(reference: Int, bundle: Bundle?, buttons: Int, title: String?, message: String, neutral: String?, positive: String?, negative: String?) : MessageDialog {
 			val instance = MessageDialog()
 			instance.isCancelable = false
 
-			val args = Bundle()
+			val args = if (bundle == null) Bundle() else bundle
 			var flag = 0
 			args.putInt(REF, reference)
 			args.putString(MSG, message)
@@ -47,15 +47,14 @@ class MessageDialog : DialogFragment() {
 			instance.arguments = args
 			return instance
 		}
-		fun getInstance(reference: Int, message: String) : MessageDialog {
-			return getInstance(reference, 1, null, message, null, null, null)
+		fun getInstance(reference: Int, message: String, bundle: Bundle?) : MessageDialog {
+			return getInstance(reference, bundle, 1, null, message, null, null, null)
 		}
-		fun getOkayCancelDialog(reference: Int, message: String) : MessageDialog {
-			return getInstance(reference, 6, null, message, null, null, null)
+		fun getOkayCancelDialog(reference: Int, message: String, bundle: Bundle?) : MessageDialog {
+			return getInstance(reference, bundle, 6, null, message, null, null, null)
 		}
 	}
 
-	@SuppressLint("InflateParams")
 	override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
 		val builder = AlertDialog.Builder(activity)
 
@@ -75,29 +74,48 @@ class MessageDialog : DialogFragment() {
 			it
 		} ?: context?.getString(R.string.btn_cancel)
 
+		var hasNeutral = false
+		var hasNegative = false
 		val flag = args?.getInt(FLG)
 		flag?.let {
 			if ((it and 1) > 0) {
-				builder.setNeutralButton(neutral) { dialog, id -> callback?.neutral(reference!!, dialog, id) }
+				hasNeutral = true
+				builder.setNeutralButton(neutral) { dialog, id -> callback?.neutral(dialog, id, reference!!, args) }
 			}
 			if ((it and 2) > 0) {
-				builder.setPositiveButton(positive) { dialog, id -> callback?.positive(reference!!, dialog, id) }
+				builder.setPositiveButton(positive) { dialog, id -> callback?.positive(dialog, id, reference!!, args) }
 			}
 			if ((it and 4) > 0) {
-				builder.setNegativeButton(negative) { dialog, id -> callback?.negative(reference!!, dialog, id) }
+				hasNegative = true
+				builder.setNegativeButton(negative) { dialog, id -> callback?.negative(dialog, id, reference!!, args) }
 			}
 		}
 
-		return builder.create()
+		val ret = builder.create()
+		ret.setOnKeyListener { _, keyCode, event ->
+			if ((keyCode == KeyEvent.KEYCODE_BACK) && (event.action == KeyEvent.ACTION_UP)) {
+				callback?.let {
+					if (hasNegative)
+						it.negative(null, -1, reference!!, args)
+					else if (hasNeutral)
+						it.neutral(null, -1, reference!!, args)
+				}
+				dismiss()
+				true
+			} else {
+				false
+			}
+		}
+		return ret
 	}
 
 	/*========================================
 	 * Callback interface to the MainActivity
 	 */
 	interface Callback {
-		fun neutral(reference: Int, dialog: DialogInterface, id: Int)
-		fun positive(reference: Int, dialog: DialogInterface, id: Int)
-		fun negative(reference: Int, dialog: DialogInterface, id: Int)
+		fun neutral(dialog: DialogInterface?, which: Int, reference: Int, bundle: Bundle?)
+		fun positive(dialog: DialogInterface?, which: Int, reference: Int, bundle: Bundle?)
+		fun negative(dialog: DialogInterface?, which: Int, reference: Int, bundle: Bundle?)
 	}
 	private var callback: Callback? = null
 

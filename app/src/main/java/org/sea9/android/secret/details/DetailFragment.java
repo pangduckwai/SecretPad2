@@ -5,8 +5,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
-import android.support.v4.app.FragmentActivity;
-import android.support.v7.app.AlertDialog;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
@@ -23,7 +22,9 @@ import android.widget.TextView;
 
 import org.sea9.android.secret.core.ContextFragment;
 import org.sea9.android.secret.R;
+import org.sea9.android.secret.core.MainActivity;
 import org.sea9.android.secret.data.NoteRecord;
+import org.sea9.android.secret.ui.MessageDialog;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -141,8 +142,8 @@ public class DetailFragment extends DialogFragment {
 		view.findViewById(R.id.dtl_cancel).setOnClickListener(v -> close());
 
 		getDialog().setOnKeyListener((dialog, keyCode, event) -> {
-			if (keyCode == KeyEvent.KEYCODE_BACK) {
-				if (event.getAction() == KeyEvent.ACTION_UP) close();
+			if ((keyCode == KeyEvent.KEYCODE_BACK) && (event.getAction() == KeyEvent.ACTION_UP)) {
+				close();
 				return true;
 			} else {
 				return false;
@@ -174,14 +175,12 @@ public class DetailFragment extends DialogFragment {
 
 	private void close() {
 		if (!callback.isFiltered() && callback.isUpdated()) {
-			FragmentActivity activity = getActivity();
-			if (activity != null) {
-				AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-				builder.setMessage(R.string.msg_discard_changes);
-				builder.setPositiveButton(R.string.btn_okay, (dialog, which) -> dismiss());
-				builder.setNegativeButton(R.string.btn_cancel, (dialog, which) -> { });
-				(builder.create()).show();
-			}
+			DialogFragment d = MessageDialog.Companion.getOkayCancelDialog(MainActivity.MSG_DIALOG_DISCARD, getString(R.string.msg_discard_changes), null);
+			FragmentManager m = getFragmentManager();
+			if (m != null)
+				d.show(m, MessageDialog.TAG);
+			else
+				d.getDialog().show();
 		} else {
 			dismiss();
 		}

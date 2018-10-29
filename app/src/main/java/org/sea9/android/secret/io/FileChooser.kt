@@ -40,8 +40,8 @@ class FileChooser : DialogFragment() {
 		fileList.layoutManager = LinearLayoutManager(context)
 
 		dialog.setOnKeyListener { _, keyCode, event ->
-			if (keyCode == KeyEvent.KEYCODE_BACK) {
-				if (event.action == KeyEvent.ACTION_UP) dismiss()
+			if ((keyCode == KeyEvent.KEYCODE_BACK) && (event.action == KeyEvent.ACTION_UP)) {
+				dismiss()
 				true
 			} else {
 				false
