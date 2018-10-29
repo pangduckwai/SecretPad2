@@ -7,8 +7,10 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
 import android.util.Log;
 import android.widget.Filter;
 import android.widget.Filterable;
@@ -22,6 +24,7 @@ import org.sea9.android.secret.data.DbHelper;
 import org.sea9.android.secret.data.NoteRecord;
 import org.sea9.android.secret.details.TagsAdaptor;
 import org.sea9.android.secret.io.FileChooserAdaptor;
+import org.sea9.android.secret.ui.MessageDialog;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -146,6 +149,10 @@ public class ContextFragment extends Fragment implements
 		logoffTask.execute();
 	}
 
+	private void cancelLogoff() {
+		if (logoffTask != null) logoffTask.cancel(true);
+	}
+
 	/*
 	 * Called by the logoff async task to do the actual logoff steps.
 	 */
@@ -160,10 +167,6 @@ public class ContextFragment extends Fragment implements
 		if (activity != null) {
 			activity.runOnUiThread(() -> adaptor.clearSelection());
 		}
-	}
-
-	private void cancelLogoff() {
-		if (logoffTask != null) logoffTask.cancel(true);
 	}
 
 	/**
@@ -228,7 +231,13 @@ public class ContextFragment extends Fragment implements
 			return CryptoUtils.decrypt(input, password, salt);
 		} catch (BadPaddingException e) {
 			Log.i(TAG, e.getMessage(), e);
-			callback.doNotify(e.getMessage(), false);
+			String msg = String.format(getString(R.string.msg_logon_fail), e.getMessage());
+			DialogFragment d = MessageDialog.Companion.getInstance(MainActivity.MSG_DIALOG_LOG_FAIL, msg, null);
+			FragmentManager m = getFragmentManager();
+			if (m != null)
+				d.show(m, MessageDialog.TAG);
+			else
+				callback.doNotify(msg, true);
 			return null;
 		}
 	}
@@ -423,6 +432,12 @@ public class ContextFragment extends Fragment implements
 			caller.callback.setBusyState(true);
 		}
 
+		/**
+		 * Note: the integer passing in, and then passing to post-execute, is the adaptor position (row number)
+		 * of the recyclerView to be selected automatically after DB read. Give -1 to skip the auto select.
+		 * @param positions input parameter pass in via AsyncTask.execute(...).
+		 * @return the first element of the input parameter.
+		 */
 		@Override
 		protected Integer doInBackground(Integer... positions) {
 			caller.getAdaptor().select();
@@ -524,8 +539,32 @@ public class ContextFragment extends Fragment implements
 								continue;
 							}
 						} else if (row.length >= DbContract.Notes.EXPORT_FORMAT_MIN_COLUMN) {
-							if (DbContract.Notes.Companion.doImport(caller.getDbHelper(), caller, row) >= 0)
+							long ret = DbContract.Notes.Companion.doImport(caller.getDbHelper(), new DbHelper.Crypto() {
+								@Override
+								public char[] decrypt(@NotNull char[] input, @NotNull byte[] salt) {
+									try {
+										return CryptoUtils.decrypt(input, caller.password, salt);
+									} catch (BadPaddingException e) {
+										Log.i(TAG, e.getMessage(), e);
+										caller.callback.doNotify(String.format(caller.getString(R.string.msg_logon_fail), e.getMessage()), true);
+										return null;
+									}
+								}
+
+								@Override @NotNull
+								public char[] encrypt(@NotNull char[] input, @NotNull byte[] salt) {
+									try {
+										return CryptoUtils.encrypt(input, caller.password, salt);
+									} catch (BadPaddingException e) {
+										throw new RuntimeException(e);
+									}
+								}
+							}, row);
+							if (ret >= 0)
 								succd ++;
+							else if (ret < -1) {
+								return response.setStatus(-4);
+							}
 						} else {
 							response.setErrors("Invalid file format at row " + count);
 						}
@@ -566,7 +605,7 @@ public class ContextFragment extends Fragment implements
 				}
 				caller.getAdaptor().select();
 				caller.getAdaptor().notifyDataSetChanged();
-			} else {
+			} else if (response.getStatus() != -4) { // -4 already handled
 				caller.callback.doNotify(
 						String.format(caller.getString(R.string.msg_import_fail), response.getMessage(), response.getStatus()),
 						true
@@ -618,14 +657,14 @@ public class ContextFragment extends Fragment implements
 						String row[] = new String[] {
 								old[1], old[3], old[1], old[4], old[5], old[2]
 						};
-						if (DbContract.Notes.Companion.doImport(caller.getDbHelper(), new DbHelper.Crypto() {
+						long ret = DbContract.Notes.Companion.doImport(caller.getDbHelper(), new DbHelper.Crypto() {
 							@Override
 							public char[] decrypt(@NotNull char[] input, @NotNull byte[] salt) {
 								try {
 									return CompatCryptoUtils.decrypt(input, caller.tempPassword, salt);
 								} catch (RuntimeException e) {
 									Log.i(TAG, e.getMessage(), e);
-									caller.callback.doNotify(e.getMessage(), false);
+									caller.callback.doNotify(String.format(caller.getString(R.string.msg_logon_fail), e.getMessage()), true);
 									return null;
 								}
 							}
@@ -638,8 +677,12 @@ public class ContextFragment extends Fragment implements
 									throw new RuntimeException(e);
 								}
 							}
-						}, row) >= 0)
+						}, row);
+						if (ret >= 0)
 							succd ++;
+						else if (ret < -1) {
+							return response.setStatus(-4);
+						}
 					} else {
 						response.setErrors("Invalid file format at row " + count);
 					}
@@ -681,7 +724,7 @@ public class ContextFragment extends Fragment implements
 				}
 				caller.getAdaptor().select();
 				caller.getAdaptor().notifyDataSetChanged();
-			} else {
+			} else if (response.getStatus() != -4) { //-4 already handled
 				caller.callback.doNotify(
 						String.format(caller.getString(R.string.msg_migrate_fail), caller.tempFile.getPath(), response.getStatus()),
 						true
@@ -788,7 +831,7 @@ public class ContextFragment extends Fragment implements
 							return CryptoUtils.decrypt(input, passwords[0], salt);
 						} catch (BadPaddingException e) {
 							Log.i(TAG, e.getMessage(), e);
-							caller.callback.doNotify(e.getMessage(), false);
+							caller.callback.doNotify(String.format(caller.getString(R.string.msg_logon_fail), e.getMessage()), true);
 							return null;
 						}
 					}

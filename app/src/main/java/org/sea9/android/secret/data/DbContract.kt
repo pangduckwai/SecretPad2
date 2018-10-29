@@ -388,16 +388,18 @@ object DbContract {
 
 					db.beginTransactionNonExclusive()
 					try {
-						// Decrypt using old password and old methods
+						// Decrypt using old password and old methods, return if decryption fail, possibly incorrect password
 						val dkey = crypto.decrypt(data[1].toCharArray(), CryptoUtils.decode(CryptoUtils.convert(data[0].toCharArray())))
+								?: return -3
 						val dctn = crypto.decrypt(data[3].toCharArray(), CryptoUtils.decode(CryptoUtils.convert(data[2].toCharArray())))
+								?: return -2
 
 						val kslt = CryptoUtils.generateSalt()
 						val cslt = CryptoUtils.generateSalt()
 
 						// Encrypt using new password
-						val kcph = crypto.encrypt(dkey!!, kslt)
-						val ccph = crypto.encrypt(dctn!!, cslt)
+						val kcph = crypto.encrypt(dkey, kslt)
+						val ccph = crypto.encrypt(dctn, cslt)
 
 						val newRow = ContentValues().apply {
 							put(COL_KEY_SALT, String(CryptoUtils.convert(CryptoUtils.encode(kslt))))
@@ -432,7 +434,7 @@ object DbContract {
 						db.endTransaction()
 					}
 				}
-				return -1 // Incoming data with invalid format
+				return -1 // Incoming data with invalid format, or decryption failed
 			}
 
 			/**
@@ -457,16 +459,18 @@ object DbContract {
 							val cslt = getString(getColumnIndexOrThrow(COL_CONTENT_SALT))
 							val ectn = getString(getColumnIndexOrThrow(COL_CONTENT))
 
-							// Decrypt using old password
+							// Decrypt using old password, break if decryption fail, possibly incorrect password
 							val ckey = crypto.decrypt(ekey.toCharArray(), CryptoUtils.decode(CryptoUtils.convert(kslt.toCharArray())))
+									?: break
 							val cctn = crypto.decrypt(ectn.toCharArray(), CryptoUtils.decode(CryptoUtils.convert(cslt.toCharArray())))
+									?: break
 
 							val nkst = CryptoUtils.generateSalt()
 							val ncst = CryptoUtils.generateSalt()
 
 							// Encrypt using new password
-							val nkey = crypto.encrypt(ckey!!, nkst)
-							val nctn = crypto.encrypt(cctn!!, ncst)
+							val nkey = crypto.encrypt(ckey, nkst)
+							val nctn = crypto.encrypt(cctn, ncst)
 
 							val args = arrayOf(pid.toString())
 							val newRow = ContentValues().apply {

@@ -531,13 +531,17 @@ public class MainActivity extends AppCompatActivity implements
 	private static final int MSG_DIALOG_EXPORT  = 90002;
 	private static final int MSG_DIALOG_DELETE  = 90003;
 	private static final int MSG_DIALOG_CLEANUP = 90004;
-	public static final int MSG_DIALOG_DISCARD  = 80005;
+	public static final int MSG_DIALOG_DISCARD  = 91005;
+	public static final int MSG_DIALOG_LOG_FAIL = 92006;
 
 	@Override
 	public void neutral(DialogInterface dialog, int which, int reference, Bundle args) {
 		switch (reference) {
 			case MSG_DIALOG_NOTIFY:
 				dialog.dismiss();
+				break;
+			case MSG_DIALOG_LOG_FAIL:
+				finish();
 				break;
 		}
 	}

@@ -54,6 +54,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
 	<string name="msg_delete_tags_cancel">Delete unused tags Cancelled</string>
 	<string name="msg_filter_active">Function disabled, filter is active</string>
 	<string name="msg_not_logon">Not yet logon</string>
+	<string name="msg_logon_fail">Logon failed: %s</string>
 	<string name="msg_system_busy">System busy, please wait…</string>
 	<string name="msg_migrate_logon">Please enter the password of the old version Secret Pad</string>
 	<string name="msg_migrate_okay">%1$d note%3$s migrated successfully from %2$s</string>
