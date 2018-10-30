@@ -1,27 +1,20 @@
 package org.sea9.android.secret.compat;
 
-import org.sea9.android.secret.data.DbContract;
-import org.sea9.android.secret.data.DbHelper;
-import org.sea9.android.secret.data.TagRecord;
-
 import java.util.ArrayList;
 import java.util.List;
 
 public class SmartConverter {
-	private static final String TAB = "\t";
+	private List<String> tags;
 
-	private List<TagRecord> tags;
-
-	private SmartConverter(List<TagRecord> records) {
+	private SmartConverter(List<String> records) {
 		tags = records;
 	}
 
-	public static SmartConverter getInstance(DbHelper helper) {
-		List<TagRecord> records = DbContract.Tags.Companion.select(helper);
-		if (records == null) records = new ArrayList<>();
-		return new SmartConverter(records);
+	public static SmartConverter getInstance(List<String> records) {
+		return new SmartConverter((records != null) ? records : new ArrayList<>());
 	}
 
+	private static final String NEWLINE = "\n\n";
 	/**
 	 * <code>
 	 * Index:      0       1       2         3         4         5         6   ,...
@@ -30,15 +23,16 @@ public class SmartConverter {
 	 * Default   : old[1], old[3], old[1]  , old[4]  , old[5]  , old[2]
 	 * </code>
 	 */
-	public final String[][] convert(String line) {
-		String inp[] = line.split(TAB);
-		List<String[]> result = new ArrayList<>();
-		if (inp.length == 6) { // Double check the format
-			String[] row = { inp[1], inp[3], inp[1], inp[4], inp[5], inp[2] }; // TODO TEMP
-			result.add(row);
-		}
+	public final String[][] convert(String category, String title, String content) {
+//		List<String[]> result = new ArrayList<>();
 
-//		String[][] ret = new
+		String[] contents = content.split(NEWLINE);
+		System.out.println("Category: " + category);
+		System.out.println("Title   : " + title);
+		System.out.println("Content :");
+		for (int i = 0; i < contents.length; i ++)
+			System.out.println("\t" + contents[i]);
+
 		return null;
 	}
 }

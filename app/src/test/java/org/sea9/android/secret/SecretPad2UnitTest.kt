@@ -3,6 +3,7 @@ package org.sea9.android.secret
 import org.junit.Test
 
 import org.junit.Assert.*
+import org.sea9.android.secret.compat.SmartConverter
 import org.sea9.android.secret.crypto.CryptoUtils
 
 /**
@@ -17,9 +18,16 @@ class SecretPad2UnitTest {
 	}
 
 	@Test
-	fun testHash() {
-		val hash = CryptoUtils.convert(CryptoUtils.encode(CryptoUtils.hash(CryptoUtils.convert("abcd1234".toCharArray()))))
-		System.out.println("'$hash'")
-		assertTrue(hash.isNotEmpty())
+	fun testConverter() {
+		val tags: List<String> = arrayListOf("AAA", "BBB", "CCC")
+		val converter: SmartConverter = SmartConverter.getInstance(tags)
+		val content =
+				"AAA\n" +
+				"How are you\n" +
+				"I'm fine thanks\n\n" +
+				"BBB\n" +
+				"Yo Bro!!!"
+		val result = converter.convert("CAT0", "TTL1", content)
+		assertNull(result)
 	}
 }
