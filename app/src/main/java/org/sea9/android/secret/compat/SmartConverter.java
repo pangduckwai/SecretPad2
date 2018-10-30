@@ -4,17 +4,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SmartConverter {
-	private List<String> tags;
+	private List<String> topics;
 
 	private SmartConverter(List<String> records) {
-		tags = records;
+		topics = new ArrayList<>();
+		for (String record : records)
+			topics.add(record.toLowerCase());
 	}
 
 	public static SmartConverter getInstance(List<String> records) {
 		return new SmartConverter((records != null) ? records : new ArrayList<>());
 	}
 
-	private static final String NEWLINE = "\n\n";
+	private static final String NEWLINES = "\n\\s*\n";
 	/**
 	 * <code>
 	 * Index:      0       1       2         3         4         5         6   ,...
@@ -26,12 +28,20 @@ public class SmartConverter {
 	public final String[][] convert(String category, String title, String content) {
 //		List<String[]> result = new ArrayList<>();
 
-		String[] contents = content.split(NEWLINE);
+		String[] contents = content.split(NEWLINES);
+		for (String topic : topics) {
+			for (String group : contents) {
+				if (group.trim().toLowerCase().startsWith(topic)) {
+
+				}
+			}
+		}
+
 		System.out.println("Category: " + category);
 		System.out.println("Title   : " + title);
 		System.out.println("Content :");
-		for (int i = 0; i < contents.length; i ++)
-			System.out.println("\t" + contents[i]);
+		for (String content1 : contents)
+			System.out.println(">>> " + content1);
 
 		return null;
 	}

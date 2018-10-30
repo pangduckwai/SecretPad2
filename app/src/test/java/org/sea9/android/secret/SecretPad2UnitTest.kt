@@ -22,11 +22,14 @@ class SecretPad2UnitTest {
 		val tags: List<String> = arrayListOf("AAA", "BBB", "CCC")
 		val converter: SmartConverter = SmartConverter.getInstance(tags)
 		val content =
-				"AAA\n" +
-				"How are you\n" +
-				"I'm fine thanks\n\n" +
-				"BBB\n" +
-				"Yo Bro!!!"
+						"AAA\n" +
+						"How are you\n" +
+						"I'm fine thanks\n\n" +
+						"CCC\n" +
+						"Yo Bro!!!\n" +
+						"  \n" +
+						"DDD\n" +
+						"XXXX:YYYY"
 		val result = converter.convert("CAT0", "TTL1", content)
 		assertNull(result)
 	}
