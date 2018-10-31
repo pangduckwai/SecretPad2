@@ -14,6 +14,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
+import android.widget.CheckBox;
+import android.widget.Checkable;
 import android.widget.EditText;
 
 import org.sea9.android.secret.R;
@@ -22,6 +24,7 @@ public class CompatLogonDialog extends DialogFragment {
 	public static final String TAG = "secret.compatlogon_dialog";
 
 	private EditText txtPasswd;
+	private CheckBox chkbSmart;
 
 	@Override @NonNull
 	public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
@@ -38,6 +41,8 @@ public class CompatLogonDialog extends DialogFragment {
 				return false;
 			});
 
+			chkbSmart = view.findViewById(R.id.smart);
+
 			builder.setView(view)
 					.setPositiveButton(R.string.btn_logon, (dialog, id) -> logon())
 					.setNegativeButton(R.string.btn_cancel, (dialog, id) -> CompatLogonDialog.this.getDialog().cancel());
@@ -49,12 +54,12 @@ public class CompatLogonDialog extends DialogFragment {
 		Editable txt = txtPasswd.getText();
 		int len = txt.length();
 		if (len <= 0) {
-			callback.onCompatLogon(null);
+			callback.onCompatLogon(null, false);
 		} else {
 			char[] ret = new char[len];
 			txt.getChars(0, len, ret, 0);
 			txt.clear();
-			callback.onCompatLogon(ret);
+			callback.onCompatLogon(ret, chkbSmart.isChecked());
 		}
 		dismiss();
 	}
@@ -63,7 +68,7 @@ public class CompatLogonDialog extends DialogFragment {
 	 * Callback interface to the MainActivity
 	 */
 	public interface Callback {
-		void onCompatLogon(char[] value);
+		void onCompatLogon(char[] value, boolean smart);
 	}
 	private Callback callback;
 

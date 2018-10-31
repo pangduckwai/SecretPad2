@@ -19,6 +19,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -140,6 +141,7 @@ public class MainActivity extends AppCompatActivity implements
 				}
 			}
 		});
+		content.setMovementMethod(new ScrollingMovementMethod());
 
 		ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
 			@Override
@@ -373,6 +375,7 @@ public class MainActivity extends AppCompatActivity implements
 	@Override
 	public void onRowSelectionChanged(String txt) {
 		content.setText(txt);
+		content.scrollTo(0, 0);
 	}
 
 	@Override
@@ -440,9 +443,9 @@ public class MainActivity extends AppCompatActivity implements
 	 * @see org.sea9.android.secret.core.CompatLogonDialog.Callback
 	 */
 	@Override
-	public void onCompatLogon(char[] value) {
+	public void onCompatLogon(char[] value, boolean smart) {
 		if (value != null) {
-			ctxFrag.importOldFormat(value);
+			ctxFrag.importOldFormat(value, smart);
 		}
 	}
 	//==============================================================
@@ -494,7 +497,9 @@ public class MainActivity extends AppCompatActivity implements
 	public void onSave(boolean isNew, String k, String c, List<Long> t) {
 		String msg;
 		int position = -1;
-		if (isNew) {
+		if (k.trim().length() <= 0) {
+			msg = getString(R.string.msg_empty_key);
+		} else if (isNew) {
 			Long pid = ctxFrag.getAdaptor().insert(k, c, t);
 			if (pid != null) {
 				if (pid < 0) {

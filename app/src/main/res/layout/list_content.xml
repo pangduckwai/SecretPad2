@@ -51,8 +51,7 @@
 		android:clickable="true"
 		android:focusable="true"
 		android:background="?android:attr/selectableItemBackground"
-		android:lines="4"
-		android:ems="10"
+		android:lines="5"
 		android:gravity="top"
 		android:hint="@string/hint_content"
 		android:scrollbars="vertical"
@@ -62,5 +61,4 @@
 		app:layout_constraintHorizontal_bias="0.5"
 		app:layout_constraintStart_toStartOf="parent"
 		app:layout_constraintTop_toBottomOf="@+id/separator1" />
-
 </android.support.constraint.ConstraintLayout>

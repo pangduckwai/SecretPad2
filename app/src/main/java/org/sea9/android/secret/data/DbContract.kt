@@ -3,6 +3,7 @@ package org.sea9.android.secret.data
 import android.content.ContentValues
 import android.database.sqlite.SQLiteDatabase
 import android.provider.BaseColumns
+import org.sea9.android.secret.compat.SmartConverter
 import org.sea9.android.secret.core.ContextFragment
 import org.sea9.android.secret.crypto.CryptoUtils
 import java.io.PrintWriter
@@ -132,6 +133,8 @@ object DbContract {
 			private const val QUERY_COUNT = "select count($PKEY) from $TABLE"
 
 			const val EXPORT_FORMAT_MIN_COLUMN = 5
+			const val OLD_FORMAT_COLUMN_COUNT = 6
+			const val CONVERTED_MIN_COLUMN = 2
 
 			fun count(helper: DbHelper): Int {
 				val cursor = helper.readableDatabase.rawQuery(QUERY_COUNT, null)
@@ -377,6 +380,72 @@ object DbContract {
 
 				cursor.close()
 				return count
+			}
+
+			fun doOldImport(helper: DbHelper, crypto: DbHelper.Crypto, input: Array<String>, smart: SmartConverter?): Int {
+				if (input.size == OLD_FORMAT_COLUMN_COUNT) {
+					val db = helper.writableDatabase
+
+					// Decrypt using old password and old methods, return if decryption fail, possibly incorrect password
+					val dttl = crypto.decrypt(input[3].toCharArray(), CryptoUtils.decode(CryptoUtils.convert(input[1].toCharArray())))
+							?: return -3
+					val dctn = crypto.decrypt(input[4].toCharArray(), CryptoUtils.decode(CryptoUtils.convert(input[1].toCharArray())))
+							?: return -2
+
+					var count = 0
+					val data: List<Array<String>>
+					data = if (smart != null)
+						smart.convertAsList(input[2], String(dttl), String(dctn))
+					else
+						listOf(arrayOf(String(dttl), String(dctn), input[2]))
+
+					db.beginTransactionNonExclusive()
+					try {
+						for (datum in data) {
+							val kslt = CryptoUtils.generateSalt()
+							val cslt = CryptoUtils.generateSalt()
+
+							// Encrypt using new password
+							val kcph = crypto.encrypt(datum[0].toCharArray(), kslt)
+							val ccph = crypto.encrypt(datum[1].toCharArray(), cslt)
+
+							val newRow = ContentValues().apply {
+								put(COL_KEY_SALT, String(CryptoUtils.convert(CryptoUtils.encode(kslt))))
+								put(COL_KEY, String(kcph))
+								put(COL_CONTENT_SALT, String(CryptoUtils.convert(CryptoUtils.encode(cslt))))
+								put(COL_CONTENT, String(ccph))
+								put(COMMON_MODF, input[5].toLong())
+							}
+
+							val nid = helper.writableDatabase.insertOrThrow(TABLE, null, newRow)
+							if (nid >= 0) {
+								var tagCount = 0
+								if (datum.size > CONVERTED_MIN_COLUMN) {
+									for (i in CONVERTED_MIN_COLUMN until datum.size) {
+										val tags = Tags.search(helper, datum[i])
+										val tid = if (tags.isNotEmpty())
+											tags[0]
+										else
+											Tags.insert(helper, datum[i])?.pid
+
+										if ((tid != null) && (tid >= 0)) {
+											if (NoteTags.insert(helper, nid, tid) >= 0)
+												tagCount++
+										}
+									}
+								}
+								if (tagCount == (datum.size - CONVERTED_MIN_COLUMN))
+									count ++
+							}
+						}
+						if (count == data.size)
+							db.setTransactionSuccessful()
+						return (count - data.size)
+					} finally {
+						db.endTransaction()
+					}
+				}
+				return -1 // Incoming data with invalid format, or decryption failed
 			}
 
 			/**

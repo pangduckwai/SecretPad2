@@ -22,15 +22,24 @@
 		android:id="@+id/password"
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
-		android:layout_marginBottom="@dimen/fab_margin"
-		android:layout_marginEnd="@dimen/margin_narrow"
 		android:layout_marginStart="@dimen/margin_narrow"
 		android:layout_marginTop="@dimen/fab_margin"
+		android:layout_marginEnd="@dimen/margin_narrow"
+		android:layout_marginBottom="@dimen/fab_margin"
 		android:ems="10"
 		android:hint="@string/hint_old_password"
+		android:imeOptions="actionDone"
 		android:inputType="textPassword"
-		android:selectAllOnFocus="true"
-		android:imeOptions="actionDone">
+		android:selectAllOnFocus="true">
 		<requestFocus />
 	</EditText>
+
+	<CheckBox
+		android:id="@+id/smart"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:layout_marginTop="@dimen/margin_normal"
+		android:textSize="@dimen/text_medium"
+		android:text="@string/msg_migrate_smart" />
+
 </LinearLayout>

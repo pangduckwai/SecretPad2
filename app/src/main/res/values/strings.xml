@@ -60,9 +60,11 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
 	<string name="msg_migrate_okay">%1$d note%3$s migrated successfully from %2$s</string>
 	<string name="msg_migrate_fail">Migrating notes from %s failed (%d)</string>
 	<string name="msg_migrate_invalid">Migrating notes from %s failed, invalid data file format at row %d</string>
+	<string name="msg_migrate_smart">Attempt to split old contents into separate notes base on available tags</string>
 	<string name="msg_import_okay">%1$d note%3$s imported successfully from %2%s</string>
 	<string name="msg_import_fail">Importing notes from %s failed (%d)</string>
 	<string name="msg_export_okay">%1$d note%3$s exported successfully to %2$s</string>
 	<string name="msg_export_fail">Exporting %s to %s failed (%d)</string>
 	<string name="msg_export_error">Exporting notes failed (%d)</string>
+	<string name="msg_empty_key">The note\'s key value cannot be empty</string>
 </resources>
