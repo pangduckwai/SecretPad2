@@ -33,62 +33,62 @@ class SecretPad2InstrumentedTest {
 		private var nid: Long = -1
 		private var aid: Long = -1
 
-		@BeforeClass @JvmStatic
-		fun prepare() {
-			password = CryptoUtils.convert(CryptoUtils.encode(CryptoUtils.hash(CryptoUtils.convert("abcd1234".toCharArray()))))
-			context = InstrumentationRegistry.getTargetContext()
-			helper = DbHelper(object : DbHelper.Caller {
-				override fun getContext(): Context? {
-					return context
-				}
-				override fun onReady() {
-					Log.w("secret.instrumented_test", "DB test connection ready")
-				}
-			}, object : DbHelper.Crypto {
-				override fun encrypt(input: CharArray, salt: ByteArray): CharArray {
-					return CryptoUtils.encrypt(input, password, salt)
-				}
-				override fun decrypt(input: CharArray, salt: ByteArray): CharArray {
-					return CryptoUtils.decrypt(input, password, salt)
-				}
-			}, true)
-			helper.writableDatabase.execSQL(DbContract.SQL_CONFIG)
-
-			val tags = arrayOfNulls<TagRecord>(6)
-			tags[0] = DbContract.Tags.insert(helper, "NINE")
-			tags[1] = DbContract.Tags.insert(helper, "ONE")
-			tags[2] = DbContract.Tags.insert(helper, "TWO")
-			tags[3] = DbContract.Tags.insert(helper, "SIX")
-			tags[4] = DbContract.Tags.insert(helper, "XXX")
-			tags[5] = DbContract.Tags.insert(helper, "TEN")
-			tid = tags[0]!!.pid
-			ti2 = tags[4]!!.pid
-
-			val notes = arrayOfNulls<NoteRecord>(7)
-			notes[0] = DbContract.Notes.insert(helper, "KEY03", "CONTENT03", Date().time)
-			notes[1] = DbContract.Notes.insert(helper, "KEY05", "CONTENT05", Date().time)
-			notes[2] = DbContract.Notes.insert(helper, "KEY01", "CONTENT01", Date().time)
-			notes[3] = DbContract.Notes.insert(helper, "KEY04", "CONTENT04", Date().time)
-			notes[4] = DbContract.Notes.insert(helper, "KEY06", "CONTENT06", Date().time)
-			notes[5] = DbContract.Notes.insert(helper, "KEY07", "CONTENT07", Date().time)
-			notes[6] = DbContract.Notes.insert(helper, "KEY02", "CONTENT02", Date().time)
-			nid = notes[0]!!.pid
-
-			aid = DbContract.NoteTags.insert(helper, notes[0]!!.pid, tags[0]!!.pid)
-			DbContract.NoteTags.insert(helper, notes[0]!!.pid, tags[1]!!.pid)
-			DbContract.NoteTags.insert(helper, notes[1]!!.pid, tags[2]!!.pid)
-			DbContract.NoteTags.insert(helper, notes[1]!!.pid, tags[3]!!.pid)
-			DbContract.NoteTags.insert(helper, notes[2]!!.pid, tags[4]!!.pid)
-			DbContract.NoteTags.insert(helper, notes[2]!!.pid, tags[5]!!.pid)
-			DbContract.NoteTags.insert(helper, notes[3]!!.pid, tags[1]!!.pid)
-			DbContract.NoteTags.insert(helper, notes[3]!!.pid, tags[2]!!.pid)
-			DbContract.NoteTags.insert(helper, notes[4]!!.pid, tags[3]!!.pid)
-			DbContract.NoteTags.insert(helper, notes[4]!!.pid, tags[4]!!.pid)
-			DbContract.NoteTags.insert(helper, notes[5]!!.pid, tags[5]!!.pid)
-			DbContract.NoteTags.insert(helper, notes[5]!!.pid, tags[1]!!.pid)
-			DbContract.NoteTags.insert(helper, notes[6]!!.pid, tags[2]!!.pid)
-			DbContract.NoteTags.insert(helper, notes[6]!!.pid, tags[3]!!.pid)
-		}
+//		@BeforeClass @JvmStatic
+//		fun prepare() {
+//			password = CryptoUtils.convert(CryptoUtils.encode(CryptoUtils.hash(CryptoUtils.convert("abcd1234".toCharArray()))))
+//			context = InstrumentationRegistry.getTargetContext()
+//			helper = DbHelper(object : DbHelper.Caller {
+//				override fun getContext(): Context? {
+//					return context
+//				}
+//				override fun onReady() {
+//					Log.w("secret.instrumented_test", "DB test connection ready")
+//				}
+//			}, object : DbHelper.Crypto {
+//				override fun encrypt(input: CharArray, salt: ByteArray): CharArray {
+//					return CryptoUtils.encrypt(input, password, salt)
+//				}
+//				override fun decrypt(input: CharArray, salt: ByteArray): CharArray {
+//					return CryptoUtils.decrypt(input, password, salt)
+//				}
+//			}, true)
+//			helper.writableDatabase.execSQL(DbContract.SQL_CONFIG)
+//
+//			val tags = arrayOfNulls<TagRecord>(6)
+//			tags[0] = DbContract.Tags.insert(helper, "NINE")
+//			tags[1] = DbContract.Tags.insert(helper, "ONE")
+//			tags[2] = DbContract.Tags.insert(helper, "TWO")
+//			tags[3] = DbContract.Tags.insert(helper, "SIX")
+//			tags[4] = DbContract.Tags.insert(helper, "XXX")
+//			tags[5] = DbContract.Tags.insert(helper, "TEN")
+//			tid = tags[0]!!.pid
+//			ti2 = tags[4]!!.pid
+//
+//			val notes = arrayOfNulls<NoteRecord>(7)
+//			notes[0] = DbContract.Notes.insert(helper, "KEY03", "CONTENT03", Date().time)
+//			notes[1] = DbContract.Notes.insert(helper, "KEY05", "CONTENT05", Date().time)
+//			notes[2] = DbContract.Notes.insert(helper, "KEY01", "CONTENT01", Date().time)
+//			notes[3] = DbContract.Notes.insert(helper, "KEY04", "CONTENT04", Date().time)
+//			notes[4] = DbContract.Notes.insert(helper, "KEY06", "CONTENT06", Date().time)
+//			notes[5] = DbContract.Notes.insert(helper, "KEY07", "CONTENT07", Date().time)
+//			notes[6] = DbContract.Notes.insert(helper, "KEY02", "CONTENT02", Date().time)
+//			nid = notes[0]!!.pid
+//
+//			aid = DbContract.NoteTags.insert(helper, notes[0]!!.pid, tags[0]!!.pid)
+//			DbContract.NoteTags.insert(helper, notes[0]!!.pid, tags[1]!!.pid)
+//			DbContract.NoteTags.insert(helper, notes[1]!!.pid, tags[2]!!.pid)
+//			DbContract.NoteTags.insert(helper, notes[1]!!.pid, tags[3]!!.pid)
+//			DbContract.NoteTags.insert(helper, notes[2]!!.pid, tags[4]!!.pid)
+//			DbContract.NoteTags.insert(helper, notes[2]!!.pid, tags[5]!!.pid)
+//			DbContract.NoteTags.insert(helper, notes[3]!!.pid, tags[1]!!.pid)
+//			DbContract.NoteTags.insert(helper, notes[3]!!.pid, tags[2]!!.pid)
+//			DbContract.NoteTags.insert(helper, notes[4]!!.pid, tags[3]!!.pid)
+//			DbContract.NoteTags.insert(helper, notes[4]!!.pid, tags[4]!!.pid)
+//			DbContract.NoteTags.insert(helper, notes[5]!!.pid, tags[5]!!.pid)
+//			DbContract.NoteTags.insert(helper, notes[5]!!.pid, tags[1]!!.pid)
+//			DbContract.NoteTags.insert(helper, notes[6]!!.pid, tags[2]!!.pid)
+//			DbContract.NoteTags.insert(helper, notes[6]!!.pid, tags[3]!!.pid)
+//		}
 
 		@AfterClass @JvmStatic
 		fun cleanup() {

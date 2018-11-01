@@ -401,15 +401,15 @@ public class MainActivity extends AppCompatActivity implements
 	}
 
 	@Override
-	public void longPressed(int position, int action) {
-		//int position = ctxFrag.getAdaptor().getSelectedPosition();
+	public void longPressed() {
+		int position = ctxFrag.getAdaptor().getSelectedPosition();
 		if (position >= 0) {
 			NoteRecord record = ctxFrag.getAdaptor().getRecord(position);
 			if (record != null) {
 				String text = content.getText().toString();
 				ctxFrag.getTagsAdaptor().selectTags(record.getTags());
 				ctxFrag.clearUpdated();
-				DetailFragment.getInstance((action == 1), record, text).show(getSupportFragmentManager(), DetailFragment.TAG);
+				DetailFragment.getInstance(true, record, text).show(getSupportFragmentManager(), DetailFragment.TAG);
 			}
 		}
 	}
@@ -497,6 +497,7 @@ public class MainActivity extends AppCompatActivity implements
 	public void onSave(boolean isNew, String k, String c, List<Long> t) {
 		String msg;
 		int position = -1;
+		boolean stay = false;
 		if (k.trim().length() <= 0) {
 			msg = getString(R.string.msg_empty_key);
 		} else if (isNew) {
@@ -504,14 +505,19 @@ public class MainActivity extends AppCompatActivity implements
 			if (pid != null) {
 				if (pid < 0) {
 					msg = getString(R.string.msg_insert_duplicated);
+					stay = true;
 					pid *= -1;
 				} else {
 					msg = getString(R.string.msg_insert_okay);
 				}
 				position = ctxFrag.getAdaptor().selectRow(pid);
-				if (position >= 0) recycler.smoothScrollToPosition(position);
+				if (position >= 0) {
+					recycler.smoothScrollToPosition(position);
+					ctxFrag.getAdaptor().notifyDataSetChanged();
+				}
 			} else {
 				msg = getString(R.string.msg_insert_fail);
+				stay = true;
 			}
 		} else {
 			position = ctxFrag.getAdaptor().update(k, c, t);
@@ -520,11 +526,10 @@ public class MainActivity extends AppCompatActivity implements
 				msg = getString(R.string.msg_update_okay);
 			} else {
 				msg = getString(R.string.msg_update_fail);
+				stay = true;
 			}
 		}
-		Snackbar.make(recycler,
-				String.format(Locale.getDefault(), msg, Integer.toString(position+1)),
-				Snackbar.LENGTH_LONG).show();
+		doNotify(String.format(Locale.getDefault(), msg, Integer.toString(position+1)), stay);
 	}
 	//==============================================================
 

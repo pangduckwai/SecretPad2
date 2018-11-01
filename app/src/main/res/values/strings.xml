@@ -13,8 +13,6 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
 	<string name="action_passwd">Change Password</string>
 	<string name="action_about">About</string>
 	<string name="action_cleanup">Clean-up Tags</string>
-	<string name="action_edit">Edit</string>
-	<string name="action_duplicate">Duplicate</string>
 	<string name="value_details">Note details</string>
 	<string name="value_export">SecretPad2Export</string>
 	<string name="hint_password">Password</string>
