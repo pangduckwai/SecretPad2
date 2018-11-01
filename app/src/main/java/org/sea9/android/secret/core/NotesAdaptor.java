@@ -123,13 +123,26 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 			notifyDataSetChanged();
 		});
 
-		item.setOnLongClickListener(view -> {
+		item.setOnCreateContextMenuListener((menu, view, menuInfo) -> {
 			int position = recyclerView.getChildLayoutPosition(view);
 			selectRow(position);
-			caller.longPressed();
 			notifyDataSetChanged();
-			return true;
+			menu.add(R.string.action_edit).setOnMenuItemClickListener(item1 -> {
+				caller.longPressed(position, 0);
+				return true;
+			});
+			menu.add(R.string.action_duplicate).setOnMenuItemClickListener(item1 -> {
+				caller.longPressed(position, 1);
+				return true;
+			});
 		});
+//		item.setOnLongClickListener(view -> {
+//			int position = recyclerView.getChildLayoutPosition(view);
+//			selectRow(position);
+//			caller.longPressed();
+//			notifyDataSetChanged();
+//			return true;
+//		});
 
 		return new ViewHolder(item);
 	}
@@ -186,11 +199,11 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 	}
 
 	final Long insert(String k, String c, List<Long> t) {
-		for (NoteRecord record : cache) {
-			if (record.getKey().trim().toLowerCase().equals(k)) {
-				return -1 * record.getPid(); // Key already exists
-			}
-		}
+//		for (NoteRecord record : cache) {
+//			if (record.getKey().trim().toLowerCase().equals(k)) {
+//				return -1 * record.getPid(); // Key already exists
+//			}
+//		}
 
 		Long pid = DbContract.Notes.Companion.insert(caller.getDbHelper(), k, c, t);
 		if ((pid != null) && (pid > 0)) {
@@ -268,7 +281,7 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 	 */
 	public interface Caller {
 		DbHelper getDbHelper();
-		void longPressed();
+		void longPressed(int position, int action);
 		void updateContent(String content);
 		void logoff();
 	}

@@ -121,7 +121,7 @@ object DbContract {
 			private val COLUMNS = arrayOf(PKEY, COL_CONTENT, COL_CONTENT_SALT, COMMON_MODF)
 			private val EXPORTS = arrayOf(PKEY, COL_KEY, COL_KEY_SALT, COL_CONTENT, COL_CONTENT_SALT, COMMON_MODF)
 
-					const val SQL_CREATE =
+			const val SQL_CREATE =
 					"create table $TABLE (" +
 					"$PKEY integer primary key autoincrement," +
 					"$COL_KEY_SALT text not null," +
@@ -395,7 +395,7 @@ object DbContract {
 					var count = 0
 					val data: List<Array<String>>
 					data = if (smart != null)
-						smart.convertAsList(input[2], String(dttl), String(dctn))
+						smart.convert(input[2], String(dttl), String(dctn))
 					else
 						listOf(arrayOf(String(dttl), String(dctn), input[2]))
 

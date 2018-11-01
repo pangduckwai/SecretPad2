@@ -222,7 +222,7 @@ public class MainActivity extends AppCompatActivity implements
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		Log.d(TAG, "onCreateOptionsMenu");
-		getMenuInflater().inflate(R.menu.menu_list, menu);
+		getMenuInflater().inflate(R.menu.menu_main, menu);
 
 		SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
 		if (searchManager != null) {
@@ -280,32 +280,32 @@ public class MainActivity extends AppCompatActivity implements
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
-		case R.id.action_cleanup:
-			MessageDialog.Companion.getOkayCancelDialog(MSG_DIALOG_CLEANUP, getString(R.string.msg_confirm_delete_tags), null)
-					.show(getSupportFragmentManager(), MessageDialog.TAG);
-			break;
+			case R.id.action_cleanup:
+				MessageDialog.Companion.getOkayCancelDialog(MSG_DIALOG_CLEANUP, getString(R.string.msg_confirm_delete_tags), null)
+						.show(getSupportFragmentManager(), MessageDialog.TAG);
+				break;
 
-		case R.id.action_import:
-			if (getApplicationContext().checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-				ActivityCompat.requestPermissions(this,
-						new String[] { Manifest.permission.READ_EXTERNAL_STORAGE },
-						READ_EXTERNAL_STORAGE_REQUEST);
-			} else {
-				ctxFrag.getFileAdaptor().setHasPermission(true);
-				FileChooser.Companion.getInstance().show(getSupportFragmentManager(), FileChooser.TAG);
-			}
-			break;
+			case R.id.action_import:
+				if (getApplicationContext().checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+					ActivityCompat.requestPermissions(this,
+							new String[] { Manifest.permission.READ_EXTERNAL_STORAGE },
+							READ_EXTERNAL_STORAGE_REQUEST);
+				} else {
+					ctxFrag.getFileAdaptor().setHasPermission(true);
+					FileChooser.Companion.getInstance().show(getSupportFragmentManager(), FileChooser.TAG);
+				}
+				break;
 
-		case R.id.action_export:
-			MessageDialog.Companion.getOkayCancelDialog(MSG_DIALOG_EXPORT, getString(R.string.msg_confirm_export), null)
-					.show(getSupportFragmentManager(), MessageDialog.TAG);
-			break;
-		case R.id.action_passwd:
-			PasswdDialog.getInstance().show(getSupportFragmentManager(), PasswdDialog.TAG);
-			break;
-		case R.id.action_about:
-			AboutDialog.Companion.getInstance().show(getSupportFragmentManager(), AboutDialog.TAG);
-			break;
+			case R.id.action_export:
+				MessageDialog.Companion.getOkayCancelDialog(MSG_DIALOG_EXPORT, getString(R.string.msg_confirm_export), null)
+						.show(getSupportFragmentManager(), MessageDialog.TAG);
+				break;
+			case R.id.action_passwd:
+				PasswdDialog.getInstance().show(getSupportFragmentManager(), PasswdDialog.TAG);
+				break;
+			case R.id.action_about:
+				AboutDialog.Companion.getInstance().show(getSupportFragmentManager(), AboutDialog.TAG);
+				break;
 		}
 
 		return super.onOptionsItemSelected(item);
@@ -401,15 +401,15 @@ public class MainActivity extends AppCompatActivity implements
 	}
 
 	@Override
-	public void longPressed() {
-		int position = ctxFrag.getAdaptor().getSelectedPosition();
+	public void longPressed(int position, int action) {
+		//int position = ctxFrag.getAdaptor().getSelectedPosition();
 		if (position >= 0) {
 			NoteRecord record = ctxFrag.getAdaptor().getRecord(position);
 			if (record != null) {
 				String text = content.getText().toString();
 				ctxFrag.getTagsAdaptor().selectTags(record.getTags());
 				ctxFrag.clearUpdated();
-				DetailFragment.getInstance(false, record, text).show(getSupportFragmentManager(), DetailFragment.TAG);
+				DetailFragment.getInstance((action == 1), record, text).show(getSupportFragmentManager(), DetailFragment.TAG);
 			}
 		}
 	}

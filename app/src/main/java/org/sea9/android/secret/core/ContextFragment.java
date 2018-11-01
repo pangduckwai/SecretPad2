@@ -23,7 +23,6 @@ import org.sea9.android.secret.crypto.CryptoUtils;
 import org.sea9.android.secret.data.DbContract;
 import org.sea9.android.secret.data.DbHelper;
 import org.sea9.android.secret.data.NoteRecord;
-import org.sea9.android.secret.data.TagRecord;
 import org.sea9.android.secret.details.TagsAdaptor;
 import org.sea9.android.secret.io.FileChooserAdaptor;
 import org.sea9.android.secret.ui.MessageDialog;
@@ -38,7 +37,6 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.List;
 import java.util.Locale;
 
 import javax.crypto.BadPaddingException;
@@ -313,8 +311,8 @@ public class ContextFragment extends Fragment implements
 			callback.onRowSelectionChanged(EMPTY);
 	}
 
-	public void longPressed() {
-		callback.longPressed();
+	public void longPressed(int position, int action) {
+		callback.longPressed(position, action);
 	}
 	//================================================
 
@@ -341,8 +339,7 @@ public class ContextFragment extends Fragment implements
 			tempPassword = value;
 			SmartConverter converter = null;
 			if (smart) {
-				List<TagRecord> list = DbContract.Tags.Companion.select(dbHelper);
-				converter = SmartConverter.newInstance(list);
+				converter = SmartConverter.getInstance();
 			}
 			(new ImportOldFormatTask(this, converter)).execute();
 		}
@@ -374,7 +371,7 @@ public class ContextFragment extends Fragment implements
 		void onDirectorySelected(File selected);
 		void onFileSelected();
 		void doCompatLogon();
-		void longPressed();
+		void longPressed(int position, int action);
 	}
 	private Callback callback;
 
