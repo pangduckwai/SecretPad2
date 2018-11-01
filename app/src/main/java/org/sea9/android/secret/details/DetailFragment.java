@@ -90,6 +90,9 @@ public class DetailFragment extends DialogFragment {
 		tagList.setHasFixedSize(true);
 		tagList.setLayoutManager(new LinearLayoutManager(getContext()));
 
+		String title = String.format(getString(R.string.value_details), getString(isNew ? R.string.value_details_new : R.string.value_details_edit));
+		((TextView) view.findViewById(R.id.content_title)).setText(title);
+
 		editKey.addTextChangedListener(new TextWatcher() {
 			@Override
 			public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
@@ -134,9 +137,10 @@ public class DetailFragment extends DialogFragment {
 			if (callback.isUpdated() && (tagList.getAdapter() != null)) {
 				String k = (editKey.getText() != null) ? editKey.getText().toString() : EMPTY;
 				String c = (editCtn.getText() != null) ? editCtn.getText().toString() : EMPTY;
-				callback.onSave(isNew, k, c, ((TagsAdaptor) tagList.getAdapter()).getSelectedTags());
-			}
-			dismiss();
+				if (callback.onSave(isNew, k, c, ((TagsAdaptor) tagList.getAdapter()).getSelectedTags()))
+					dismiss();
+			} else
+				dismiss();
 		});
 
 		view.findViewById(R.id.dtl_cancel).setOnClickListener(v -> close());
@@ -195,7 +199,7 @@ public class DetailFragment extends DialogFragment {
 		void dataUpdated();
 		TagsAdaptor getTagsAdaptor();
 		void onAdd(String t);
-		void onSave(boolean isNew, String k, String c, List<Long> t);
+		boolean onSave(boolean isNew, String k, String c, List<Long> t);
 	}
 	private Callback callback;
 

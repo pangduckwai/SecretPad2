@@ -6,6 +6,20 @@
 	android:layout_height="wrap_content"
 	android:minHeight="300dp">
 
+	<TextView
+		android:id="@+id/content_title"
+		android:layout_width="match_parent"
+		android:layout_height="24pt"
+		android:paddingBottom="@dimen/margin_normal"
+		android:paddingEnd="@dimen/margin_normal"
+		android:paddingStart="@dimen/margin_normal"
+		android:paddingTop="@dimen/margin_narrow"
+		android:textSize="@dimen/text_title"
+		android:background="@color/colorTitleBar"
+		android:text="@string/value_details"
+		app:layout_constraintStart_toStartOf="parent"
+		app:layout_constraintTop_toTopOf="parent" />
+
 	<ImageButton
 		android:id="@+id/dtl_save"
 		android:layout_width="wrap_content"
@@ -75,7 +89,7 @@
 		android:padding="0dp"
 		android:background="?android:attr/selectableItemBackground"
 		app:layout_constraintEnd_toEndOf="parent"
-		app:layout_constraintTop_toTopOf="parent"
+		app:layout_constraintTop_toBottomOf="@+id/content_title"
 		app:srcCompat="@android:drawable/ic_input_add" />
 
 	<EditText
@@ -104,7 +118,7 @@
 		android:textSize="@dimen/text_normal"
 		app:layout_constraintEnd_toStartOf="@+id/edit_tags"
 		app:layout_constraintStart_toStartOf="parent"
-		app:layout_constraintTop_toTopOf="parent" />
+		app:layout_constraintTop_toBottomOf="@+id/content_title" />
 
 	<EditText
 		android:id="@+id/edit_content"
@@ -117,7 +131,7 @@
 		android:gravity="top"
 		android:hint="@string/hint_content"
 		android:inputType="textMultiLine"
-		android:lines="10"
+		android:lines="7"
 		android:textSize="@dimen/text_normal"
 		app:layout_constraintBottom_toTopOf="@+id/modify_time"
 		app:layout_constraintEnd_toStartOf="@+id/edit_tags"
@@ -133,7 +147,7 @@
 		android:layout_marginBottom="@dimen/margin_narrow"
 		app:layout_constraintBottom_toBottomOf="parent"
 		app:layout_constraintStart_toStartOf="@+id/edit_tags"
-		app:layout_constraintTop_toTopOf="parent" />
+		app:layout_constraintTop_toBottomOf="@+id/content_title" />
 
 	<View
 		android:id="@+id/divider_h"

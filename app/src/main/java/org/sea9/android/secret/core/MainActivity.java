@@ -494,10 +494,11 @@ public class MainActivity extends AppCompatActivity implements
 	}
 
 	@Override
-	public void onSave(boolean isNew, String k, String c, List<Long> t) {
+	public boolean onSave(boolean isNew, String k, String c, List<Long> t) {
 		String msg;
 		int position = -1;
 		boolean stay = false;
+		boolean rtrn = false;
 		if (k.trim().length() <= 0) {
 			msg = getString(R.string.msg_empty_key);
 		} else if (isNew) {
@@ -509,6 +510,7 @@ public class MainActivity extends AppCompatActivity implements
 					pid *= -1;
 				} else {
 					msg = getString(R.string.msg_insert_okay);
+					rtrn = true;
 				}
 				position = ctxFrag.getAdaptor().selectRow(pid);
 				if (position >= 0) {
@@ -524,12 +526,14 @@ public class MainActivity extends AppCompatActivity implements
 			if (position >= 0) {
 				recycler.smoothScrollToPosition(position);
 				msg = getString(R.string.msg_update_okay);
+				rtrn = true;
 			} else {
 				msg = getString(R.string.msg_update_fail);
 				stay = true;
 			}
 		}
 		doNotify(String.format(Locale.getDefault(), msg, Integer.toString(position+1)), stay);
+		return rtrn;
 	}
 	//==============================================================
 
