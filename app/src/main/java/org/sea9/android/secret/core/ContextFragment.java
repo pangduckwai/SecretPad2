@@ -751,7 +751,7 @@ public class ContextFragment extends Fragment implements
 	 * Export notes in encrypted format.
 	 */
 	static class ExportTask extends AsyncTask<File, Void, Response> {
-		private static final String PATTERN_TIMESTAMP = "yyyyMMddHHmmss";
+		private static final String PATTERN_TIMESTAMP = "yyyyMMddHHmm";
 		private static final String EXPORT_SUFFIX = ".txt";
 		private ContextFragment caller;
 		private String exportFileName;
