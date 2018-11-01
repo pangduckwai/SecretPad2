@@ -177,7 +177,7 @@ public class ContextFragment extends Fragment implements
 	public void onLogon(char[] value, boolean isNew) {
 		password = value;
 		if (!isNew)
-			new DbReadTask(this).execute(-1);
+			new DbReadTask(this).execute(-1L);
 		else
 			callback.setBusyState(false);
 	}
@@ -201,7 +201,7 @@ public class ContextFragment extends Fragment implements
 			Activity activity = getActivity();
 			if (activity != null) activity.runOnUiThread(() -> callback.doLogon());
 		} else {
-			new DbReadTask(this).execute(-1); // Keep it here just in case DB somehow closed, normally won't reach here
+			new DbReadTask(this).execute(-1L); // Keep it here just in case DB somehow closed, normally won't reach here
 		}
 	}
 
@@ -271,9 +271,9 @@ public class ContextFragment extends Fragment implements
 			if (pos >= 0) r = adaptor.getRecord(pos);
 
 			filterQuery = null;
-			int position = -1;
-			if (r != null) position = adaptor.selectRow(r.getKey());
-			new DbReadTask(this).execute(position);
+			long pid = -1;
+			if (r != null) pid = r.getPid();
+			new DbReadTask(this).execute(pid);
 		}
 	}
 
@@ -426,7 +426,7 @@ public class ContextFragment extends Fragment implements
 	 * Invoke a separate thread to read the database after DB init to avoid an IllegalStateException
 	 * which complained 'getDatabase' is called recursively.
 	 */
-	static class DbReadTask extends AsyncTask<Integer, Void, Integer> {
+	static class DbReadTask extends AsyncTask<Long, Void, Long> {
 		private ContextFragment caller;
 		DbReadTask(ContextFragment ctx) {
 			caller = ctx;
@@ -438,25 +438,27 @@ public class ContextFragment extends Fragment implements
 		}
 
 		/**
-		 * Note: the integer passing in, and then passing to post-execute, is the adaptor position (row number)
-		 * of the recyclerView to be selected automatically after DB read. Give -1 to skip the auto select.
+		 * Note: the long passing in, and then passing to post-execute, is the note id
+		 * to be selected automatically after DB read. Give -1 to skip the auto select.
 		 * @param positions input parameter pass in via AsyncTask.execute(...).
 		 * @return the first element of the input parameter.
 		 */
 		@Override
-		protected Integer doInBackground(Integer... positions) {
+		protected Long doInBackground(Long... positions) {
 			caller.getAdaptor().select();
 			if ((positions != null) && (positions.length > 0)) {
 				return positions[0];
 			} else {
-				return -1;
+				return -1L;
 			}
 		}
 
 		@Override
-		protected void onPostExecute(Integer position) {
+		protected void onPostExecute(Long pid) {
 			caller.getAdaptor().notifyDataSetChanged();
-			if (position >= 0) caller.callback.onFilterCleared(position);
+			if (pid >= 0) {
+				caller.callback.onFilterCleared(caller.adaptor.selectRow(pid));
+			}
 			caller.callback.setBusyState(false);
 		}
 	}
