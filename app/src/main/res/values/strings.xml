@@ -39,7 +39,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
 	<string name="msg_passwd_current">Please provide the current password</string>
 	<string name="msg_passwd_changed">Password changed successfully</string>
 	<string name="msg_passwd_change_failed">Failed to change password</string>
-	<string name="msg_insert_okay">Note %s inserted successfully</string>
+	<string name="msg_insert_okay">Note \'%s\' inserted successfully</string>
 	<string name="msg_insert_fail">Insert note failed</string>
 	<string name="msg_insert_duplicated">Note already exists</string>
 	<string name="msg_update_okay">Note %s updated successfully</string>

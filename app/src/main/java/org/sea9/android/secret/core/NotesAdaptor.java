@@ -77,8 +77,8 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 			if (p.getKey().toLowerCase().contains(query)) {
 				return true;
 			} else if (p.getTags() != null) {
-				for (TagRecord tag : p.getTags()) {
-					if (tag.getTag().toLowerCase().contains(query)) return true;
+				for (Long tid : p.getTags()) {
+					if (caller.getTag(tid).toLowerCase().contains(query)) return true;
 				}
 			}
 			return false;
@@ -148,11 +148,11 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 		NoteRecord record = cache.get(position);
 		holder.key.setText(record.getKey());
 
-		List<TagRecord> tags = record.getTags();
+		List<Long> tags = record.getTags();
 		if ((tags != null) && tags.size() > 0) {
-			StringBuilder buff = new StringBuilder(tags.get(0).getTag());
+			StringBuilder buff = new StringBuilder(caller.getTag(tags.get(0)));
 			for (int i = 1; i < tags.size(); i ++) {
-				buff.append(SPACE).append(tags.get(i).getTag());
+				buff.append(SPACE).append(caller.getTag(tags.get(i)));
 			}
 			holder.tag.setText(buff.toString());
 		}
@@ -174,7 +174,7 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 //			caller.onLogoff(); // Since password is wrong
 		}
 		for (NoteRecord record : cache) {
-			List<TagRecord> tags = DbContract.NoteTags.Companion.select(caller.getDbHelper(), record.getPid());
+			List<Long> tags = DbContract.NoteTags.Companion.selectIds(caller.getDbHelper(), record.getPid());
 			record.setTags(tags);
 		}
 	}
@@ -265,6 +265,7 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 		void longPressed();
 		void updateContent(String content);
 		void onLogoff();
+		String getTag(long tid);
 	}
 	private Caller caller;
 }

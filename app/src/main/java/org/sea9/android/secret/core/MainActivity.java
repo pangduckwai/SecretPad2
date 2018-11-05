@@ -423,6 +423,14 @@ public class MainActivity extends AppCompatActivity implements
 			}
 		}
 	}
+
+	@Override
+	public void onNoteSaved(boolean successful) {
+		if (successful) {
+			DetailFragment fragment = (DetailFragment) getSupportFragmentManager().findFragmentByTag(DetailFragment.TAG);
+			if (fragment != null) fragment.dismiss();
+		}
+	}
 	//============================================================
 
 	/*========================================================
@@ -507,49 +515,46 @@ public class MainActivity extends AppCompatActivity implements
 	 * @param k key value of the note.
 	 * @param c content value of the note.
 	 * @param t associated tags of the note.
-	 * @return true if successful.
 	 */
 	@Override
-	public boolean onSave(boolean isNew, String k, String c, List<Long> t) {
-		String msg;
-		int position = -1;
-		boolean stay = false;
-		boolean rtrn = false;
+	public void onSave(boolean isNew, Long i, String k, String c, List<Long> t) {
 		if (k.trim().length() <= 0) {
-			msg = getString(R.string.msg_empty_key);
+			doNotify(getString(R.string.msg_empty_key), false);
 		} else if (isNew) {
-			Long pid = ctxFrag.getAdaptor().insert(k, c, t);
-			if (pid != null) {
-				if (pid < 0) {
-					msg = getString(R.string.msg_insert_duplicated);
-					stay = true;
-					pid *= -1;
-				} else {
-					msg = getString(R.string.msg_insert_okay);
-					rtrn = true;
-				}
-				position = ctxFrag.getAdaptor().selectRow(pid);
-				if (position >= 0) {
-					recycler.smoothScrollToPosition(position);
-					ctxFrag.getAdaptor().notifyDataSetChanged();
-				}
-			} else {
-				msg = getString(R.string.msg_insert_fail);
-				stay = true;
-			}
+			ctxFrag.onSaveNote(true, i, k, c, t);
+//		} else if (isNew) {
+//			Long pid = ctxFrag.getAdaptor().insert(k, c, t);
+//			if (pid != null) {
+//				if (pid < 0) {
+//					msg = getString(R.string.msg_insert_duplicated);
+//					stay = true;
+//					pid *= -1;
+//				} else {
+//					msg = getString(R.string.msg_insert_okay);
+//					rtrn = true;
+//				}
+//				position = ctxFrag.getAdaptor().selectRow(pid);
+//				if (position >= 0) {
+//					recycler.smoothScrollToPosition(position);
+//					ctxFrag.getAdaptor().notifyDataSetChanged();
+//				}
+//			} else {
+//				msg = getString(R.string.msg_insert_fail);
+//				stay = true;
+//			}
 		} else {
-			position = ctxFrag.getAdaptor().update(k, c, t);
+			int position = ctxFrag.getAdaptor().update(k, c, t);
+			boolean stay = false;
+			String msg;
 			if (position >= 0) {
 				recycler.smoothScrollToPosition(position);
 				msg = getString(R.string.msg_update_okay);
-				rtrn = true;
 			} else {
 				msg = getString(R.string.msg_update_fail);
 				stay = true;
 			}
+			doNotify(String.format(Locale.getDefault(), msg, Integer.toString(position+1)), stay);
 		}
-		doNotify(String.format(Locale.getDefault(), msg, Integer.toString(position+1)), stay);
-		return rtrn;
 	}
 	//==============================================================
 

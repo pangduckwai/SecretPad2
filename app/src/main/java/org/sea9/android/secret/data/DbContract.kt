@@ -171,7 +171,7 @@ object DbContract {
 
 						val txt = helper.crypto.decrypt(key.toCharArray(), CryptoUtils.decode(CryptoUtils.convert(slt.toCharArray())))
 						if (txt != null) {
-							result.add(NoteRecord(pid, String(txt), null, modified))
+							result.add(NoteRecord(pid, String(txt), null, null, modified))
 						} else {
 							error = true
 							break
@@ -599,6 +599,21 @@ object DbContract {
 						val tag = getString(getColumnIndexOrThrow(Tags.COL_TAG_NAME))
 						val mod = getLong(getColumnIndexOrThrow(COMMON_MODF))
 						result.add(TagRecord(tid, tag, mod))
+					}
+				}
+
+				cursor.close()
+				return result
+			}
+			fun selectIds(helper: DbHelper, nid: Long): List<Long> {
+				val args = arrayOf(nid.toString())
+				val cursor = helper.readableDatabase.rawQuery(QUERY_CONTENT, args)
+
+				val result = mutableListOf<Long>()
+				with(cursor) {
+					while (moveToNext()) {
+						val tid = getLong(getColumnIndexOrThrow(COL_TID))
+						result.add(tid)
 					}
 				}
 

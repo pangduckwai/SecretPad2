@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -270,8 +271,8 @@ public class ContextFragment extends Fragment implements
 	}
 	//================================
 
-	/*================================================
-	 * @see org.sea9.android.secret.main.NotesAdaptor
+	/*=======================================================
+	 * @see org.sea9.android.secret.main.NotesAdaptor.Caller
 	 */
 	public void updateContent(String content) {
 		if (content != null)
@@ -283,7 +284,11 @@ public class ContextFragment extends Fragment implements
 	public void longPressed() {
 		callback.longPressed();
 	}
-	//================================================
+
+	public String getTag(long tid) {
+		return getTagsAdaptor().getTag(tid);
+	}
+	//=======================================================
 
 	/*===========================================================
 	 * @see org.sea9.android.secret.io.FileChooserAdaptor.Caller
@@ -330,6 +335,7 @@ public class ContextFragment extends Fragment implements
 		void doCompatLogon();
 		void longPressed();
 		void onTagAdded(int position);
+		void onNoteSaved(boolean successful);
 	}
 	private Callback callback;
 
@@ -623,36 +629,76 @@ public class ContextFragment extends Fragment implements
 		}
 	}
 
-//	/**
-//	 * Save a note.
-//	 */
-//	public final void onSaveNote(boolean isNew, String k, String c, List<Long> t) {
-//		//new AddTagTask(this).execute(tag);
-//		new InsertNoteTask(this).execute(new NoteRecord(-1, k, c, t, -1));
-//	}
-//	static class InsertNoteTask extends AsyncTask<NoteRecord, Void, Long> {
-//		private ContextFragment caller;
-//		InsertNoteTask(ContextFragment ctx) {
-//			caller = ctx;
-//		}
-//
-//		@Override
-//		protected void onPreExecute() {
-//			caller.callback.setBusyState(true);
-//		}
-//
-//		@Override
-//		protected Long doInBackground(NoteRecord... records) {
-//			if ((records.length > 0) && (records[0] != null)) {
-//
-//			}
-//		}
-//
-//		@Override
-//		protected void onPostExecute(Long aLong) {
-//			caller.callback.setBusyState(false);
-//		}
-//	}
+	/**
+	 * Save a note.
+	 */
+	public final void onSaveNote(boolean isNew, Long i, String k, String c, List<Long> t) {
+		if (isNew)
+			new InsertNoteTask(this).execute(new NoteRecord(i, k, c, t, -1));
+	}
+	static class InsertNoteTask extends AsyncTask<NoteRecord, Void, NoteRecord> {
+		private ContextFragment caller;
+		InsertNoteTask(ContextFragment ctx) {
+			caller = ctx;
+		}
+
+		@Override
+		protected void onPreExecute() {
+			caller.callback.setBusyState(true);
+		}
+
+		@Override
+		protected NoteRecord doInBackground(NoteRecord... records) {
+			if ((records.length > 0) && (records[0] != null)) {
+				String c = records[0].getContent();
+				List<Long> t = records[0].getTags();
+				if (t == null) t = new ArrayList<>();
+				Long pid = DbContract.Notes.Companion.insert(caller.getDbHelper(), records[0].getKey(), (c == null) ? EMPTY : c, t);
+
+				if (pid != null) {
+					if (pid >= 0) caller.getAdaptor().select(); // Refresh the cache
+					return new NoteRecord(pid, records[0].getKey(), c, t, -1);
+				}
+			}
+			return null;
+		}
+
+		@Override
+		protected void onPostExecute(NoteRecord note) {
+			caller.callback.setBusyState(false);
+			String msg = caller.getString(R.string.msg_insert_fail);
+			boolean stay = true;
+			boolean successful = false;
+			if (note != null) {
+				long pid = -1;
+				for (int i = 0; i < caller.getAdaptor().getItemCount(); i++) {
+					NoteRecord r = caller.getAdaptor().getRecord(i);
+					pid = note.getPid();
+					if ((r != null) && (pid == r.getPid())) {
+						caller.getAdaptor().notifyItemInserted(i);
+						caller.updateContent(note.getContent());
+						break;
+					}
+				}
+
+				if (pid < 0) {
+					msg = caller.getString(R.string.msg_insert_duplicated);
+					pid *= -1;
+				} else {
+					msg = String.format(Locale.getDefault(), caller.getString(R.string.msg_insert_okay), note.getKey());
+					stay = false;
+					successful = true;
+				}
+				int position = caller.getAdaptor().selectRow(pid);
+				if (position >= 0) {
+					caller.callback.onFilterCleared(position);
+					caller.getAdaptor().notifyDataSetChanged();
+				}
+			}
+			caller.callback.doNotify(msg, stay);
+			caller.callback.onNoteSaved(successful);
+		}
+	}
 
 	private static final int OLD_FORMAT_COLUMN_COUNT = 6;
 	/**

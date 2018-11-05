@@ -1,5 +1,6 @@
 package org.sea9.android.secret.details;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -33,6 +34,7 @@ import java.util.Locale;
 
 public class DetailFragment extends DialogFragment {
 	public static final String TAG = "secret.detail_dialog";
+	public static final String NID = "secret.nid";
 	public static final String KEY = "secret.key";
 	public static final String CTN = "secret.content";
 	public static final String MOD = "secret.modified";
@@ -44,6 +46,7 @@ public class DetailFragment extends DialogFragment {
 	private EditText editTag;
 	private ImageButton bttnAdd;
 	private ImageButton bttnSav;
+	private TextView textNid;
 	private boolean isNew;
 
 	public static DetailFragment getInstance(boolean isNew, NoteRecord record, String content) {
@@ -53,6 +56,7 @@ public class DetailFragment extends DialogFragment {
 		Bundle args = new Bundle();
 		args.putBoolean(TAG, isNew);
 		if (record != null) {
+			args.putLong(NID, record.getPid());
 			args.putString(KEY, record.getKey());
 			args.putString(CTN, content);
 			args.putLong(MOD, record.getModified());
@@ -62,6 +66,7 @@ public class DetailFragment extends DialogFragment {
 		return dialog;
 	}
 
+	@SuppressLint("SetTextI18n")
 	@Nullable
 	@Override
 	public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -75,6 +80,7 @@ public class DetailFragment extends DialogFragment {
 		editTag = view.findViewById(R.id.edit_tag);
 		bttnAdd = view.findViewById(R.id.tag_add);
 		bttnSav = view.findViewById(R.id.dtl_save);
+		textNid = view.findViewById(R.id.note_id);
 		TextView textMod = view.findViewById(R.id.modify_time);
 
 		SimpleDateFormat formatter = new SimpleDateFormat(ContextFragment.PATTERN_DATE, Locale.getDefault());
@@ -83,6 +89,7 @@ public class DetailFragment extends DialogFragment {
 			isNew = args.getBoolean(TAG);
 			editCtn.setText(args.getString(CTN));
 			editKey.setText(args.getString(KEY));
+			textNid.setText(Long.toString(args.getLong(NID)));
 			long mod = args.getLong(MOD);
 			textMod.setText(formatter.format((mod > 0) ? new Date(mod) : new Date()));
 		}
@@ -135,10 +142,10 @@ public class DetailFragment extends DialogFragment {
 
 		bttnSav.setOnClickListener(v -> {
 			if (callback.isUpdated() && (tagList.getAdapter() != null)) {
+				Long i = (textNid.getText() != null) ? Long.parseLong(textNid.getText().toString()) : -1;
 				String k = (editKey.getText() != null) ? editKey.getText().toString() : EMPTY;
 				String c = (editCtn.getText() != null) ? editCtn.getText().toString() : EMPTY;
-				if (callback.onSave(isNew, k, c, ((TagsAdaptor) tagList.getAdapter()).getSelectedTags()))
-					dismiss();
+				callback.onSave(isNew, i, k, c, ((TagsAdaptor) tagList.getAdapter()).getSelectedTags());
 			} else
 				dismiss();
 		});
@@ -199,7 +206,7 @@ public class DetailFragment extends DialogFragment {
 		void dataUpdated();
 		TagsAdaptor getTagsAdaptor();
 		void onAdd(String t);
-		boolean onSave(boolean isNew, String k, String c, List<Long> t);
+		void onSave(boolean isNew, Long i, String k, String c, List<Long> t);
 	}
 	private Callback callback;
 

@@ -4,6 +4,7 @@ import android.database.SQLException;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.util.LongSparseArray;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -14,7 +15,9 @@ import org.sea9.android.secret.data.DbHelper;
 import org.sea9.android.secret.data.TagRecord;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class TagsAdaptor extends RecyclerView.Adapter<TagsAdaptor.ViewHolder> {
 	private static final String TAG = "secret.tags_adaptor";
@@ -28,30 +31,29 @@ public class TagsAdaptor extends RecyclerView.Adapter<TagsAdaptor.ViewHolder> {
 	private boolean isSelected(int position) {
 		return (selectedIds.contains(cache.get(position).getPid()));
 	}
-	public void selectTags(List<TagRecord> list) {
+	public void selectTags(List<Long> list) {
 		selectedIds.clear();
 		if (list != null) {
-			for (TagRecord tag : list) {
-				selectedIds.add(tag.getPid());
-			}
+			selectedIds.addAll(list);
 		}
 	}
 
 	private List<TagRecord> cache;
+	private LongSparseArray<Integer> index;
 
-//	public final List<TagRecord> getRecords(List<Long> tids) {
-//		List<Long> ret = new ArrayList<>();
-//		int idx = 0;
-//		for (int i = 0; i < cache.size(); i ++) {
-//			for (int j = idx; j < tids.size(); j ++) {
-//
-//			}
-//		}
-//	}
+	public final String getTag(long tid) {
+		int idx;
+		if (index.size() > 0) {
+			idx = index.get(tid);
+			return cache.get(idx).getTag();
+		}
+		return null;
+	}
 
 	public TagsAdaptor(Caller ctx) {
 		caller = ctx;
 		cache = new ArrayList<>();
+		index = new LongSparseArray<>();
 	}
 
 	/*=====================================================
@@ -111,6 +113,8 @@ public class TagsAdaptor extends RecyclerView.Adapter<TagsAdaptor.ViewHolder> {
 	 */
 	public final void select() {
 		cache = DbContract.Tags.Companion.select(caller.getDbHelper());
+		for (int i = 0; i < cache.size(); i ++)
+			index.put(cache.get(i).getPid(), i);
 	}
 
 //	public final int insert(String txt) {
