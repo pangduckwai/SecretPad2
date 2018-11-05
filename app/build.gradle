@@ -10,8 +10,8 @@ android {
         applicationId "org.sea9.android.secret"
         minSdkVersion 24
         targetSdkVersion 28
-        versionCode 1
-        versionName "0.5.0"
+        versionCode 34
+        versionName "3.0.0rc4"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {

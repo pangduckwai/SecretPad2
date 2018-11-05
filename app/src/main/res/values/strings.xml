@@ -1,9 +1,9 @@
 <resources>
-	<string name="app_name">Secret Pad 2</string>
+	<string name="app_name">Secret Pad</string>
 	<string name="app_version">Version %s</string>
 	<string name="app_copyright">\u00A9 Copyright 2018 SEA9.ORG</string>
 	<string name="app_license">
-Secret Pad 2 is a free software, and is released under the GNU GPLv2 license.\n
+Secret Pad is a free software, and is released under the GNU GPLv2 license.\n
 This program is distributed WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
     </string>
@@ -16,7 +16,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
 	<string name="value_details">Note details [%s]</string>
 	<string name="value_details_new">add</string>
 	<string name="value_details_edit">edit</string>
-	<string name="value_export">SecretPad2Export</string>
+	<string name="value_export">SecretPad3Export</string>
 	<string name="hint_password">Password</string>
 	<string name="hint_confirm">Confirm Password</string>
 	<string name="hint_old_password">Old Password</string>
@@ -46,6 +46,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
 	<string name="msg_update_fail">Update note %s failed</string>
 	<string name="msg_delete_okay">Note %s deleted successfully</string>
 	<string name="msg_delete_fail">Delete note %s failed</string>
+	<string name="msg_delete_error">Delete note failed</string>
 	<string name="msg_discard_changes">Confirm to discard changes?</string>
 	<string name="msg_confirm_delete">Confirm to delete note %s?</string>
 	<string name="msg_confirm_delete_tags">Confirm to delete unused tags?</string>

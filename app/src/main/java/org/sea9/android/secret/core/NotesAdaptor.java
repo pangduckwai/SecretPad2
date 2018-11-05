@@ -171,7 +171,7 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 		cache = DbContract.Notes.Companion.select(caller.getDbHelper());
 		if (cache == null) {
 			cache = new ArrayList<>();
-			caller.logoff(); // Since password is wrong
+			caller.onLogoff(); // Since password is wrong
 		}
 		for (NoteRecord record : cache) {
 			List<TagRecord> tags = DbContract.NoteTags.Companion.select(caller.getDbHelper(), record.getPid());
@@ -268,7 +268,7 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 		boolean isFiltered();
 		void longPressed();
 		void updateContent(String content);
-		void logoff();
+		void onLogoff();
 	}
 	private Caller caller;
 }

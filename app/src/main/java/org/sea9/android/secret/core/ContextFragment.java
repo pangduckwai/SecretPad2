@@ -59,9 +59,6 @@ public class ContextFragment extends Fragment implements
 	public final boolean isDbReady() {
 		return ((dbHelper != null) && dbHelper.getReady());
 	}
-	public final void initDb() {
-		new DbInitTask(this).execute();
-	}
 	@Override public final DbHelper getDbHelper() {
 		if (isDbReady())
 			return dbHelper;
@@ -140,38 +137,8 @@ public class ContextFragment extends Fragment implements
 			return (count == 0);
 	}
 
-	private LogoffTask logoffTask;
-
 	/**
-	 * Initiate the logoff process.
-	 */
-	public final void logoff() {
-		logoffTask = new LogoffTask(this);
-		logoffTask.execute();
-	}
-
-	private void cancelLogoff() {
-		if (logoffTask != null) logoffTask.cancel(true);
-	}
-
-	/*
-	 * Called by the logoff async task to do the actual logoff steps.
-	 */
-	private void doLogoff() {
-		for (int i = 0; i < password.length; i++)
-			password[i] = 0;
-		password = null;
-
-		adaptor.clearRecords();
-
-		FragmentActivity activity = getActivity();
-		if (activity != null) {
-			activity.runOnUiThread(() -> adaptor.clearSelection());
-		}
-	}
-
-	/**
-	 * Called after logon.
+	 * Called when logging on.
 	 * @param value Hash value of the password.
 	 */
 	public void onLogon(char[] value, boolean isNew) {
@@ -185,9 +152,9 @@ public class ContextFragment extends Fragment implements
 	/**
 	 * Called by the logoff async task after logged off.
 	 */
-	private void onLogoff() {
-		Log.d(TAG, "onLogoff");
-		callback.onLogoff();
+	private void onLoggedOff() {
+		Log.d(TAG, "onLoggedOff");
+		callback.onLoggedOff();
 	}
 	//=============================
 
@@ -346,18 +313,6 @@ public class ContextFragment extends Fragment implements
 	}
 	//===========================================================
 
-	public final void onExport(File destination) {
-		(new ExportTask(this)).execute(destination);
-	}
-
-	public final void onChangePassword(char[] oldPassword, char[] newPassword) {
-		(new ChangePasswordTask(this)).execute(oldPassword, newPassword);
-	}
-
-	private boolean busy = false;
-	public final boolean isBusy() { return busy; }
-	public final void setBusy(boolean flag) { busy = flag; }
-
 	/*========================================
 	 * Callback interface to the MainActivity
 	 */
@@ -365,7 +320,7 @@ public class ContextFragment extends Fragment implements
 		void doNotify(String message, boolean stay);
 		void setBusyState(boolean isBusy);
 		void doLogon();
-		void onLogoff();
+		void onLoggedOff();
 		void onRowSelectionChanged(String content);
 		void onFilterCleared(int position);
 		void onDirectorySelected(File selected);
@@ -400,9 +355,16 @@ public class ContextFragment extends Fragment implements
 	/*====================================
 	 * Worker running on separate threads
 	 */
+	private boolean busy = false;
+	public final boolean isBusy() { return busy; }
+	public final void setBusy(boolean flag) { busy = flag; }
+
 	/**
 	 * Async initialize DB since the first call to getXxxDatabase() can be slow
 	 */
+	public final void onInitDb() {
+		new DbInitTask(this).execute();
+	}
 	static class DbInitTask extends AsyncTask<Void, Void, Void> {
 		private ContextFragment caller;
 		DbInitTask(ContextFragment ctx) {
@@ -466,6 +428,29 @@ public class ContextFragment extends Fragment implements
 	/**
 	 * Move logoff to a separate thread to introduce delay and allow it to be interrupted
 	 */
+	private LogoffTask logoffTask;
+	public final void onLogoff() {
+		logoffTask = new LogoffTask(this);
+		logoffTask.execute();
+	}
+	private void cancelLogoff() {
+		if (logoffTask != null) logoffTask.cancel(true);
+	}
+	/*
+	 * Called by the logoff async task to do the actual logoff steps.
+	 */
+	private void doLogoff() {
+		for (int i = 0; i < password.length; i++)
+			password[i] = 0;
+		password = null;
+
+		adaptor.clearRecords();
+
+		FragmentActivity activity = getActivity();
+		if (activity != null) {
+			activity.runOnUiThread(() -> adaptor.clearSelection());
+		}
+	}
 	static class LogoffTask extends AsyncTask<Void, Void, Void> {
 		private ContextFragment caller;
 		LogoffTask(ContextFragment ctx) {
@@ -489,12 +474,91 @@ public class ContextFragment extends Fragment implements
 
 		@Override
 		protected void onPostExecute(Void aVoid) {
-			caller.onLogoff();
+			caller.onLoggedOff();
 		}
 
 		@Override
 		protected void onCancelled(Void aVoid) {
 			Log.d(TAG, "Logoff cancelled");
+		}
+	}
+
+	/**
+	 * Clean-up unused tags.
+	 */
+	public final void onCleanUp() {
+		new CleanUpTask(this).execute();
+	}
+	static class CleanUpTask extends AsyncTask<Void, Void, Integer> {
+		private ContextFragment caller;
+		CleanUpTask(ContextFragment ctx) {
+			caller = ctx;
+		}
+
+		@Override
+		protected void onPreExecute() {
+			caller.callback.setBusyState(true);
+		}
+
+		@Override
+		protected Integer doInBackground(Void... voids) {
+			return caller.getTagsAdaptor().delete();
+		}
+
+		@Override
+		protected void onPostExecute(Integer result) {
+			caller.callback.setBusyState(false);
+			String msg;
+			if ((result == null) || (result < 0)) {
+				msg = caller.getString(R.string.msg_delete_tags_fail);
+			} else {
+				msg = String.format(Locale.getDefault(), caller.getString(R.string.msg_delete_tags_okay), Integer.toString(result));
+			}
+			caller.callback.doNotify(msg, false);
+		}
+	}
+
+	/**
+	 * Delete a note.
+	 */
+	public final void onDeleteNote(int position) {
+		new DeleteNoteTask(this).execute(position);
+	}
+	static class DeleteNoteTask extends AsyncTask<Integer, Void, int[]> {
+		private ContextFragment caller;
+		DeleteNoteTask(ContextFragment ctx) {
+			caller = ctx;
+		}
+
+		@Override
+		protected void onPreExecute() {
+			caller.callback.setBusyState(true);
+		}
+
+		@Override
+		protected int[] doInBackground(Integer... positions) {
+			if (positions.length > 0) {
+				int[] ret = { positions[0], -1 };
+				ret[1] = caller.getAdaptor().delete(positions[0]);
+				return ret;
+			}
+			return null;
+		}
+
+		@Override
+		protected void onPostExecute(int[] response) {
+			caller.callback.setBusyState(false);
+			String msg = caller.getString(R.string.msg_delete_error);
+			boolean stay = true;
+			if ((response != null) && (response.length != 2)) {
+				if (response[1] < 0) {
+					msg = String.format(Locale.getDefault(), caller.getString(R.string.msg_delete_fail), Integer.toString(response[0] + 1));
+				} else {
+					msg = String.format(Locale.getDefault(), caller.getString(R.string.msg_delete_okay), Integer.toString(response[0] + 1));
+					stay = false;
+				}
+			}
+			caller.callback.doNotify(msg, stay);
 		}
 	}
 
@@ -750,6 +814,9 @@ public class ContextFragment extends Fragment implements
 	/**
 	 * Export notes in encrypted format.
 	 */
+	public final void onExport(File destination) {
+		(new ExportTask(this)).execute(destination);
+	}
 	static class ExportTask extends AsyncTask<File, Void, Response> {
 		private static final String PATTERN_TIMESTAMP = "yyyyMMddHHmm";
 		private static final String EXPORT_SUFFIX = ".txt";
@@ -815,6 +882,9 @@ public class ContextFragment extends Fragment implements
 	/**
 	 * Change password used to encrypt notes.
 	 */
+	public final void onChangePassword(char[] oldPassword, char[] newPassword) {
+		(new ChangePasswordTask(this)).execute(oldPassword, newPassword);
+	}
 	static class ChangePasswordTask extends AsyncTask<char[], Void, char[]> {
 		private ContextFragment caller;
 		ChangePasswordTask(ContextFragment ctx) {

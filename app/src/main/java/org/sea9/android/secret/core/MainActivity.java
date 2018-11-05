@@ -186,7 +186,7 @@ public class MainActivity extends AppCompatActivity implements
 
 		if (!ctxFrag.isDbReady()) {
 			Log.d(TAG, "onResume - DB not ready, initializing...");
-			ctxFrag.initDb();
+			ctxFrag.onInitDb();
 		} else if (!ctxFrag.isLogon()) {
 			Log.d(TAG, "onResume - DB ready, logging in...");
 			doLogon();
@@ -210,7 +210,7 @@ public class MainActivity extends AppCompatActivity implements
 	public void onStop() {
 		super.onStop();
 		Log.d(TAG, "onStop");
-		ctxFrag.logoff();
+		ctxFrag.onLogoff();
 	}
 
 	@Override
@@ -358,7 +358,7 @@ public class MainActivity extends AppCompatActivity implements
 	 * @see org.sea9.android.secret.main.ContextFragment.Callback
 	 */
 	@Override
-	public void onLogoff() {
+	public void onLoggedOff() {
 		DetailFragment frag = (DetailFragment) getSupportFragmentManager().findFragmentByTag(DetailFragment.TAG);
 		if (frag != null) frag.dismissAllowingStateLoss();
 	}
@@ -569,16 +569,10 @@ public class MainActivity extends AppCompatActivity implements
 				break;
 			case MSG_DIALOG_DELETE:
 				int position = args.getInt(TAG);
-				del = ctxFrag.getAdaptor().delete(position);
-				msg = (del >= 0) ? getString(R.string.msg_delete_okay) : getString(R.string.msg_delete_fail);
-				doNotify(String.format(Locale.getDefault(), msg, Integer.toString(position+1)), false);
+				ctxFrag.onDeleteNote(position);
 				break;
 			case MSG_DIALOG_CLEANUP:
-				del = ctxFrag.getTagsAdaptor().delete();
-				msg = (del < 0) ?
-						getString(R.string.msg_delete_tags_fail) :
-						String.format(Locale.getDefault(), getString(R.string.msg_delete_tags_okay), Integer.toString(del));
-				doNotify(msg, false);
+				ctxFrag.onCleanUp();
 				break;
 			case MSG_DIALOG_DISCARD:
 				DetailFragment frag = (DetailFragment) getSupportFragmentManager().findFragmentByTag(DetailFragment.TAG);
