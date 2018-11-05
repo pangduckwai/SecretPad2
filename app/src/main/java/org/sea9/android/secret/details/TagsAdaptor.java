@@ -39,6 +39,16 @@ public class TagsAdaptor extends RecyclerView.Adapter<TagsAdaptor.ViewHolder> {
 
 	private List<TagRecord> cache;
 
+//	public final List<TagRecord> getRecords(List<Long> tids) {
+//		List<Long> ret = new ArrayList<>();
+//		int idx = 0;
+//		for (int i = 0; i < cache.size(); i ++) {
+//			for (int j = idx; j < tids.size(); j ++) {
+//
+//			}
+//		}
+//	}
+
 	public TagsAdaptor(Caller ctx) {
 		caller = ctx;
 		cache = new ArrayList<>();
@@ -99,23 +109,41 @@ public class TagsAdaptor extends RecyclerView.Adapter<TagsAdaptor.ViewHolder> {
 	/*======================
 	 * Data access methods.
 	 */
-	private void select() {
+	public final void select() {
 		cache = DbContract.Tags.Companion.select(caller.getDbHelper());
 	}
 
-	public final int insert(String txt) {
-		List<Long> tags = DbContract.Tags.Companion.search(caller.getDbHelper(), txt);
-		long pid = -1;
-		if (tags.size() > 0) {
-			pid = tags.get(0);
-		} else {
-			TagRecord tag = DbContract.Tags.Companion.insert(caller.getDbHelper(), txt);
-			if (tag != null) {
-				pid = tag.getPid();
-			}
-			select();
-		}
-
+//	public final int insert(String txt) {
+//		List<Long> tags = DbContract.Tags.Companion.search(caller.getDbHelper(), txt);
+//		long pid = -1;
+//		if (tags.size() > 0) {
+//			pid = tags.get(0);
+//		} else {
+//			TagRecord tag = DbContract.Tags.Companion.insert(caller.getDbHelper(), txt);
+//			if (tag != null) {
+//				pid = tag.getPid();
+//			}
+//			select();
+//		}
+//
+//		int position = -1;
+//		if (pid >= 0) {
+//			for (int i = 0; i < cache.size(); i ++) {
+//				if (cache.get(i).getPid() == pid) {
+//					position = i;
+//					break;
+//				}
+//			}
+//
+//			if ((position >= 0) && !isSelected(position)) { //Something wrong if position < 0...
+//				selectedIds.add(pid);
+//				caller.dataUpdated();
+//			}
+//			notifyDataSetChanged();
+//		}
+//		return position;
+//	}
+	public final int onInserted(long pid) {
 		int position = -1;
 		if (pid >= 0) {
 			for (int i = 0; i < cache.size(); i ++) {
