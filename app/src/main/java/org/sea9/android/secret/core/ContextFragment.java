@@ -23,6 +23,7 @@ import org.sea9.android.secret.crypto.CryptoUtils;
 import org.sea9.android.secret.data.DbContract;
 import org.sea9.android.secret.data.DbHelper;
 import org.sea9.android.secret.data.NoteRecord;
+import org.sea9.android.secret.data.TagRecord;
 import org.sea9.android.secret.details.TagsAdaptor;
 import org.sea9.android.secret.io.FileChooserAdaptor;
 import org.sea9.android.secret.ui.MessageDialog;
@@ -37,6 +38,7 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 import javax.crypto.BadPaddingException;
@@ -327,6 +329,7 @@ public class ContextFragment extends Fragment implements
 		void onFileSelected();
 		void doCompatLogon();
 		void longPressed();
+		void onTagAdded(int position);
 	}
 	private Callback callback;
 
@@ -572,6 +575,84 @@ public class ContextFragment extends Fragment implements
 			caller.callback.doNotify(msg, stay);
 		}
 	}
+
+	/**
+	 * Add a Tag.
+	 */
+	public final void onAddTag(String tag) {
+		new AddTagTask(this).execute(tag);
+	}
+	static class AddTagTask extends AsyncTask<String, Void, Long> {
+		private ContextFragment caller;
+		AddTagTask(ContextFragment ctx) {
+			caller = ctx;
+		}
+
+		@Override
+		protected void onPreExecute() {
+			caller.callback.setBusyState(true);
+		}
+
+		@Override
+		protected Long doInBackground(String... inputs) {
+			Long pid = -1L;
+			if ((inputs.length > 0) && (inputs[0] != null)) {
+				List<Long> tags = DbContract.Tags.Companion.search(caller.getDbHelper(), inputs[0]);
+				if (tags.size() > 0) {
+					pid = tags.get(0);
+				} else {
+					TagRecord tag = DbContract.Tags.Companion.insert(caller.getDbHelper(), inputs[0]);
+					if (tag != null) {
+						pid = tag.getPid();
+					}
+					caller.getTagsAdaptor().select();
+				}
+			}
+			return pid;
+		}
+
+		@Override
+		protected void onPostExecute(Long pid) {
+			caller.callback.setBusyState(false);
+			if ((pid != null) && (pid >= 0)) {
+				int position = caller.getTagsAdaptor().onInserted(pid);
+				if (position >= 0) {
+					caller.callback.onTagAdded(position);
+				}
+			}
+		}
+	}
+
+//	/**
+//	 * Save a note.
+//	 */
+//	public final void onSaveNote(boolean isNew, String k, String c, List<Long> t) {
+//		//new AddTagTask(this).execute(tag);
+//		new InsertNoteTask(this).execute(new NoteRecord(-1, k, c, t, -1));
+//	}
+//	static class InsertNoteTask extends AsyncTask<NoteRecord, Void, Long> {
+//		private ContextFragment caller;
+//		InsertNoteTask(ContextFragment ctx) {
+//			caller = ctx;
+//		}
+//
+//		@Override
+//		protected void onPreExecute() {
+//			caller.callback.setBusyState(true);
+//		}
+//
+//		@Override
+//		protected Long doInBackground(NoteRecord... records) {
+//			if ((records.length > 0) && (records[0] != null)) {
+//
+//			}
+//		}
+//
+//		@Override
+//		protected void onPostExecute(Long aLong) {
+//			caller.callback.setBusyState(false);
+//		}
+//	}
 
 	private static final int OLD_FORMAT_COLUMN_COUNT = 6;
 	/**

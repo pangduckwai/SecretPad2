@@ -413,6 +413,16 @@ public class MainActivity extends AppCompatActivity implements
 			}
 		}
 	}
+
+	@Override
+	public void onTagAdded(int position) {
+		if (position >= 0) {
+			DetailFragment fragment = (DetailFragment) getSupportFragmentManager().findFragmentByTag(DetailFragment.TAG);
+			if (fragment != null) {
+				fragment.onTagAddCompleted(position);
+			}
+		}
+	}
 	//============================================================
 
 	/*========================================================
@@ -482,17 +492,23 @@ public class MainActivity extends AppCompatActivity implements
 		return ctxFrag.getTagsAdaptor();
 	}
 
+	/**
+	 * Called by the detail fragment when the add tag button is pressed.
+	 * @param tag new tag to be added.
+	 */
 	@Override
-	public void onAdd(String t) {
-		int position = ctxFrag.getTagsAdaptor().insert(t);
-		if (position >= 0) {
-			DetailFragment fragment = (DetailFragment) getSupportFragmentManager().findFragmentByTag(DetailFragment.TAG);
-			if (fragment != null) {
-				fragment.onTagAddCompleted(position);
-			}
-		}
+	public void onAdd(String tag) {
+		ctxFrag.onAddTag(tag);
 	}
 
+	/**
+	 * Called by the detail fragment when the save button is pressed.
+	 * @param isNew true if adding new note, false if updating existing ones.
+	 * @param k key value of the note.
+	 * @param c content value of the note.
+	 * @param t associated tags of the note.
+	 * @return true if successful.
+	 */
 	@Override
 	public boolean onSave(boolean isNew, String k, String c, List<Long> t) {
 		String msg;
