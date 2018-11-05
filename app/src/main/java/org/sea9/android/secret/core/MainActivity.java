@@ -561,8 +561,6 @@ public class MainActivity extends AppCompatActivity implements
 
 	@Override
 	public void positive(DialogInterface dialog, int which, int reference, Bundle args) {
-		int del;
-		String msg;
 		switch (reference) {
 			case MSG_DIALOG_EXPORT:
 				ctxFrag.onExport(getExternalFilesDir(null));

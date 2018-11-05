@@ -522,7 +522,13 @@ public class ContextFragment extends Fragment implements
 	 * Delete a note.
 	 */
 	public final void onDeleteNote(int position) {
-		new DeleteNoteTask(this).execute(position);
+		if ((position >= 0) && (position < getAdaptor().getItemCount())) {
+			//if (isSelected(position)) {
+			if (getAdaptor().isSelected(position)) {
+				getAdaptor().clearSelection();
+			}
+			new DeleteNoteTask(this).execute(position);
+		}
 	}
 	static class DeleteNoteTask extends AsyncTask<Integer, Void, int[]> {
 		private ContextFragment caller;
@@ -540,6 +546,9 @@ public class ContextFragment extends Fragment implements
 			if (positions.length > 0) {
 				int[] ret = { positions[0], -1 };
 				ret[1] = caller.getAdaptor().delete(positions[0]);
+				if (ret[1] >= 0) {
+					caller.getAdaptor().select();
+				}
 				return ret;
 			}
 			return null;
@@ -550,10 +559,12 @@ public class ContextFragment extends Fragment implements
 			caller.callback.setBusyState(false);
 			String msg = caller.getString(R.string.msg_delete_error);
 			boolean stay = true;
-			if ((response != null) && (response.length != 2)) {
+			if ((response != null) && (response.length == 2)) {
 				if (response[1] < 0) {
+					caller.getAdaptor().notifyDataSetChanged();
 					msg = String.format(Locale.getDefault(), caller.getString(R.string.msg_delete_fail), Integer.toString(response[0] + 1));
 				} else {
+					caller.getAdaptor().notifyItemRemoved(response[0]);
 					msg = String.format(Locale.getDefault(), caller.getString(R.string.msg_delete_okay), Integer.toString(response[0] + 1));
 					stay = false;
 				}

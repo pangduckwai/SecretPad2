@@ -26,7 +26,7 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 	private RecyclerView recyclerView;
 
 	private int selectedPos = -1;
-	private boolean isSelected(int position) {
+	boolean isSelected(int position) {
 		return (selectedPos == position);
 	}
 	final int getSelectedPosition() { return selectedPos; }
@@ -171,7 +171,7 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 		cache = DbContract.Notes.Companion.select(caller.getDbHelper());
 		if (cache == null) {
 			cache = new ArrayList<>();
-			caller.onLogoff(); // Since password is wrong
+//			caller.onLogoff(); // Since password is wrong
 		}
 		for (NoteRecord record : cache) {
 			List<TagRecord> tags = DbContract.NoteTags.Companion.select(caller.getDbHelper(), record.getPid());
@@ -227,19 +227,15 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 	final int delete(int position) {
 		int ret = -1;
 		if ((position >= 0) && (position < cache.size())) {
-			if (isSelected(position)) {
-				clearSelection();
-			}
-
 			ret = DbContract.Notes.Companion.delete(caller.getDbHelper(), cache.get(position).getPid());
 			if (ret >= 0) {
-				select();
-				notifyItemRemoved(position);
+//				select();
+//				notifyItemRemoved(position);
 				if (position < selectedPos) {
 					selectedPos --;
 				}
-			} else {
-				notifyDataSetChanged(); //This is exception
+//			} else {
+//				notifyDataSetChanged(); //This is exception
 			}
 		}
 		return ret;
