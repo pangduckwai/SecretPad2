@@ -42,8 +42,9 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
 	<string name="msg_insert_okay">Note \'%s\' inserted successfully</string>
 	<string name="msg_insert_fail">Insert note failed</string>
 	<string name="msg_insert_duplicated">Note already exists</string>
-	<string name="msg_update_okay">Note %s updated successfully</string>
-	<string name="msg_update_fail">Update note %s failed</string>
+	<string name="msg_update_okay">Note \'%s\' updated successfully</string>
+	<string name="msg_update_fail">Update note \'%s\' failed</string>
+	<string name="msg_update_error">Update note failed</string>
 	<string name="msg_delete_okay">Note %s deleted successfully</string>
 	<string name="msg_delete_fail">Delete note %s failed</string>
 	<string name="msg_delete_error">Delete note failed</string>

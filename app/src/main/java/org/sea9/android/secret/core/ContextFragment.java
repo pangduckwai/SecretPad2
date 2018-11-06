@@ -333,7 +333,7 @@ public class ContextFragment extends Fragment implements
 		void doLogon();
 		void onLoggedOff();
 		void onRowSelectionChanged(String content);
-		void onFilterCleared(int position);
+		void onScrollToPosition(int position);
 		void onDirectorySelected(File selected);
 		void onFileSelected();
 		void doCompatLogon();
@@ -433,7 +433,11 @@ public class ContextFragment extends Fragment implements
 		protected void onPostExecute(Long pid) {
 			caller.getAdaptor().notifyDataSetChanged();
 			if (pid >= 0) {
-				caller.callback.onFilterCleared(caller.adaptor.selectRow(pid));
+				int position = caller.adaptor.findSelectedPosition(pid);
+				if (position >= 0) {
+					caller.adaptor.selectRow(position);
+					caller.callback.onScrollToPosition(position);
+				}
 			}
 			caller.callback.setBusyState(false);
 		}
@@ -640,6 +644,8 @@ public class ContextFragment extends Fragment implements
 	public final void onSaveNote(boolean isNew, Long i, String k, String c, List<Long> t) {
 		if (isNew)
 			new InsertNoteTask(this).execute(new NoteRecord(i, k, c, t, -1));
+		else
+			new UpdateNoteTask(this).execute(new NoteRecord(i, k, c, t, -1));
 	}
 	static class InsertNoteTask extends AsyncTask<NoteRecord, Void, NoteRecord> {
 		private ContextFragment caller;
@@ -675,17 +681,7 @@ public class ContextFragment extends Fragment implements
 			boolean stay = true;
 			boolean successful = false;
 			if (note != null) {
-				long pid = -1;
-				for (int i = 0; i < caller.getAdaptor().getItemCount(); i++) {
-					NoteRecord r = caller.getAdaptor().getRecord(i);
-					pid = note.getPid();
-					if ((r != null) && (pid == r.getPid())) {
-						caller.getAdaptor().notifyItemInserted(i);
-						caller.updateContent(note.getContent());
-						break;
-					}
-				}
-
+				long pid = note.getPid();
 				if (pid < 0) {
 					msg = caller.getString(R.string.msg_insert_duplicated);
 					pid *= -1;
@@ -694,9 +690,77 @@ public class ContextFragment extends Fragment implements
 					stay = false;
 					successful = true;
 				}
-				int position = caller.getAdaptor().selectRow(pid);
+
+				int position = caller.getAdaptor().findSelectedPosition(pid);
 				if (position >= 0) {
-					caller.callback.onFilterCleared(position);
+					caller.callback.onScrollToPosition(position);
+					if (successful) {
+						caller.getAdaptor().notifyDataSetChanged();
+						caller.getAdaptor().selectRow(position);
+					}
+				} else {
+					caller.getAdaptor().notifyDataSetChanged();
+				}
+			}
+			caller.callback.doNotify(msg, stay);
+			caller.callback.onNoteSaved(successful);
+		}
+	}
+	static class UpdateNoteTask extends AsyncTask<NoteRecord, Void, NoteRecord> {
+		private ContextFragment caller;
+		UpdateNoteTask(ContextFragment ctx) {
+			caller = ctx;
+		}
+
+		@Override
+		protected void onPreExecute() {
+			caller.callback.setBusyState(true);
+		}
+
+		@Override
+		protected NoteRecord doInBackground(NoteRecord... records) {
+			if ((records.length > 0) && (records[0] != null)) {
+				Long pid = records[0].getPid();
+				String c = records[0].getContent();
+				List<Long> t = records[0].getTags();
+				if (t == null) t = new ArrayList<>();
+				int ret = DbContract.Notes.Companion.update(caller.getDbHelper(), pid, (c == null) ? EMPTY : c, t);
+
+				if (ret >= 0) {
+					caller.getAdaptor().select(); // Refresh the cache
+					return records[0];
+				} else {
+					return new NoteRecord(-1 * pid, records[0].getKey(), c, t, -1);
+				}
+			}
+			return null;
+		}
+
+		@Override
+		protected void onPostExecute(NoteRecord note) {
+			caller.callback.setBusyState(false);
+			String msg = caller.getString(R.string.msg_update_error);
+			boolean stay = true;
+			boolean successful = false;
+			if (note != null) {
+				long pid = note.getPid();
+				if (pid < 0) {
+					msg = String.format(Locale.getDefault(), caller.getString(R.string.msg_update_fail), note.getKey());
+					pid *= -1;
+				} else {
+					msg = String.format(Locale.getDefault(), caller.getString(R.string.msg_update_okay), note.getKey());
+					stay = false;
+					successful = true;
+				}
+
+				int position = caller.getAdaptor().findSelectedPosition(pid);
+				if (position >= 0) {
+					caller.callback.onScrollToPosition(position);
+					if (successful) {
+						caller.getAdaptor().notifyItemChanged(position);
+						caller.getAdaptor().selectRow(position);
+					}
+				} else {
 					caller.getAdaptor().notifyDataSetChanged();
 				}
 			}

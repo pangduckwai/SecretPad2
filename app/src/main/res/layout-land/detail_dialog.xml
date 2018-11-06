@@ -77,6 +77,15 @@
 		android:focusable="true"
 		android:focusableInTouchMode="true" />
 
+	<TextView
+		android:id="@+id/note_id"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:textSize="@dimen/text_medium"
+		android:visibility="gone"
+		app:layout_constraintBottom_toBottomOf="parent"
+		app:layout_constraintEnd_toEndOf="@+id/modify_time" />
+
 	<ImageButton
 		android:id="@+id/tag_add"
 		android:layout_width="wrap_content"
@@ -170,4 +179,12 @@
 		app:layout_constraintEnd_toEndOf="parent"
 		app:layout_constraintStart_toStartOf="@+id/edit_tags"
 		app:layout_constraintTop_toTopOf="@+id/dtl_save" />
+
+	<ProgressBar
+		android:id="@+id/progressbar"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_gravity="center"
+		android:layout_marginTop="@dimen/fab_margin"
+		android:visibility="invisible"/>
 </android.support.constraint.ConstraintLayout>

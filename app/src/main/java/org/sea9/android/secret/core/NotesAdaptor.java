@@ -26,7 +26,7 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 	private RecyclerView recyclerView;
 
 	private int selectedPos = -1;
-	boolean isSelected(int position) {
+	final boolean isSelected(int position) {
 		return (selectedPos == position);
 	}
 	final int getSelectedPosition() { return selectedPos; }
@@ -34,33 +34,41 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 		selectedPos = -1;
 		caller.updateContent(null);
 	}
+	final int findSelectedPosition(long pid) {
+		for (int i = 0; i < cache.size(); i ++) {
+			if (pid == cache.get(i).getPid()) {
+				return i;
+			}
+		}
+		return -1;
+	}
 
-	void selectRow(int position) {
+	final void selectRow(int position) {
 		selectedPos = position;
 		selectDetails(position);
 	}
-	final int selectRow(long pid) {
-		int idx = -1;
-		for (int i = 0; i < cache.size(); i ++) {
-			if (pid == cache.get(i).getPid()) {
-				selectRow(i);
-				idx = i;
-				break;
-			}
-		}
-		return idx;
-	}
-	final int selectRow(String key) {
-		int idx = -1;
-		for (int i = 0; i < cache.size(); i ++) {
-			if (key.equals(cache.get(i).getKey())) {
-				selectRow(i);
-				idx = i;
-				break;
-			}
-		}
-		return idx;
-	}
+//	final int selectRow(long pid) {
+//		int idx = -1;
+//		for (int i = 0; i < cache.size(); i ++) {
+//			if (pid == cache.get(i).getPid()) {
+//				selectRow(i);
+//				idx = i;
+//				break;
+//			}
+//		}
+//		return idx;
+//	}
+//	final int selectRow(String key) {
+//		int idx = -1;
+//		for (int i = 0; i < cache.size(); i ++) {
+//			if (key.equals(cache.get(i).getKey())) {
+//				selectRow(i);
+//				idx = i;
+//				break;
+//			}
+//		}
+//		return idx;
+//	}
 
 	private List<NoteRecord> cache;
 	final NoteRecord getRecord(int position) {

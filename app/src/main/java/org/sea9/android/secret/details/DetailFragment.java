@@ -19,6 +19,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import org.sea9.android.secret.core.ContextFragment;
@@ -41,6 +42,7 @@ public class DetailFragment extends DialogFragment {
 	private static final String EMPTY = "";
 
 	private RecyclerView tagList;
+	private ProgressBar progress;
 	private EditText editKey;
 	private EditText editCtn;
 	private EditText editTag;
@@ -75,6 +77,7 @@ public class DetailFragment extends DialogFragment {
 		View view = inflater.inflate(R.layout.detail_dialog, container, false);
 
 		tagList = view.findViewById(R.id.edit_tags);
+		progress = view.findViewById(R.id.progressbar);
 		editKey = view.findViewById(R.id.edit_key);
 		editCtn = view.findViewById(R.id.edit_content);
 		editTag = view.findViewById(R.id.edit_tag);
@@ -232,5 +235,9 @@ public class DetailFragment extends DialogFragment {
 	public void onTagAddCompleted(int position) {
 		editTag.setText(EMPTY);
 		tagList.smoothScrollToPosition(position);
+	}
+
+	public void setBusyState(boolean isBusy) {
+		progress.setVisibility(isBusy ? View.VISIBLE : View.INVISIBLE);
 	}
 }

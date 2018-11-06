@@ -340,6 +340,11 @@ public class MainActivity extends AppCompatActivity implements
 	public void setBusyState(boolean isBusy) {
 		ctxFrag.setBusy(isBusy);
 		progress.setVisibility(isBusy ? View.VISIBLE : View.INVISIBLE);
+
+		DetailFragment fragment = (DetailFragment) getSupportFragmentManager().findFragmentByTag(DetailFragment.TAG);
+		if (fragment != null) {
+			fragment.setBusyState(isBusy);
+		}
 	}
 
 	private void handleIntent(Intent intent) {
@@ -360,7 +365,10 @@ public class MainActivity extends AppCompatActivity implements
 	@Override
 	public void onLoggedOff() {
 		DetailFragment frag = (DetailFragment) getSupportFragmentManager().findFragmentByTag(DetailFragment.TAG);
-		if (frag != null) frag.dismissAllowingStateLoss();
+		if (frag != null) {
+			frag.setBusyState(false);
+			frag.dismissAllowingStateLoss();
+		}
 	}
 
 	@Override
@@ -379,7 +387,7 @@ public class MainActivity extends AppCompatActivity implements
 	}
 
 	@Override
-	public void onFilterCleared(int position) {
+	public void onScrollToPosition(int position) {
 		if (position >= 0) recycler.smoothScrollToPosition(position);
 	}
 
@@ -428,7 +436,10 @@ public class MainActivity extends AppCompatActivity implements
 	public void onNoteSaved(boolean successful) {
 		if (successful) {
 			DetailFragment fragment = (DetailFragment) getSupportFragmentManager().findFragmentByTag(DetailFragment.TAG);
-			if (fragment != null) fragment.dismiss();
+			if (fragment != null) {
+				fragment.setBusyState(false);
+				fragment.dismiss();
+			}
 		}
 	}
 	//============================================================
@@ -520,40 +531,8 @@ public class MainActivity extends AppCompatActivity implements
 	public void onSave(boolean isNew, Long i, String k, String c, List<Long> t) {
 		if (k.trim().length() <= 0) {
 			doNotify(getString(R.string.msg_empty_key), false);
-		} else if (isNew) {
-			ctxFrag.onSaveNote(true, i, k, c, t);
-//		} else if (isNew) {
-//			Long pid = ctxFrag.getAdaptor().insert(k, c, t);
-//			if (pid != null) {
-//				if (pid < 0) {
-//					msg = getString(R.string.msg_insert_duplicated);
-//					stay = true;
-//					pid *= -1;
-//				} else {
-//					msg = getString(R.string.msg_insert_okay);
-//					rtrn = true;
-//				}
-//				position = ctxFrag.getAdaptor().selectRow(pid);
-//				if (position >= 0) {
-//					recycler.smoothScrollToPosition(position);
-//					ctxFrag.getAdaptor().notifyDataSetChanged();
-//				}
-//			} else {
-//				msg = getString(R.string.msg_insert_fail);
-//				stay = true;
-//			}
 		} else {
-			int position = ctxFrag.getAdaptor().update(k, c, t);
-			boolean stay = false;
-			String msg;
-			if (position >= 0) {
-				recycler.smoothScrollToPosition(position);
-				msg = getString(R.string.msg_update_okay);
-			} else {
-				msg = getString(R.string.msg_update_fail);
-				stay = true;
-			}
-			doNotify(String.format(Locale.getDefault(), msg, Integer.toString(position+1)), stay);
+			ctxFrag.onSaveNote(isNew, i, k, c, t);
 		}
 	}
 	//==============================================================
@@ -596,6 +575,7 @@ public class MainActivity extends AppCompatActivity implements
 			case MSG_DIALOG_DISCARD:
 				DetailFragment frag = (DetailFragment) getSupportFragmentManager().findFragmentByTag(DetailFragment.TAG);
 				if (frag != null) {
+					frag.setBusyState(false);
 					frag.dismiss();
 				}
 				break;
