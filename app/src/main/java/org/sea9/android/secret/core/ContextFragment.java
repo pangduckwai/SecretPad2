@@ -286,7 +286,11 @@ public class ContextFragment extends Fragment implements
 	}
 
 	public String getTag(long tid) {
-		return getTagsAdaptor().getTag(tid);
+		String ret = getTagsAdaptor().getTag(tid);
+		if (ret == null)
+			return EMPTY;
+		else
+			return ret;
 	}
 	//=======================================================
 
@@ -416,6 +420,7 @@ public class ContextFragment extends Fragment implements
 		 */
 		@Override
 		protected Long doInBackground(Long... positions) {
+			caller.getTagsAdaptor().select();
 			caller.getAdaptor().select();
 			if ((positions != null) && (positions.length > 0)) {
 				return positions[0];
@@ -812,6 +817,7 @@ public class ContextFragment extends Fragment implements
 					caller.callback.doNotify(rspn, true);
 					Log.w(TAG, rspn);
 				}
+				caller.getTagsAdaptor().select();
 				caller.getAdaptor().select();
 				caller.getAdaptor().notifyDataSetChanged();
 			} else if (response.getStatus() != -4) { // -4 already handled
@@ -929,6 +935,7 @@ public class ContextFragment extends Fragment implements
 					caller.callback.doNotify(rspn, true);
 					Log.w(TAG, rspn);
 				}
+				caller.getTagsAdaptor().select();
 				caller.getAdaptor().select();
 				caller.getAdaptor().notifyDataSetChanged();
 			} else if (response.getStatus() != -4) { //-4 already handled
