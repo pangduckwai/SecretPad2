@@ -3,6 +3,7 @@ package org.sea9.android.secret.core;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.database.SQLException;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -415,15 +416,15 @@ public class ContextFragment extends Fragment implements
 		/**
 		 * Note: the long passing in, and then passing to post-execute, is the note id
 		 * to be selected automatically after DB read. Give -1 to skip the auto select.
-		 * @param positions input parameter pass in via AsyncTask.execute(...).
+		 * @param selected input parameter pass in via AsyncTask.execute(...).
 		 * @return the first element of the input parameter.
 		 */
 		@Override
-		protected Long doInBackground(Long... positions) {
-			caller.getTagsAdaptor().select();
-			caller.getAdaptor().select();
-			if ((positions != null) && (positions.length > 0)) {
-				return positions[0];
+		protected Long doInBackground(Long... selected) {
+			caller.getTagsAdaptor().populateCache();
+			caller.getAdaptor().populateCache();
+			if ((selected != null) && (selected.length > 0)) {
+				return selected[0];
 			} else {
 				return -1L;
 			}
@@ -520,7 +521,11 @@ public class ContextFragment extends Fragment implements
 
 		@Override
 		protected Integer doInBackground(Void... voids) {
-			return caller.getTagsAdaptor().delete();
+			try {
+				return DbContract.Tags.Companion.delete(caller.getDbHelper());
+			} catch (SQLException e) {
+				return -1;
+			}
 		}
 
 		@Override
@@ -565,7 +570,7 @@ public class ContextFragment extends Fragment implements
 				int[] ret = { positions[0], -1 };
 				ret[1] = caller.getAdaptor().delete(positions[0]);
 				if (ret[1] >= 0) {
-					caller.getAdaptor().select();
+					caller.getAdaptor().populateCache();
 				}
 				return ret;
 			}
@@ -620,7 +625,7 @@ public class ContextFragment extends Fragment implements
 					if (tag != null) {
 						pid = tag.getPid();
 					}
-					caller.getTagsAdaptor().select();
+					caller.getTagsAdaptor().populateCache();
 				}
 			}
 			return pid;
@@ -667,7 +672,7 @@ public class ContextFragment extends Fragment implements
 				Long pid = DbContract.Notes.Companion.insert(caller.getDbHelper(), records[0].getKey(), (c == null) ? EMPTY : c, t);
 
 				if (pid != null) {
-					if (pid >= 0) caller.getAdaptor().select(); // Refresh the cache
+					if (pid >= 0) caller.getAdaptor().populateCache(); // Refresh the cache
 					return new NoteRecord(pid, records[0].getKey(), c, t, -1);
 				}
 			}
@@ -727,7 +732,7 @@ public class ContextFragment extends Fragment implements
 				int ret = DbContract.Notes.Companion.update(caller.getDbHelper(), pid, (c == null) ? EMPTY : c, t);
 
 				if (ret >= 0) {
-					caller.getAdaptor().select(); // Refresh the cache
+					caller.getAdaptor().populateCache(); // Refresh the cache
 					return records[0];
 				} else {
 					return new NoteRecord(-1 * pid, records[0].getKey(), c, t, -1);
@@ -881,8 +886,8 @@ public class ContextFragment extends Fragment implements
 					caller.callback.doNotify(rspn, true);
 					Log.w(TAG, rspn);
 				}
-				caller.getTagsAdaptor().select();
-				caller.getAdaptor().select();
+				caller.getTagsAdaptor().populateCache();
+				caller.getAdaptor().populateCache();
 				caller.getAdaptor().notifyDataSetChanged();
 			} else if (response.getStatus() != -4) { // -4 already handled
 				caller.callback.doNotify(
@@ -999,8 +1004,8 @@ public class ContextFragment extends Fragment implements
 					caller.callback.doNotify(rspn, true);
 					Log.w(TAG, rspn);
 				}
-				caller.getTagsAdaptor().select();
-				caller.getAdaptor().select();
+				caller.getTagsAdaptor().populateCache();
+				caller.getAdaptor().populateCache();
 				caller.getAdaptor().notifyDataSetChanged();
 			} else if (response.getStatus() != -4) { //-4 already handled
 				caller.callback.doNotify(

@@ -13,7 +13,6 @@ import org.sea9.android.secret.R;
 import org.sea9.android.secret.data.DbContract;
 import org.sea9.android.secret.data.DbHelper;
 import org.sea9.android.secret.data.NoteRecord;
-import org.sea9.android.secret.data.TagRecord;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,28 +46,6 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 		selectedPos = position;
 		selectDetails(position);
 	}
-//	final int selectRow(long pid) {
-//		int idx = -1;
-//		for (int i = 0; i < cache.size(); i ++) {
-//			if (pid == cache.get(i).getPid()) {
-//				selectRow(i);
-//				idx = i;
-//				break;
-//			}
-//		}
-//		return idx;
-//	}
-//	final int selectRow(String key) {
-//		int idx = -1;
-//		for (int i = 0; i < cache.size(); i ++) {
-//			if (key.equals(cache.get(i).getKey())) {
-//				selectRow(i);
-//				idx = i;
-//				break;
-//			}
-//		}
-//		return idx;
-//	}
 
 	private List<NoteRecord> cache;
 	final NoteRecord getRecord(int position) {
@@ -78,7 +55,7 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 			return null;
 	}
 	final void filterRecords(String query) {
-		select();
+		populateCache();
 
 		// Do this since using removeif() got an UnsupportedOperationException
 		List<NoteRecord> filtered = cache.stream().filter(p -> {
@@ -175,11 +152,10 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 	/*======================
 	 * Data access methods.
 	 */
-	final void select() {
+	final void populateCache() {
 		cache = DbContract.Notes.Companion.select(caller.getDbHelper());
 		if (cache == null) {
 			cache = new ArrayList<>();
-//			caller.onLogoff(); // Since password is wrong
 		}
 		for (NoteRecord record : cache) {
 			List<Long> tags = DbContract.NoteTags.Companion.selectIds(caller.getDbHelper(), record.getPid());
@@ -196,54 +172,14 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 		}
 	}
 
-	final Long insert(String k, String c, List<Long> t) {
-		Long pid = DbContract.Notes.Companion.insert(caller.getDbHelper(), k, c, t);
-		if ((pid != null) && (pid > 0)) {
-			select();
-			for (int i = 0; i < cache.size(); i ++) {
-				if (pid == cache.get(i).getPid()) {
-					notifyItemInserted(i);
-					caller.updateContent(c);
-					break;
-				}
-			}
-			return pid;
-		} else {
-			return pid; // Insert failed
-		}
-	}
-
-	final int update(String k, String c, List<Long> t) {
-		int position = 0, ret = -1;
-		while (position < cache.size()) {
-			if (cache.get(position).getKey().equals(k)) {
-				ret = DbContract.Notes.Companion.update(caller.getDbHelper(), cache.get(position).getPid(), c, t);
-				break;
-			}
-			position ++;
-		}
-
-		if (ret >= 0) {
-			select();
-			notifyItemChanged(position);
-			caller.updateContent(c);
-			return position;
-		} else
-			return ret;
-	}
-
 	final int delete(int position) {
 		int ret = -1;
 		if ((position >= 0) && (position < cache.size())) {
 			ret = DbContract.Notes.Companion.delete(caller.getDbHelper(), cache.get(position).getPid());
 			if (ret >= 0) {
-//				select();
-//				notifyItemRemoved(position);
 				if (position < selectedPos) {
 					selectedPos --;
 				}
-//			} else {
-//				notifyDataSetChanged(); //This is exception
 			}
 		}
 		return ret;

@@ -15,7 +15,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.CheckBox;
-import android.widget.Checkable;
 import android.widget.EditText;
 
 import org.sea9.android.secret.R;
