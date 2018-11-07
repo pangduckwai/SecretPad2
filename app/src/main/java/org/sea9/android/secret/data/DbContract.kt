@@ -169,9 +169,11 @@ object DbContract {
 						val slt = getString(getColumnIndexOrThrow(COL_KEY_SALT))
 						val key = getString(getColumnIndexOrThrow(COL_KEY))
 
+						val tags  = NoteTags.selectIds(helper, pid) as MutableList<Long>
+
 						val txt = helper.crypto.decrypt(key.toCharArray(), CryptoUtils.decode(CryptoUtils.convert(slt.toCharArray())))
 						if (txt != null) {
-							result.add(NoteRecord(pid, String(txt), null, null, modified))
+							result.add(NoteRecord(pid, String(txt), null, tags, modified))
 						} else {
 							error = true
 							break

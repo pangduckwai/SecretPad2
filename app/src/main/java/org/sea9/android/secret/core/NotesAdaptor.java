@@ -157,10 +157,6 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 		if (cache == null) {
 			cache = new ArrayList<>();
 		}
-		for (NoteRecord record : cache) {
-			List<Long> tags = DbContract.NoteTags.Companion.selectIds(caller.getDbHelper(), record.getPid());
-			record.setTags(tags);
-		}
 	}
 
 	final void selectDetails(int position) { // Retrieve detail of the selected row
