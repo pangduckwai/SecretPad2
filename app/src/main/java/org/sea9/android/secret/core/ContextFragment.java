@@ -57,7 +57,7 @@ public class ContextFragment extends Fragment implements
 	private static final String PLURAL = "s";
 	static final String EMPTY = "";
 
-	private long versionCode = -1;
+	long versionCode = -1;
 
 	private DbHelper dbHelper;
 	public final boolean isDbReady() {
@@ -66,8 +66,9 @@ public class ContextFragment extends Fragment implements
 	@Override public final DbHelper getDbHelper() {
 		if (isDbReady())
 			return dbHelper;
-		else
+		else {
 			throw new RuntimeException("Database not ready");
+		}
 	}
 
 	private NotesAdaptor adaptor;
@@ -148,7 +149,7 @@ public class ContextFragment extends Fragment implements
 	public void onLogon(char[] value, boolean isNew) {
 		password = value;
 		if (!isNew)
-			new DbReadTask(this).execute(-1L);
+			new AsyncDbReadTask(this).execute(-1L);
 		else
 			callback.setBusyState(false);
 	}
@@ -172,7 +173,7 @@ public class ContextFragment extends Fragment implements
 			Activity activity = getActivity();
 			if (activity != null) activity.runOnUiThread(() -> callback.doLogon());
 		} else {
-			new DbReadTask(this).execute(-1L); // Keep it here just in case DB somehow closed, normally won't reach here
+			new AsyncDbReadTask(this).execute(-1L); // Keep it here just in case DB somehow closed, normally won't reach here
 		}
 	}
 
@@ -244,7 +245,7 @@ public class ContextFragment extends Fragment implements
 			filterQuery = null;
 			long pid = -1;
 			if (r != null) pid = r.getPid();
-			new DbReadTask(this).execute(pid);
+			new AsyncDbReadTask(this).execute(pid);
 		}
 	}
 
@@ -343,6 +344,7 @@ public class ContextFragment extends Fragment implements
 		void onNoteSaved(boolean successful);
 	}
 	private Callback callback;
+	final Callback getCallback() { return callback; }
 
 	@Override
 	public void onAttach(Context context) {
@@ -377,11 +379,16 @@ public class ContextFragment extends Fragment implements
 	 * Async initialize DB since the first call to getXxxDatabase() can be slow
 	 */
 	public final void onInitDb() {
-		new DbInitTask(this).execute();
+		new AsyncDbInitTask(this).execute();
 	}
-	static class DbInitTask extends AsyncTask<Void, Void, Void> {
+
+	/**
+	 * Create a thread to initiate the DB. Cannot move to a separate class, because the point is to
+	 * run the constructor of the db helper in this separate thread.
+	 */
+	static class AsyncDbInitTask extends AsyncTask<Void, Void, Void> {
 		private ContextFragment caller;
-		DbInitTask(ContextFragment ctx) {
+		AsyncDbInitTask(ContextFragment ctx) {
 			caller = ctx;
 		}
 
@@ -395,52 +402,6 @@ public class ContextFragment extends Fragment implements
 			caller.dbHelper = new DbHelper(caller, caller);
 			caller.dbHelper.getWritableDatabase().execSQL(DbContract.SQL_CONFIG);
 			return null;
-		}
-	}
-
-	/**
-	 * Invoke a separate thread to read the database after DB init to avoid an IllegalStateException
-	 * which complained 'getDatabase' is called recursively.
-	 */
-	static class DbReadTask extends AsyncTask<Long, Void, Long> {
-		private ContextFragment caller;
-		DbReadTask(ContextFragment ctx) {
-			caller = ctx;
-		}
-
-		@Override
-		protected void onPreExecute() {
-			caller.callback.setBusyState(true);
-		}
-
-		/**
-		 * Note: the long passing in, and then passing to post-execute, is the note id
-		 * to be selected automatically after DB read. Give -1 to skip the auto select.
-		 * @param selected input parameter pass in via AsyncTask.execute(...).
-		 * @return the first element of the input parameter.
-		 */
-		@Override
-		protected Long doInBackground(Long... selected) {
-			caller.getTagsAdaptor().populateCache();
-			caller.getAdaptor().populateCache();
-			if ((selected != null) && (selected.length > 0)) {
-				return selected[0];
-			} else {
-				return -1L;
-			}
-		}
-
-		@Override
-		protected void onPostExecute(Long pid) {
-			caller.getAdaptor().notifyDataSetChanged();
-			if (pid >= 0) {
-				int position = caller.adaptor.findSelectedPosition(pid);
-				if (position >= 0) {
-					caller.adaptor.selectRow(position);
-					caller.callback.onScrollToPosition(position);
-				}
-			}
-			caller.callback.setBusyState(false);
 		}
 	}
 
@@ -1029,68 +990,7 @@ public class ContextFragment extends Fragment implements
 	 * Export notes in encrypted format.
 	 */
 	public final void onExport(File destination) {
-		(new ExportTask(this)).execute(destination);
-	}
-	static class ExportTask extends AsyncTask<File, Void, Response> {
-		private static final String PATTERN_TIMESTAMP = "yyyyMMddHHmm";
-		private static final String EXPORT_SUFFIX = ".txt";
-		private ContextFragment caller;
-		private String exportFileName;
-
-		ExportTask(ContextFragment ctx) {
-			caller = ctx;
-			SimpleDateFormat formatter = new SimpleDateFormat(PATTERN_TIMESTAMP, Locale.getDefault());
-			Context context = caller.getContext();
-			if (context != null) {
-				exportFileName = context.getString(R.string.value_export) + formatter.format(new Date()) + EXPORT_SUFFIX;
-			}
-		}
-
-		@Override
-		protected void onPreExecute() {
-			caller.callback.setBusyState(true);
-		}
-
-		@Override
-		protected Response doInBackground(File... files) {
-			Response response = new Response();
-			if ((files.length > 0) && (files[0].isDirectory())) {
-				File export = new File(files[0], exportFileName);
-				if (export.exists()) {
-					Log.w(TAG, "File " + export.getPath() + " already exists");
-					return response.setStatus(-3);
-				}
-
-				PrintWriter writer = null;
-				try {
-					writer = new PrintWriter(new OutputStreamWriter(new FileOutputStream(export)));
-					writer.println(caller.getString(R.string.app_name) + TAB + caller.versionCode + TAB + (new Date()).getTime()); //Header
-					return response.setStatus(DbContract.Notes.Companion.doExport(caller.dbHelper, writer));
-				} catch (FileNotFoundException e) {
-					Log.w(TAG, e);
-					return response.setStatus(-2);
-				} finally {
-					if (writer != null) {
-						writer.flush();
-						writer.close();
-					}
-				}
-			}
-			return response;
-		}
-
-		@Override
-		protected void onPostExecute(Response response) {
-			if (response.getStatus() < 0) {
-				caller.callback.doNotify(String.format(caller.getString(R.string.msg_export_error), response.getStatus()), true);
-			} else {
-				caller.callback.doNotify(
-						String.format(caller.getString(R.string.msg_export_okay), response.getStatus(), exportFileName, (response.getStatus() > 1)? PLURAL :EMPTY),
-						false
-				);
-			}
-			caller.callback.setBusyState(false);
-		}
+		(new AsyncExportTask(this)).execute(destination);
 	}
 
 	/**
