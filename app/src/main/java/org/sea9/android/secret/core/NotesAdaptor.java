@@ -102,6 +102,7 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 
 		// Click listener
 		item.setOnClickListener(view -> {
+			if (caller.isBusy()) return;
 			int position = recyclerView.getChildLayoutPosition(view);
 			if (position == selectedPos) {
 				clearSelection();
@@ -112,7 +113,7 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 		});
 
 		item.setOnLongClickListener(view -> {
-			if (!caller.isFiltered()) {
+			if (!caller.isFiltered() && !caller.isBusy()) {
 				int position = recyclerView.getChildLayoutPosition(view);
 				selectRow(position);
 				caller.longPressed();
@@ -156,6 +157,7 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 	 * Data access methods.
 	 */
 	final void populateCache() {
+		if (caller.isBusy()) return;
 		try {
 			cache = DbContract.Notes.Companion.select(caller.getDbHelper());
 		} catch (RuntimeException e) {
@@ -171,6 +173,7 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 	}
 
 	final void selectDetails(int position) { // Retrieve detail of the selected row
+		if (caller.isBusy()) return;
 		if ((position >= 0) && (position < cache.size())) {
 			String content = DbContract.Notes.Companion.select(caller.getDbHelper(), cache.get(position).getPid());
 			if (content != null) {
@@ -213,6 +216,7 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 	public interface Caller {
 		DbHelper getDbHelper();
 		boolean isFiltered();
+		boolean isBusy();
 		void longPressed();
 		void updateContent(String content);
 		void onLogoff();

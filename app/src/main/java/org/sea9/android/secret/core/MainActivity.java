@@ -151,7 +151,10 @@ public class MainActivity extends AppCompatActivity implements
 
 			@Override
 			public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
-				if (ctxFrag.isFiltered()) return;
+				if (ctxFrag.isFiltered() || ctxFrag.isBusy()) {
+					ctxFrag.getAdaptor().notifyDataSetChanged();
+					return;
+				}
 
 				final int position = viewHolder.getAdapterPosition();
 
@@ -182,6 +185,13 @@ public class MainActivity extends AppCompatActivity implements
 		if (pos >= 0) {
 			recycler.smoothScrollToPosition(pos); // Scroll list to the selected row
 			ctxFrag.getAdaptor().selectDetails(pos);
+		}
+
+		// Restore busy state
+		if (ctxFrag.isBusy()) {
+			progress.setVisibility(View.VISIBLE);
+		} else {
+			progress.setVisibility(View.INVISIBLE);
 		}
 
 		if (!ctxFrag.isDbReady()) {
