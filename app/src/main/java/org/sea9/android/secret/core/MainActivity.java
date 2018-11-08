@@ -327,8 +327,11 @@ public class MainActivity extends AppCompatActivity implements
 	 * Common method to several Callback interfaces.
 	 */
 	public void doNotify(String message, boolean stay) {
+		doNotify(MSG_DIALOG_NOTIFY, message, stay);
+	}
+	public void doNotify(int reference, String message, boolean stay) {
 		if (stay || (message.length() >= 70)) {
-			MessageDialog.Companion.getInstance(MSG_DIALOG_NOTIFY, message, null).show(getSupportFragmentManager(), MessageDialog.TAG);
+			MessageDialog.Companion.getInstance(reference, message, null).show(getSupportFragmentManager(), MessageDialog.TAG);
 		} else {
 			Snackbar.make(fab, message, Snackbar.LENGTH_LONG).show();
 		}
@@ -540,7 +543,7 @@ public class MainActivity extends AppCompatActivity implements
 	/*========================================================
 	 * @see org.sea9.android.secret.ui.MessageDialog.Callback
 	 */
-	private static final int MSG_DIALOG_NOTIFY  = 90001;
+	public static final int MSG_DIALOG_NOTIFY  = 90001;
 	private static final int MSG_DIALOG_EXPORT  = 90002;
 	private static final int MSG_DIALOG_DELETE  = 90003;
 	private static final int MSG_DIALOG_CLEANUP = 90004;
@@ -551,7 +554,7 @@ public class MainActivity extends AppCompatActivity implements
 	public void neutral(DialogInterface dialog, int which, int reference, Bundle args) {
 		switch (reference) {
 			case MSG_DIALOG_NOTIFY:
-				dialog.dismiss();
+				if (dialog != null) dialog.dismiss();
 				break;
 			case MSG_DIALOG_LOG_FAIL:
 				finish();

@@ -1,6 +1,7 @@
 package org.sea9.android.secret.core;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -17,6 +18,8 @@ import org.sea9.android.secret.data.NoteRecord;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import javax.crypto.BadPaddingException;
 
 public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> {
 	private static final String TAG = "secret.notes_adaptor";
@@ -153,7 +156,15 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 	 * Data access methods.
 	 */
 	final void populateCache() {
-		cache = DbContract.Notes.Companion.select(caller.getDbHelper());
+		try {
+			cache = DbContract.Notes.Companion.select(caller.getDbHelper());
+		} catch (RuntimeException e) {
+			if ((e.getCause() != null) && (e.getCause() instanceof BadPaddingException)) {
+				String msg = String.format(caller.getContext().getString(R.string.msg_logon_fail), e.getMessage());
+				caller.getCallback().doNotify(MainActivity.MSG_DIALOG_LOG_FAIL, msg, true);
+			} else
+				throw e;
+		}
 		if (cache == null) {
 			cache = new ArrayList<>();
 		}
@@ -206,6 +217,8 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 		void updateContent(String content);
 		void onLogoff();
 		String getTag(long tid);
+		Context getContext();
+		ContextFragment.Callback getCallback();
 	}
 	private Caller caller;
 }

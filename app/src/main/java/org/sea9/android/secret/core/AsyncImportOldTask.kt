@@ -16,11 +16,6 @@ class AsyncImportOldTask( private val caller: ContextFragment
 						, private val converter: SmartConverter?): AsyncTask<Void, Void, Int>() {
 	companion object {
 		const val TAG = "secret.task_import_old"
-		const val TAB = "\t"
-		const val NEWLINE = "\n"
-		const val PLURAL = "s"
-		const val EMPTY = ""
-		const val OLD_FORMAT_COLUMN_COUNT = 6
 	}
 
 	private var errorMessage: String? = null
@@ -28,7 +23,7 @@ class AsyncImportOldTask( private val caller: ContextFragment
 		if (errorMessage == null)
 			errorMessage = msg
 		else if (msg != null) {
-			errorMessage += (NEWLINE + msg)
+			errorMessage += (ContextFragment.NEWLINE + msg)
 		}
 	}
 
@@ -44,8 +39,8 @@ class AsyncImportOldTask( private val caller: ContextFragment
 			reader = caller.tempFile.bufferedReader()
 			reader.useLines { lines ->
 				lines.forEach {
-					val old: Array<String> = it.split(TAB).toTypedArray()
-					if (old.size == OLD_FORMAT_COLUMN_COUNT) {
+					val old = it.split(DbContract.Notes.TAB).toTypedArray()
+					if (old.size == DbContract.Notes.OLD_FORMAT_COLUMN_COUNT) {
 						// Old format: ID, salt, category, title*, content*, modified
 						val ret = DbContract.Notes.doOldImport(caller.dbHelper, crypto, old, converter)
 						if (ret >= 0) {
@@ -91,21 +86,22 @@ class AsyncImportOldTask( private val caller: ContextFragment
 							String.format(caller.getString(R.string.msg_migrate_okay)
 									, result
 									, caller.tempFile.path
-									, if (result > 1) PLURAL else EMPTY)
+									, if (result > 1) ContextFragment.PLURAL else ContextFragment.EMPTY)
 							, false)
 				} else {
 					caller.callback.doNotify(
 							String.format(caller.getString(R.string.msg_migrate_error)
 									, caller.tempFile.path
-									, NEWLINE + errorMessage)
+									, ContextFragment.NEWLINE + errorMessage)
 							, true)
 				}
 				caller.tagsAdaptor.populateCache()
 				caller.adaptor.populateCache()
 				caller.adaptor.notifyDataSetChanged()
-			} else {
+			} else if (result != -4) { //-4 already handled
 				caller.callback.doNotify(
-						String.format(caller.getString(R.string.msg_migrate_fail), caller.tempFile.path, result)
+						String.format(caller.getString(R.string.msg_migrate_fail)
+								, caller.tempFile.path, result, ContextFragment.NEWLINE + errorMessage)
 						, true)
 			}
 			caller.cleanUp()

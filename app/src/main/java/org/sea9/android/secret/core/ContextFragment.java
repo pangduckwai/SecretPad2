@@ -8,10 +8,8 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentManager;
 import android.util.Log;
 import android.widget.Filter;
 import android.widget.Filterable;
@@ -27,19 +25,9 @@ import org.sea9.android.secret.data.NoteRecord;
 import org.sea9.android.secret.data.TagRecord;
 import org.sea9.android.secret.details.TagsAdaptor;
 import org.sea9.android.secret.io.FileChooserAdaptor;
-import org.sea9.android.secret.ui.MessageDialog;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -53,8 +41,8 @@ public class ContextFragment extends Fragment implements
 		Filterable, Filter.FilterListener {
 	public static final String TAG = "secret.ctx_frag";
 	public static final String PATTERN_DATE = "yyyy-MM-dd HH:mm:ss";
-	public static final String TAB = "\t";
-	private static final String PLURAL = "s";
+	static final String NEWLINE = "\n";
+	static final String PLURAL = "s";
 	static final String EMPTY = "";
 
 	long versionCode = -1;
@@ -204,15 +192,7 @@ public class ContextFragment extends Fragment implements
 		try {
 			return CryptoUtils.decrypt(input, password, salt);
 		} catch (BadPaddingException e) {
-			Log.i(TAG, e.getMessage(), e);
-			String msg = String.format(getString(R.string.msg_logon_fail), e.getMessage());
-			DialogFragment d = MessageDialog.Companion.getInstance(MainActivity.MSG_DIALOG_LOG_FAIL, msg, null);
-			FragmentManager m = getFragmentManager();
-			if (m != null)
-				d.show(m, MessageDialog.TAG);
-			else
-				callback.doNotify(msg, true);
-			return null;
+			throw new RuntimeException(e);
 		}
 	}
 	//===================================================
@@ -310,11 +290,12 @@ public class ContextFragment extends Fragment implements
 	public void fileSelected(File selected) {
 		Log.d(TAG, "File selected: " + selected.getName());
 		callback.onFileSelected();
-		(new ImportTask(this)).execute(selected);
+		(new AsyncImportTask(this)).execute(selected);
 	}
 
 	private File tempFile;
 	final File getTempFile() { return tempFile; }
+	final void setTempFile(File temp) { tempFile = temp; }
 	private char[] tempPassword;
 	final void cleanUp() {
 		for (int i = 0; i < tempPassword.length; i++)
@@ -336,9 +317,7 @@ public class ContextFragment extends Fragment implements
 						try {
 							return CompatCryptoUtils.decrypt(input, tempPassword, salt);
 						} catch (RuntimeException e) {
-							Log.i(TAG, e.getMessage(), e);
-							callback.doNotify(String.format(getString(R.string.msg_logon_fail), e.getMessage()), true);
-							return null;
+							throw new RuntimeException(e);
 						}
 					}
 
@@ -359,6 +338,7 @@ public class ContextFragment extends Fragment implements
 	 * Callback interface to the MainActivity
 	 */
 	public interface Callback {
+		void doNotify(int reference, String message, boolean stay);
 		void doNotify(String message, boolean stay);
 		void setBusyState(boolean isBusy);
 		void doLogon();
@@ -373,7 +353,7 @@ public class ContextFragment extends Fragment implements
 		void onNoteSaved(boolean successful);
 	}
 	private Callback callback;
-	final Callback getCallback() { return callback; }
+	public final Callback getCallback() { return callback; }
 
 	@Override
 	public void onAttach(Context context) {
@@ -764,140 +744,140 @@ public class ContextFragment extends Fragment implements
 		}
 	}
 
-	private static final int OLD_FORMAT_COLUMN_COUNT = 6;
-	/**
-	 * Import notes from exports.
-	 */
-	static class ImportTask extends AsyncTask<File, Void, Response> {
-		private ContextFragment caller;
-		ImportTask(ContextFragment ctx) {
-			caller = ctx;
-		}
-
-		@Override
-		protected void onPreExecute() {
-			caller.callback.setBusyState(true);
-		}
-
-		@Override
-		protected Response doInBackground(File... files) {
-			Response response = new Response();
-			if (files.length > 0) {
-				String line;
-				String row[];
-				int count = 0;
-				int succd = 0;
-				BufferedReader reader = null;
-				try {
-					reader = new BufferedReader(new FileReader(files[0]));
-					while ((line = reader.readLine()) != null) {
-						if (isCancelled()) {
-							return response;
-						}
-
-						row = line.split(TAB);
-						if (count == 0) { // First row in the import data file
-							if (row.length == OLD_FORMAT_COLUMN_COUNT) {
-								// Old Secret Pad format: ID, salt, category, title*, content*, modified
-								// Need to exit the task, ask for old password, and run import again...
-								Log.d(TAG, "Old file format");
-								cancel(true);
-								caller.tempFile = files[0];
-								response.setStatus(row.length).setMessage("Old file format");
-								continue;
-							} else if (row.length != 3) { // First row has 3 columns: App name, version and export time
-								Log.d(TAG, "Invalid file format");
-								cancel(true);
-								response.setStatus(-4).setErrors("Invalid file format");
-								continue;
-							}
-						} else if (row.length >= DbContract.Notes.EXPORT_FORMAT_MIN_COLUMN) {
-							long ret = DbContract.Notes.Companion.doImport(caller.getDbHelper(), new DbHelper.Crypto() {
-								@Override
-								public char[] decrypt(@NotNull char[] input, @NotNull byte[] salt) {
-									try {
-										return CryptoUtils.decrypt(input, caller.password, salt);
-									} catch (BadPaddingException e) {
-										Log.i(TAG, e.getMessage(), e);
-										caller.callback.doNotify(String.format(caller.getString(R.string.msg_logon_fail), e.getMessage()), true);
-										return null;
-									}
-								}
-
-								@Override @NotNull
-								public char[] encrypt(@NotNull char[] input, @NotNull byte[] salt) {
-									try {
-										return CryptoUtils.encrypt(input, caller.password, salt);
-									} catch (BadPaddingException e) {
-										throw new RuntimeException(e);
-									}
-								}
-							}, row);
-							if (ret >= 0)
-								succd ++;
-							else if (ret < -1) {
-								return response.setStatus(-4);
-							}
-						} else {
-							response.setErrors("Invalid file format at row " + count);
-						}
-						count ++;
-					}
-					return response.setStatus(succd).setMessage(files[0].getPath());
-				} catch (FileNotFoundException e) {
-					Log.w(TAG, e);
-					return response.setStatus(-3).setErrors(e.getMessage());
-				} catch (IOException e) {
-					Log.w(TAG, e);
-					return response.setStatus(-2).setErrors(e.getMessage());
-				} finally {
-					if (reader != null) {
-						try {
-							reader.close();
-						} catch (IOException e) {
-							Log.d(TAG, e.getMessage());
-						}
-					}
-				}
-			}
-			return response;
-		}
-
-		@Override
-		protected void onPostExecute(Response response) {
-			if (response.getStatus() >= 0) {
-				if ((response.getErrors() == null) || (response.getErrors().trim().length() <= 0))
-					caller.callback.doNotify(
-							String.format(caller.getString(R.string.msg_import_okay), response.getStatus(), response.getMessage(), (response.getStatus() > 1)? PLURAL :EMPTY),
-							false
-					);
-				else {
-					String rspn = "Importing " + response.getMessage() + '\n' + response.getErrors();
-					caller.callback.doNotify(rspn, true);
-					Log.w(TAG, rspn);
-				}
-				caller.getTagsAdaptor().populateCache();
-				caller.getAdaptor().populateCache();
-				caller.getAdaptor().notifyDataSetChanged();
-			} else if (response.getStatus() != -4) { // -4 already handled
-				caller.callback.doNotify(
-						String.format(caller.getString(R.string.msg_import_fail), response.getMessage(), response.getStatus()),
-						true
-				);
-			}
-			caller.callback.setBusyState(false);
-		}
-
-		@Override
-		protected void onCancelled(Response response) {
-			if (response.getStatus() == OLD_FORMAT_COLUMN_COUNT) {
-				caller.callback.doCompatLogon();
-			} else {
-				caller.callback.doNotify(response.getErrors(), true);
-			}
-			caller.callback.setBusyState(false);
-		}
-	}
+//	private static final int OLD_FORMAT_COLUMN_COUNT = 6;
+//	/**
+//	 * Import notes from exports.
+//	 */
+//	static class ImportTask extends AsyncTask<File, Void, Response> {
+//		private ContextFragment caller;
+//		ImportTask(ContextFragment ctx) {
+//			caller = ctx;
+//		}
+//
+//		@Override
+//		protected void onPreExecute() {
+//			caller.callback.setBusyState(true);
+//		}
+//
+//		@Override
+//		protected Response doInBackground(File... files) {
+//			Response response = new Response();
+//			if (files.length > 0) {
+//				String line;
+//				String row[];
+//				int count = 0;
+//				int succd = 0;
+//				BufferedReader reader = null;
+//				try {
+//					reader = new BufferedReader(new FileReader(files[0]));
+//					while ((line = reader.readLine()) != null) {
+//						if (isCancelled()) {
+//							return response;
+//						}
+//
+//						row = line.split(TAB);
+//						if (count == 0) { // First row in the import data file
+//							if (row.length == OLD_FORMAT_COLUMN_COUNT) {
+//								// Old Secret Pad format: ID, salt, category, title*, content*, modified
+//								// Need to exit the task, ask for old password, and run import again...
+//								Log.d(TAG, "Old file format");
+//								cancel(true);
+//								caller.tempFile = files[0];
+//								response.setStatus(row.length).setMessage("Old file format");
+//								continue;
+//							} else if (row.length != 3) { // First row has 3 columns: App name, version and export time
+//								Log.d(TAG, "Invalid file format");
+//								cancel(true);
+//								response.setStatus(-4).setErrors("Invalid file format");
+//								continue;
+//							}
+//						} else if (row.length >= DbContract.Notes.EXPORT_FORMAT_MIN_COLUMN) {
+//							long ret = DbContract.Notes.Companion.doImport(caller.getDbHelper(), new DbHelper.Crypto() {
+//								@Override
+//								public char[] decrypt(@NotNull char[] input, @NotNull byte[] salt) {
+//									try {
+//										return CryptoUtils.decrypt(input, caller.password, salt);
+//									} catch (BadPaddingException e) {
+//										Log.i(TAG, e.getMessage(), e);
+//										caller.callback.doNotify(String.format(caller.getString(R.string.msg_logon_fail), e.getMessage()), true);
+//										return null;
+//									}
+//								}
+//
+//								@Override @NotNull
+//								public char[] encrypt(@NotNull char[] input, @NotNull byte[] salt) {
+//									try {
+//										return CryptoUtils.encrypt(input, caller.password, salt);
+//									} catch (BadPaddingException e) {
+//										throw new RuntimeException(e);
+//									}
+//								}
+//							}, row);
+//							if (ret >= 0)
+//								succd ++;
+//							else if (ret < -1) {
+//								return response.setStatus(-4);
+//							}
+//						} else {
+//							response.setErrors("Invalid file format at row " + count);
+//						}
+//						count ++;
+//					}
+//					return response.setStatus(succd).setMessage(files[0].getPath());
+//				} catch (FileNotFoundException e) {
+//					Log.w(TAG, e);
+//					return response.setStatus(-3).setErrors(e.getMessage());
+//				} catch (IOException e) {
+//					Log.w(TAG, e);
+//					return response.setStatus(-2).setErrors(e.getMessage());
+//				} finally {
+//					if (reader != null) {
+//						try {
+//							reader.close();
+//						} catch (IOException e) {
+//							Log.d(TAG, e.getMessage());
+//						}
+//					}
+//				}
+//			}
+//			return response;
+//		}
+//
+//		@Override
+//		protected void onPostExecute(Response response) {
+//			if (response.getStatus() >= 0) {
+//				if ((response.getErrors() == null) || (response.getErrors().trim().length() <= 0))
+//					caller.callback.doNotify(
+//							String.format(caller.getString(R.string.msg_import_okay), response.getStatus(), response.getMessage(), (response.getStatus() > 1)? PLURAL :EMPTY),
+//							false
+//					);
+//				else {
+//					String rspn = "Importing " + response.getMessage() + '\n' + response.getErrors();
+//					caller.callback.doNotify(rspn, true);
+//					Log.w(TAG, rspn);
+//				}
+//				caller.getTagsAdaptor().populateCache();
+//				caller.getAdaptor().populateCache();
+//				caller.getAdaptor().notifyDataSetChanged();
+//			} else if (response.getStatus() != -4) { // -4 already handled
+//				caller.callback.doNotify(
+//						String.format(caller.getString(R.string.msg_import_fail), response.getMessage(), response.getStatus()),
+//						true
+//				);
+//			}
+//			caller.callback.setBusyState(false);
+//		}
+//
+//		@Override
+//		protected void onCancelled(Response response) {
+//			if (response.getStatus() == OLD_FORMAT_COLUMN_COUNT) {
+//				caller.callback.doCompatLogon();
+//			} else {
+//				caller.callback.doNotify(response.getErrors(), true);
+//			}
+//			caller.callback.setBusyState(false);
+//		}
+//	}
 
 	/**
 	 * Export notes in encrypted format.
@@ -911,101 +891,5 @@ public class ContextFragment extends Fragment implements
 	 */
 	public final void onChangePassword(char[] oldPassword, char[] newPassword) {
 		(new AsyncPasswdTask(this)).execute(oldPassword, newPassword);
-	}
-//	static class ChangePasswordTask extends AsyncTask<char[], Void, char[]> {
-//		private ContextFragment caller;
-//		ChangePasswordTask(ContextFragment ctx) {
-//			caller = ctx;
-//		}
-//
-//		@Override
-//		protected void onPreExecute() {
-//			caller.callback.setBusyState(true);
-//		}
-//
-//		@Override
-//		protected char[] doInBackground(char[]... passwords) {
-//			if (passwords.length == 2) {
-//				int result = DbContract.Notes.Companion.passwd(caller.dbHelper, new DbHelper.Crypto() {
-//					@Override
-//					public char[] decrypt(@NotNull char[] input, @NotNull byte[] salt) {
-//						try {
-//							return CryptoUtils.decrypt(input, passwords[0], salt);
-//						} catch (BadPaddingException e) {
-//							Log.i(TAG, e.getMessage(), e);
-//							caller.callback.doNotify(String.format(caller.getString(R.string.msg_logon_fail), e.getMessage()), true);
-//							return null;
-//						}
-//					}
-//
-//					@Override @NotNull
-//					public char[] encrypt(@NotNull char[] input, @NotNull byte[] salt) {
-//						try {
-//							return CryptoUtils.encrypt(input, passwords[1], salt);
-//						} catch (BadPaddingException e) {
-//							throw new RuntimeException(e);
-//						}
-//					}
-//				});
-//
-//				for (int i = 0; i < passwords[0].length; i++)
-//					passwords[0][i] = 0;
-//				passwords[0] = null;
-//
-//				if (result == 0) {
-//					return passwords[1];
-//				} else {
-//					for (int i = 0; i < passwords[1].length; i++)
-//						passwords[1][i] = 0;
-//					passwords[1] = null;
-//				}
-//			}
-//			return null;
-//		}
-//
-//		@Override
-//		protected void onPostExecute(char[] result) {
-//			if (result != null) {
-//				caller.password = result;
-//				caller.callback.doNotify(caller.getString(R.string.msg_passwd_changed), false);
-//			} else {
-//				caller.callback.doNotify(caller.getString(R.string.msg_passwd_change_failed), false);
-//			}
-//			caller.callback.setBusyState(false);
-//		}
-//	}
-
-	static class Response {
-		private int status;
-		private String message;
-		private String errors;
-
-		Response() {
-			status = -1;
-			message = null;
-			errors = null;
-		}
-
-		final int getStatus() { return status; }
-		final Response setStatus(int status) {
-			this.status = status;
-			return this;
-		}
-
-		final String getMessage() { return message; }
-		final Response setMessage(String message) {
-			this.message = message;
-			return this;
-		}
-
-		final String getErrors() { return errors; }
-		final Response setErrors(String error) {
-			if (errors == null) {
-				errors = error;
-			} else {
-				errors += '\n' + error;
-			}
-			return this;
-		}
 	}
 }

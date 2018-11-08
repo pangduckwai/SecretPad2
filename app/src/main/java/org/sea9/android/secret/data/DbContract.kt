@@ -49,19 +49,19 @@ object DbContract {
 				val cursor = helper.readableDatabase
 						.query(TABLE, COLUMNS, null, null, null, null, COL_TAG_NAME)
 
-				val result = mutableListOf<TagRecord>()
-				with(cursor) {
-					while (moveToNext()) {
-						val pid = getLong(getColumnIndexOrThrow(PKEY))
-						val name = getString(getColumnIndexOrThrow(COL_TAG_NAME))
-						val modified = getLong(getColumnIndexOrThrow(COMMON_MODF))
-						val item = TagRecord(pid, name, modified)
-						result.add(item)
+				cursor.use {
+					val result = mutableListOf<TagRecord>()
+					with(it) {
+						while (moveToNext()) {
+							val pid = getLong(getColumnIndexOrThrow(PKEY))
+							val name = getString(getColumnIndexOrThrow(COL_TAG_NAME))
+							val modified = getLong(getColumnIndexOrThrow(COMMON_MODF))
+							val item = TagRecord(pid, name, modified)
+							result.add(item)
+						}
 					}
+					return result
 				}
-
-				cursor.close()
-				return result
 			}
 
 			/**
@@ -71,16 +71,16 @@ object DbContract {
 				val args = arrayOf(tagName)
 				val cursor = helper.readableDatabase.rawQuery(QUERY_SEARCH, args)
 
-				val result = mutableListOf<Long>()
-				with(cursor) {
-					while (moveToNext()) {
-						val pid = getLong(getColumnIndexOrThrow(PKEY))
-						result.add(pid)
+				cursor.use {
+					val result = mutableListOf<Long>()
+					with(it) {
+						while (moveToNext()) {
+							val pid = getLong(getColumnIndexOrThrow(PKEY))
+							result.add(pid)
+						}
 					}
+					return result
 				}
-
-				cursor.close()
-				return result
 			}
 
 			/**
@@ -133,23 +133,25 @@ object DbContract {
 			private const val QUERY_COUNT = "select count($PKEY) from $TABLE"
 
 			const val EXPORT_FORMAT_MIN_COLUMN = 5
-			private const val OLD_FORMAT_COLUMN_COUNT = 6
+			const val EXPORT_FORMAT_1STROW_COL = 3
+			const val OLD_FORMAT_COLUMN_COUNT = 6
 			private const val CONVERTED_MIN_COLUMN = 2
+			const val TAB = "\t"
 
 			fun count(helper: DbHelper): Int {
 				val cursor = helper.readableDatabase.rawQuery(QUERY_COUNT, null)
-				var result = -1
-				with(cursor) {
-					while (moveToNext()) {
-						if (columnCount == 1) {
-							result = getInt(0)
-							break
+				cursor.use {
+					var result = -1
+					with(it) {
+						while (moveToNext()) {
+							if (columnCount == 1) {
+								result = getInt(0)
+								break
+							}
 						}
 					}
+					return result
 				}
-
-				cursor.close()
-				return result
 			}
 
 			/**
@@ -160,34 +162,34 @@ object DbContract {
 				val cursor = helper.readableDatabase
 						.query(TABLE, KEYS, null, null, null, null, null)
 
-				val result = mutableSetOf<NoteRecord>()
-				var error = false
-				with(cursor) {
-					while (moveToNext()) {
-						val pid = getLong((getColumnIndexOrThrow(PKEY)))
-						val modified = getLong(getColumnIndexOrThrow(COMMON_MODF))
-						val slt = getString(getColumnIndexOrThrow(COL_KEY_SALT))
-						val key = getString(getColumnIndexOrThrow(COL_KEY))
+				cursor.use { c ->
+					val result = mutableSetOf<NoteRecord>()
+					var error = false
+					with(c) {
+						while (moveToNext()) {
+							val pid = getLong((getColumnIndexOrThrow(PKEY)))
+							val modified = getLong(getColumnIndexOrThrow(COMMON_MODF))
+							val slt = getString(getColumnIndexOrThrow(COL_KEY_SALT))
+							val key = getString(getColumnIndexOrThrow(COL_KEY))
 
-						val tags  = NoteTags.selectIds(helper, pid) as MutableList<Long>
+							val tags = NoteTags.selectIds(helper, pid) as MutableList<Long>
 
-						val txt = helper.crypto.decrypt(key.toCharArray(), CryptoUtils.decode(CryptoUtils.convert(slt.toCharArray())))
-						if (txt != null) {
-							result.add(NoteRecord(pid, String(txt), null, tags, modified))
-						} else {
-							error = true
-							break
+							val txt = helper.crypto.decrypt(key.toCharArray(), CryptoUtils.decode(CryptoUtils.convert(slt.toCharArray())))
+							if (txt != null) {
+								result.add(NoteRecord(pid, String(txt), null, tags, modified))
+							} else {
+								error = true
+								break
+							}
 						}
 					}
-				}
-
-				cursor.close()
-				return if (!error) {
-					result.asSequence()
-							.sortedWith(compareBy { it.key }) // Sort here after decrypt
-							.toMutableList()
-				} else {
-					null
+					return if (!error) {
+						result.asSequence()
+								.sortedWith(compareBy { it.key }) // Sort here after decrypt
+								.toMutableList()
+					} else {
+						null
+					}
 				}
 			}
 
@@ -199,26 +201,27 @@ object DbContract {
 				val cursor = helper.readableDatabase
 						.query(TABLE, COLUMNS, COMMON_PKEY, args, null, null, null)
 
-				var rowCount = 0
-				lateinit var ctn: String
-				lateinit var slt: String
-				with(cursor) {
-					while (moveToNext()) {
-						rowCount ++
-						slt = getString(getColumnIndexOrThrow(COL_CONTENT_SALT))
-						ctn = getString(getColumnIndexOrThrow(COL_CONTENT))
+				cursor.use {
+					var rowCount = 0
+					lateinit var ctn: String
+					lateinit var slt: String
+					with(it) {
+						while (moveToNext()) {
+							rowCount++
+							slt = getString(getColumnIndexOrThrow(COL_CONTENT_SALT))
+							ctn = getString(getColumnIndexOrThrow(COL_CONTENT))
+						}
 					}
-				}
 
-				cursor.close()
-				if (rowCount != 1) {
-					throw IllegalStateException("Corrupted database table")
-				} else {
-					val ret = helper.crypto.decrypt(ctn.toCharArray(), CryptoUtils.decode(CryptoUtils.convert(slt.toCharArray())))
-					return if (ret != null) {
-						String(ret)
+					if (rowCount != 1) {
+						throw IllegalStateException("Corrupted database table")
 					} else {
-						null
+						val ret = helper.crypto.decrypt(ctn.toCharArray(), CryptoUtils.decode(CryptoUtils.convert(slt.toCharArray())))
+						return if (ret != null) {
+							String(ret)
+						} else {
+							null
+						}
 					}
 				}
 			}
@@ -246,23 +249,24 @@ object DbContract {
 				db.beginTransactionNonExclusive()
 				try {
 					val cursor = db.query(TABLE, KEYS, null, null, null, null, null)
-					with(cursor) {
-						while (moveToNext()) {
-							val pid = getLong((getColumnIndexOrThrow(PKEY)))
-							val slt = getString(getColumnIndexOrThrow(COL_KEY_SALT))
-							val ttl = getString(getColumnIndexOrThrow(COL_KEY))
-							val txt = helper.crypto.decrypt(ttl.toCharArray(), CryptoUtils.decode(CryptoUtils.convert(slt.toCharArray())))
-									?: run {
-										close()
-										return null
-									} //incorrect password
+					cursor.use {
+						with(it) {
+							while (moveToNext()) {
+								val pid = getLong((getColumnIndexOrThrow(PKEY)))
+								val slt = getString(getColumnIndexOrThrow(COL_KEY_SALT))
+								val ttl = getString(getColumnIndexOrThrow(COL_KEY))
+								val txt = helper.crypto.decrypt(ttl.toCharArray(), CryptoUtils.decode(CryptoUtils.convert(slt.toCharArray())))
+										?: run {
+											close()
+											return null
+										} //incorrect password
 
-							if (String(txt).trim().toLowerCase() == kcomp) {
-								close()
-								return -1 * pid
-							} // found duplicated key
+								if (String(txt).trim().toLowerCase() == kcomp) {
+									close()
+									return -1 * pid
+								} // found duplicated key
+							}
 						}
-						close()
 					}
 
 					val nid = db.insertOrThrow(TABLE, null, newRow)
@@ -350,35 +354,35 @@ object DbContract {
 				val cursor = helper.readableDatabase
 						.query(TABLE, EXPORTS, null, null, null, null, null)
 
-				val buff = StringBuilder()
-				var count = 0
-				with(cursor) {
-					while (moveToNext()) {
-						buff.setLength(0)
-						val pid = getLong(getColumnIndexOrThrow(PKEY))
-						val kslt = getString(getColumnIndexOrThrow(COL_KEY_SALT))
-						val key = getString(getColumnIndexOrThrow(COL_KEY))
-						val cslt = getString(getColumnIndexOrThrow(COL_CONTENT_SALT))
-						val ctn = getString(getColumnIndexOrThrow(COL_CONTENT))
-						val modified = getLong(getColumnIndexOrThrow(COMMON_MODF))
-						buff.append(kslt)
-								.append(ContextFragment.TAB).append(key)
-								.append(ContextFragment.TAB).append(cslt)
-								.append(ContextFragment.TAB).append(ctn)
-								.append(ContextFragment.TAB).append(modified)
+				cursor.use {
+					val buff = StringBuilder()
+					var count = 0
+					with(it) {
+						while (moveToNext()) {
+							buff.setLength(0)
+							val pid = getLong(getColumnIndexOrThrow(PKEY))
+							val kslt = getString(getColumnIndexOrThrow(COL_KEY_SALT))
+							val key = getString(getColumnIndexOrThrow(COL_KEY))
+							val cslt = getString(getColumnIndexOrThrow(COL_CONTENT_SALT))
+							val ctn = getString(getColumnIndexOrThrow(COL_CONTENT))
+							val modified = getLong(getColumnIndexOrThrow(COMMON_MODF))
+							buff.append(kslt)
+									.append(TAB).append(key)
+									.append(TAB).append(cslt)
+									.append(TAB).append(ctn)
+									.append(TAB).append(modified)
 
-						val tags = NoteTags.select(helper, pid)
-						for (record in tags) {
-							buff.append(ContextFragment.TAB).append(record.tag)
+							val tags = NoteTags.select(helper, pid)
+							for (record in tags) {
+								buff.append(TAB).append(record.tag)
+							}
+
+							out.println(buff.toString())
+							count++
 						}
-
-						out.println(buff.toString())
-						count ++
 					}
+					return count
 				}
-
-				cursor.close()
-				return count
 			}
 
 			fun doOldImport(helper: DbHelper, crypto: DbHelper.Crypto, input: Array<String>, smart: SmartConverter?): Int {
@@ -518,44 +522,45 @@ object DbContract {
 				try {
 					val cursor = db.query(TABLE, EXPORTS, null, null, null, null, null)
 
-					with(cursor) {
-						while (moveToNext()) {
-							val pid = getLong((getColumnIndexOrThrow(PKEY)))
-							val kslt = getString(getColumnIndexOrThrow(COL_KEY_SALT))
-							val ekey = getString(getColumnIndexOrThrow(COL_KEY))
-							val cslt = getString(getColumnIndexOrThrow(COL_CONTENT_SALT))
-							val ectn = getString(getColumnIndexOrThrow(COL_CONTENT))
+					cursor.use {
+						with(it) {
+							while (moveToNext()) {
+								val pid = getLong((getColumnIndexOrThrow(PKEY)))
+								val kslt = getString(getColumnIndexOrThrow(COL_KEY_SALT))
+								val ekey = getString(getColumnIndexOrThrow(COL_KEY))
+								val cslt = getString(getColumnIndexOrThrow(COL_CONTENT_SALT))
+								val ectn = getString(getColumnIndexOrThrow(COL_CONTENT))
 
-							// Decrypt using old password, break if decryption fail, possibly incorrect password
-							val ckey = crypto.decrypt(ekey.toCharArray(), CryptoUtils.decode(CryptoUtils.convert(kslt.toCharArray())))
-									?: break
-							val cctn = crypto.decrypt(ectn.toCharArray(), CryptoUtils.decode(CryptoUtils.convert(cslt.toCharArray())))
-									?: break
+								// Decrypt using old password, break if decryption fail, possibly incorrect password
+								val ckey = crypto.decrypt(ekey.toCharArray(), CryptoUtils.decode(CryptoUtils.convert(kslt.toCharArray())))
+										?: break
+								val cctn = crypto.decrypt(ectn.toCharArray(), CryptoUtils.decode(CryptoUtils.convert(cslt.toCharArray())))
+										?: break
 
-							val nkst = CryptoUtils.generateSalt()
-							val ncst = CryptoUtils.generateSalt()
+								val nkst = CryptoUtils.generateSalt()
+								val ncst = CryptoUtils.generateSalt()
 
-							// Encrypt using new password
-							val nkey = crypto.encrypt(ckey, nkst)
-							val nctn = crypto.encrypt(cctn, ncst)
+								// Encrypt using new password
+								val nkey = crypto.encrypt(ckey, nkst)
+								val nctn = crypto.encrypt(cctn, ncst)
 
-							val args = arrayOf(pid.toString())
-							val newRow = ContentValues().apply {
-								put(COL_KEY_SALT, String(CryptoUtils.convert(CryptoUtils.encode(nkst))))
-								put(COL_KEY, String(nkey))
-								put(COL_CONTENT_SALT, String(CryptoUtils.convert(CryptoUtils.encode(ncst))))
-								put(COL_CONTENT, String(nctn))
-								put(COMMON_MODF, Date().time)
+								val args = arrayOf(pid.toString())
+								val newRow = ContentValues().apply {
+									put(COL_KEY_SALT, String(CryptoUtils.convert(CryptoUtils.encode(nkst))))
+									put(COL_KEY, String(nkey))
+									put(COL_CONTENT_SALT, String(CryptoUtils.convert(CryptoUtils.encode(ncst))))
+									put(COL_CONTENT, String(nctn))
+									put(COMMON_MODF, Date().time)
+								}
+
+								if (db.update(TABLE, newRow, COMMON_PKEY, args) == 1) succd++
+								count++
 							}
 
-							if (db.update(TABLE, newRow, COMMON_PKEY, args) == 1) succd ++
-							count ++
+							if (succd == count)
+								db.setTransactionSuccessful()
 						}
-
-						if (succd == count)
-							db.setTransactionSuccessful()
 					}
-					cursor.close()
 				} finally {
 					db.endTransaction()
 				}
@@ -597,33 +602,33 @@ object DbContract {
 				val args = arrayOf(nid.toString())
 				val cursor = helper.readableDatabase.rawQuery(QUERY_CONTENT, args)
 
-				val result = mutableListOf<TagRecord>()
-				with(cursor) {
-					while (moveToNext()) {
-						val tid = getLong(getColumnIndexOrThrow(COL_TID))
-						val tag = getString(getColumnIndexOrThrow(Tags.COL_TAG_NAME))
-						val mod = getLong(getColumnIndexOrThrow(COMMON_MODF))
-						result.add(TagRecord(tid, tag, mod))
+				cursor.use {
+					val result = mutableListOf<TagRecord>()
+					with(it) {
+						while (moveToNext()) {
+							val tid = getLong(getColumnIndexOrThrow(COL_TID))
+							val tag = getString(getColumnIndexOrThrow(Tags.COL_TAG_NAME))
+							val mod = getLong(getColumnIndexOrThrow(COMMON_MODF))
+							result.add(TagRecord(tid, tag, mod))
+						}
 					}
+					return result
 				}
-
-				cursor.close()
-				return result
 			}
 			fun selectIds(helper: DbHelper, nid: Long): List<Long> {
 				val args = arrayOf(nid.toString())
 				val cursor = helper.readableDatabase.rawQuery(QUERY_CONTENT, args)
 
-				val result = mutableListOf<Long>()
-				with(cursor) {
-					while (moveToNext()) {
-						val tid = getLong(getColumnIndexOrThrow(COL_TID))
-						result.add(tid)
+				cursor.use {
+					val result = mutableListOf<Long>()
+					with(it) {
+						while (moveToNext()) {
+							val tid = getLong(getColumnIndexOrThrow(COL_TID))
+							result.add(tid)
+						}
 					}
+					return result
 				}
-
-				cursor.close()
-				return result
 			}
 
 			/**
