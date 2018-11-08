@@ -4,7 +4,6 @@ import android.content.ContentValues
 import android.database.sqlite.SQLiteDatabase
 import android.provider.BaseColumns
 import org.sea9.android.secret.compat.SmartConverter
-import org.sea9.android.secret.core.ContextFragment
 import org.sea9.android.secret.crypto.CryptoUtils
 import java.io.PrintWriter
 import java.lang.IllegalStateException
