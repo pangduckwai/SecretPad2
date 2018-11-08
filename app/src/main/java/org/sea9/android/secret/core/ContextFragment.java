@@ -618,9 +618,9 @@ public class ContextFragment extends Fragment implements
 	 */
 	public final void onSaveNote(boolean isNew, Long i, String k, String c, List<Long> t) {
 		if (isNew)
-			new InsertNoteTask(this).execute(new NoteRecord(i, k, c, t, -1));
+			new InsertNoteTask(this).execute(new NoteRecord(i, k, c, t, null, -1));
 		else
-			new UpdateNoteTask(this).execute(new NoteRecord(i, k, c, t, -1));
+			new UpdateNoteTask(this).execute(new NoteRecord(i, k, c, t, null, -1));
 	}
 	static class InsertNoteTask extends AsyncTask<NoteRecord, Void, NoteRecord> {
 		private ContextFragment caller;
@@ -643,7 +643,7 @@ public class ContextFragment extends Fragment implements
 
 				if (pid != null) {
 					if (pid >= 0) caller.getAdaptor().populateCache(); // Refresh the cache
-					return new NoteRecord(pid, records[0].getKey(), c, t, -1);
+					return new NoteRecord(pid, records[0].getKey(), c, t, null, -1);
 				}
 			}
 			return null;
@@ -705,7 +705,7 @@ public class ContextFragment extends Fragment implements
 					caller.getAdaptor().populateCache(); // Refresh the cache
 					return records[0];
 				} else {
-					return new NoteRecord(-1 * pid, records[0].getKey(), c, t, -1);
+					return new NoteRecord(-1 * pid, records[0].getKey(), c, t, null, -1);
 				}
 			}
 			return null;

@@ -175,7 +175,7 @@ object DbContract {
 
 							val txt = helper.crypto.decrypt(key.toCharArray(), CryptoUtils.decode(CryptoUtils.convert(slt.toCharArray())))
 							if (txt != null) {
-								result.add(NoteRecord(pid, String(txt), null, tags, modified))
+								result.add(NoteRecord(pid, String(txt), null, tags, null, modified))
 							} else {
 								error = true
 								break

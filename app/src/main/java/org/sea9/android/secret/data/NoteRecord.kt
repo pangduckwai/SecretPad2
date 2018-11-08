@@ -5,6 +5,7 @@ data class NoteRecord(
 		, var key: String
 		, var content: String?
 		, var tags: MutableList<Long>? = ArrayList(3)
+		, var tagNames: String?
 		, var modified: Long
 ) {
 	override fun equals(other: Any?): Boolean {

@@ -253,6 +253,13 @@ public class MainActivity extends AppCompatActivity implements
 				searchView.clearFocus();
 			}
 
+			searchView.setOnSearchClickListener(v -> {
+				if (ctxFrag.isBusy()) { // Try to disable search when busy
+					searchView.setQuery(ContextFragment.EMPTY, false);
+					searchView.setIconified(true);
+				}
+			});
+
 			searchView.findViewById(searchView.getContext().getResources()
 					.getIdentifier("android:id/search_close_btn", null, null))
 					.setOnClickListener(view -> {
@@ -361,14 +368,13 @@ public class MainActivity extends AppCompatActivity implements
 	}
 
 	private void handleIntent(Intent intent) {
-		if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
+		if (!ctxFrag.isBusy() && Intent.ACTION_SEARCH.equals(intent.getAction())) {
 			String query = intent.getStringExtra(SearchManager.QUERY);
 			if (query != null) {
 				ctxFrag.applyFilter(query);
 			}
 			ctxFrag.getAdaptor().clearSelection();
 			mainView.requestFocus();
-
 		}
 	}
 

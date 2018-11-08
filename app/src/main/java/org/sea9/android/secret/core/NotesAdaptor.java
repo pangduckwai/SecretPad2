@@ -64,10 +64,8 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 		List<NoteRecord> filtered = cache.stream().filter(p -> {
 			if (p.getKey().toLowerCase().contains(query)) {
 				return true;
-			} else if (p.getTags() != null) {
-				for (Long tid : p.getTags()) {
-					if (caller.getTag(tid).toLowerCase().contains(query)) return true;
-				}
+			} else if (p.getTagNames() != null) {
+				if (p.getTagNames().contains(query)) return true;
 			}
 			return false;
 		}).collect(Collectors.toList());
@@ -137,13 +135,9 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 		NoteRecord record = cache.get(position);
 		holder.key.setText(record.getKey());
 
-		List<Long> tags = record.getTags();
-		if ((tags != null) && tags.size() > 0) {
-			StringBuilder buff = new StringBuilder(caller.getTag(tags.get(0)));
-			for (int i = 1; i < tags.size(); i ++) {
-				buff.append(SPACE).append(caller.getTag(tags.get(i)));
-			}
-			holder.tag.setText(buff.toString());
+		String tagNames = record.getTagNames();
+		if (tagNames != null) {
+			holder.tag.setText(record.getTagNames());
 		}
 	}
 
@@ -157,9 +151,21 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 	 * Data access methods.
 	 */
 	final void populateCache() {
-		if (caller.isBusy()) return;
 		try {
 			cache = DbContract.Notes.Companion.select(caller.getDbHelper());
+
+			// Build the concatenated tag string
+			StringBuilder buff = new StringBuilder();
+			for (NoteRecord record : cache) {
+				List<Long> tags = record.getTags();
+				if ((tags != null) && (tags.size() > 0)) {
+					buff.setLength(0);
+					buff.append(caller.getTag(tags.get(0)));
+					for (int i = 1; i < tags.size(); i ++)
+						buff.append(SPACE).append(caller.getTag(tags.get(i)));
+					record.setTagNames(buff.toString());
+				}
+			}
 		} catch (RuntimeException e) {
 			if ((e.getCause() != null) && (e.getCause() instanceof BadPaddingException)) {
 				String msg = String.format(caller.getContext().getString(R.string.msg_logon_fail), e.getMessage());
