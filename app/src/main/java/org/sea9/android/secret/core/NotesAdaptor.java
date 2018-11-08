@@ -37,8 +37,8 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 		caller.updateContent(null);
 	}
 	final int findSelectedPosition(long pid) {
-		for (int i = 0; i < cache.size(); i ++) {
-			if (pid == cache.get(i).getPid()) {
+		for (int i = 0; i < shown.size(); i ++) {
+			if (pid == shown.get(i).getPid()) {
 				return i;
 			}
 		}
@@ -50,35 +50,37 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 		selectDetails(position);
 	}
 
+	private List<NoteRecord> shown;
 	private List<NoteRecord> cache;
 	final NoteRecord getRecord(int position) {
-		if ((position >= 0) && (position < cache.size()))
-			return cache.get(position);
+		if ((position >= 0) && (position < shown.size()))
+			return shown.get(position);
 		else
 			return null;
 	}
 	final void filterRecords(String query) {
-		populateCache();
-
 		// Do this since using removeif() got an UnsupportedOperationException
 		List<NoteRecord> filtered = cache.stream().filter(p -> {
 			if (p.getKey().toLowerCase().contains(query)) {
 				return true;
-			} else if (p.getTagNames() != null) {
-				if (p.getTagNames().contains(query)) return true;
-			}
-			return false;
+			} else
+				return (p.getTagNames() != null) && p.getTagNames().contains(query);
 		}).collect(Collectors.toList());
 		if (filtered != null) {
-			cache = filtered;
+			shown = filtered;
 		}
 	}
+	final void clearFilter() {
+		shown = cache;
+	}
 	final void clearRecords() {
+		shown.clear();
 		cache.clear();
 	}
 
 	NotesAdaptor(Caller ctx) {
 		caller = ctx;
+		shown = new ArrayList<>();
 		cache = new ArrayList<>();
 	}
 
@@ -132,7 +134,7 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 			holder.itemView.setSelected(false);
 		}
 
-		NoteRecord record = cache.get(position);
+		NoteRecord record = shown.get(position);
 		holder.key.setText(record.getKey());
 
 		String tagNames = record.getTagNames();
@@ -143,7 +145,7 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 
 	@Override
 	public int getItemCount() {
-		return cache.size();
+		return shown.size();
 	}
 	//=====================================================
 
@@ -166,6 +168,8 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 					record.setTagNames(buff.toString());
 				}
 			}
+
+			shown = cache;
 		} catch (RuntimeException e) {
 			if ((e.getCause() != null) && (e.getCause() instanceof BadPaddingException)) {
 				String msg = String.format(caller.getContext().getString(R.string.msg_logon_fail), e.getMessage());
@@ -175,13 +179,14 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 		}
 		if (cache == null) {
 			cache = new ArrayList<>();
+			shown = new ArrayList<>();
 		}
 	}
 
 	final void selectDetails(int position) { // Retrieve detail of the selected row
 		if (caller.isBusy()) return;
-		if ((position >= 0) && (position < cache.size())) {
-			String content = DbContract.Notes.Companion.select(caller.getDbHelper(), cache.get(position).getPid());
+		if ((position >= 0) && (position < shown.size())) {
+			String content = DbContract.Notes.Companion.select(caller.getDbHelper(), shown.get(position).getPid());
 			if (content != null) {
 				caller.updateContent(content);
 			}
@@ -190,8 +195,8 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 
 	final int delete(int position) {
 		int ret = -1;
-		if ((position >= 0) && (position < cache.size())) {
-			ret = DbContract.Notes.Companion.delete(caller.getDbHelper(), cache.get(position).getPid());
+		if ((position >= 0) && (position < shown.size())) {
+			ret = DbContract.Notes.Companion.delete(caller.getDbHelper(), shown.get(position).getPid());
 			if (ret >= 0) {
 				if (position < selectedPos) {
 					selectedPos --;
@@ -228,7 +233,7 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 		void onLogoff();
 		String getTag(long tid);
 		Context getContext();
-		ContextFragment.Callback getCallback();
+		ContextFragment.Callback getCallback(); //TODO : simplify this Caller by getting the callback directly?
 	}
 	private Caller caller;
 }

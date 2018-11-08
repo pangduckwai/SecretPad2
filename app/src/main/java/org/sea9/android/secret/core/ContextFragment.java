@@ -219,14 +219,22 @@ public class ContextFragment extends Fragment implements
 
 	public void clearFilter() {
 		if (isFiltered()) {
-			NoteRecord r = null;
-			int pos = adaptor.getSelectedPosition();
-			if (pos >= 0) r = adaptor.getRecord(pos);
-
 			filterQuery = null;
-			long pid = -1;
-			if (r != null) pid = r.getPid();
-			new AsyncDbReadTask(this).execute(pid);
+			int pos = adaptor.getSelectedPosition();
+			if (pos >= 0) {
+				NoteRecord r = adaptor.getRecord(pos);
+				if (r != null) {
+					long pid = r.getPid();
+
+					adaptor.clearFilter();
+					adaptor.notifyDataSetChanged();
+					int position = adaptor.findSelectedPosition(pid);
+					if (position >= 0) {
+						adaptor.selectRow(position);
+						callback.onScrollToPosition(position);
+					}
+				}
+			}
 		}
 	}
 
