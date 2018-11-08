@@ -265,17 +265,7 @@ public class ContextFragment extends Fragment implements
 	/*=======================================================
 	 * @see org.sea9.android.secret.main.NotesAdaptor.Caller
 	 */
-	public void updateContent(String content) {
-		if (content != null)
-			callback.onRowSelectionChanged(content);
-		else
-			callback.onRowSelectionChanged(EMPTY);
-	}
-
-	public void longPressed() {
-		callback.longPressed();
-	}
-
+	@Override
 	public String getTag(long tid) {
 		String ret = getTagsAdaptor().getTag(tid);
 		if (ret == null)

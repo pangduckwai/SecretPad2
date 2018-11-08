@@ -34,7 +34,7 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 	final int getSelectedPosition() { return selectedPos; }
 	final void clearSelection() {
 		selectedPos = -1;
-		caller.updateContent(null);
+		caller.getCallback().onRowSelectionChanged(ContextFragment.EMPTY);
 	}
 	final int findSelectedPosition(long pid) {
 		for (int i = 0; i < shown.size(); i ++) {
@@ -116,7 +116,7 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 			if (!caller.isFiltered() && !caller.isBusy()) {
 				int position = recyclerView.getChildLayoutPosition(view);
 				selectRow(position);
-				caller.longPressed();
+				caller.getCallback().longPressed();
 				notifyDataSetChanged();
 				return true;
 			} else
@@ -188,7 +188,7 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 		if ((position >= 0) && (position < shown.size())) {
 			String content = DbContract.Notes.Companion.select(caller.getDbHelper(), shown.get(position).getPid());
 			if (content != null) {
-				caller.updateContent(content);
+				caller.getCallback().onRowSelectionChanged(content);
 			}
 		}
 	}
@@ -225,15 +225,13 @@ public class NotesAdaptor extends RecyclerView.Adapter<NotesAdaptor.ViewHolder> 
 	 * Access interface to the ContextFragment
 	 */
 	public interface Caller {
+		ContextFragment.Callback getCallback();
+		Context getContext();
 		DbHelper getDbHelper();
+		String getTag(long tid);
 		boolean isFiltered();
 		boolean isBusy();
-		void longPressed();
-		void updateContent(String content);
 		void onLogoff();
-		String getTag(long tid);
-		Context getContext();
-		ContextFragment.Callback getCallback(); //TODO : simplify this Caller by getting the callback directly?
 	}
 	private Caller caller;
 }
