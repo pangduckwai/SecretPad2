@@ -559,7 +559,10 @@ object DbContract {
 				} finally {
 					db.endTransaction()
 				}
-				return (succd - count)
+				return if (succd <= 0)
+					-1
+				else
+					(succd - count)
 			}
 		}
 	}
