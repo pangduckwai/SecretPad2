@@ -313,15 +313,43 @@ public class ContextFragment extends Fragment implements
 	}
 
 	private File tempFile;
+	final File getTempFile() { return tempFile; }
 	private char[] tempPassword;
-	public void importOldFormat(char[] value, boolean smart) {
+	final void cleanUp() {
+		for (int i = 0; i < tempPassword.length; i++)
+			tempPassword[i] = 0;
+		tempPassword = null;
+		tempFile = null;
+	}
+
+	public final void importOldFormat(char[] value, boolean smart) {
 		if (tempFile != null) {
 			tempPassword = value;
 			SmartConverter converter = null;
 			if (smart) {
 				converter = SmartConverter.getInstance();
 			}
-			(new ImportOldFormatTask(this, converter)).execute();
+			(new AsyncImportOldTask(this, new DbHelper.Crypto() {
+					@Override
+					public char[] decrypt(@NotNull char[] input, @NotNull byte[] salt) {
+						try {
+							return CompatCryptoUtils.decrypt(input, tempPassword, salt);
+						} catch (RuntimeException e) {
+							Log.i(TAG, e.getMessage(), e);
+							callback.doNotify(String.format(getString(R.string.msg_logon_fail), e.getMessage()), true);
+							return null;
+						}
+					}
+
+					@Override @NotNull
+					public char[] encrypt(@NotNull char[] input, @NotNull byte[] salt) {
+						try {
+							return CryptoUtils.encrypt(input, password, salt);
+						} catch (BadPaddingException e) {
+							throw new RuntimeException(e);
+						}
+					}
+				}, converter)).execute();
 		}
 	}
 	//===========================================================
@@ -870,121 +898,121 @@ public class ContextFragment extends Fragment implements
 		}
 	}
 
-	/**
-	 * Import notes in old format.
-	 */
-	static class ImportOldFormatTask extends AsyncTask<Void, Void, Response> {
-		private ContextFragment caller;
-		private SmartConverter converter;
-		ImportOldFormatTask(ContextFragment ctx, SmartConverter cvr) {
-			caller = ctx;
-			converter = cvr;
-		}
-
-		@Override
-		protected void onPreExecute() {
-			caller.callback.setBusyState(true);
-		}
-
-		@Override
-		protected Response doInBackground(Void... voids) {
-			Response response = new Response();
-			String line;
-			String old[];
-			int count = 0;
-			int succd = 0;
-			BufferedReader reader = null;
-			try {
-				reader = new BufferedReader(new FileReader(caller.tempFile));
-				while ((line = reader.readLine()) != null) {
-					old = line.split(TAB);
-					if (old.length == OLD_FORMAT_COLUMN_COUNT) {
-						// Old format: ID, salt, category, title*, content*, modified
-						int ret = DbContract.Notes.Companion.doOldImport(caller.getDbHelper(), new DbHelper.Crypto() {
-							@Override
-							public char[] decrypt(@NotNull char[] input, @NotNull byte[] salt) {
-								try {
-									return CompatCryptoUtils.decrypt(input, caller.tempPassword, salt);
-								} catch (RuntimeException e) {
-									Log.i(TAG, e.getMessage(), e);
-									caller.callback.doNotify(String.format(caller.getString(R.string.msg_logon_fail), e.getMessage()), true);
-									return null;
-								}
-							}
-
-							@Override @NotNull
-							public char[] encrypt(@NotNull char[] input, @NotNull byte[] salt) {
-								try {
-									return CryptoUtils.encrypt(input, caller.password, salt);
-								} catch (BadPaddingException e) {
-									throw new RuntimeException(e);
-								}
-							}
-						}, old, converter);
-						if (ret >= 0)
-							succd ++;
-						else if (ret < -1) {
-							return response.setStatus(-4);
-						}
-					} else {
-						response.setErrors("Invalid file format at row " + count);
-					}
-					count ++;
-				}
-				return response.setStatus(succd);
-			} catch (FileNotFoundException e) {
-				Log.w(TAG, e);
-				return response.setStatus(-3).setErrors(e.getMessage());
-			} catch (IOException e) {
-				Log.w(TAG, e);
-				return response.setStatus(-2).setErrors(e.getMessage());
-			} catch (RuntimeException e) {
-				Log.w(TAG, e);
-				return response.setStatus(-1).setErrors(e.getMessage());
-			} finally {
-				if (reader != null) {
-					try {
-						reader.close();
-					} catch (IOException e) {
-						Log.d(TAG, e.getMessage());
-					}
-				}
-			}
-		}
-
-		@Override
-		protected void onPostExecute(Response response) {
-			if (response.getStatus() >= 0) {
-				if ((response.getErrors() == null) || (response.getErrors().trim().length() <= 0))
-					caller.callback.doNotify(
-							String.format(caller.getString(R.string.msg_migrate_okay), response.getStatus(), caller.tempFile.getPath(), (response.getStatus() > 1)? PLURAL :EMPTY),
-							false
-					);
-				else {
-					String rspn = "Importing " + caller.tempFile.getPath() + '\n' + response.getErrors();
-					caller.callback.doNotify(rspn, true);
-					Log.w(TAG, rspn);
-				}
-				caller.getTagsAdaptor().populateCache();
-				caller.getAdaptor().populateCache();
-				caller.getAdaptor().notifyDataSetChanged();
-			} else if (response.getStatus() != -4) { //-4 already handled
-				caller.callback.doNotify(
-						String.format(caller.getString(R.string.msg_migrate_fail), caller.tempFile.getPath(), response.getStatus()),
-						true
-				);
-			}
-			cleanUp();
-		}
-
-		private void cleanUp() {
-			for (int i = 0; i < caller.tempPassword.length; i++)
-				caller.tempPassword[i] = 0;
-			caller.tempPassword = null;
-			caller.tempFile = null;
-			caller.callback.setBusyState(false);
-		}
-	}
+//	/**
+//	 * Import notes in old format.
+//	 */
+//	static class ImportOldFormatTask extends AsyncTask<Void, Void, Response> {
+//		private ContextFragment caller;
+//		private SmartConverter converter;
+//		ImportOldFormatTask(ContextFragment ctx, SmartConverter cvr) {
+//			caller = ctx;
+//			converter = cvr;
+//		}
+//
+//		@Override
+//		protected void onPreExecute() {
+//			caller.callback.setBusyState(true);
+//		}
+//
+//		@Override
+//		protected Response doInBackground(Void... voids) {
+//			Response response = new Response();
+//			String line;
+//			String old[];
+//			int count = 0;
+//			int succd = 0;
+//			BufferedReader reader = null;
+//			try {
+//				reader = new BufferedReader(new FileReader(caller.tempFile));
+//				while ((line = reader.readLine()) != null) {
+//					old = line.split(TAB);
+//					if (old.length == OLD_FORMAT_COLUMN_COUNT) {
+//						// Old format: ID, salt, category, title*, content*, modified
+//						int ret = DbContract.Notes.Companion.doOldImport(caller.getDbHelper(), new DbHelper.Crypto() {
+//							@Override
+//							public char[] decrypt(@NotNull char[] input, @NotNull byte[] salt) {
+//								try {
+//									return CompatCryptoUtils.decrypt(input, caller.tempPassword, salt);
+//								} catch (RuntimeException e) {
+//									Log.i(TAG, e.getMessage(), e);
+//									caller.callback.doNotify(String.format(caller.getString(R.string.msg_logon_fail), e.getMessage()), true);
+//									return null;
+//								}
+//							}
+//
+//							@Override @NotNull
+//							public char[] encrypt(@NotNull char[] input, @NotNull byte[] salt) {
+//								try {
+//									return CryptoUtils.encrypt(input, caller.password, salt);
+//								} catch (BadPaddingException e) {
+//									throw new RuntimeException(e);
+//								}
+//							}
+//						}, old, converter);
+//						if (ret >= 0)
+//							succd ++;
+//						else if (ret < -1) {
+//							return response.setStatus(-4);
+//						}
+//					} else {
+//						response.setErrors("Invalid file format at row " + count);
+//					}
+//					count ++;
+//				}
+//				return response.setStatus(succd);
+//			} catch (FileNotFoundException e) {
+//				Log.w(TAG, e);
+//				return response.setStatus(-3).setErrors(e.getMessage());
+//			} catch (IOException e) {
+//				Log.w(TAG, e);
+//				return response.setStatus(-2).setErrors(e.getMessage());
+//			} catch (RuntimeException e) {
+//				Log.w(TAG, e);
+//				return response.setStatus(-1).setErrors(e.getMessage());
+//			} finally {
+//				if (reader != null) {
+//					try {
+//						reader.close();
+//					} catch (IOException e) {
+//						Log.d(TAG, e.getMessage());
+//					}
+//				}
+//			}
+//		}
+//
+//		@Override
+//		protected void onPostExecute(Response response) {
+//			if (response.getStatus() >= 0) {
+//				if ((response.getErrors() == null) || (response.getErrors().trim().length() <= 0))
+//					caller.callback.doNotify(
+//							String.format(caller.getString(R.string.msg_migrate_okay), response.getStatus(), caller.tempFile.getPath(), (response.getStatus() > 1)? PLURAL :EMPTY),
+//							false
+//					);
+//				else {
+//					String rspn = "Importing " + caller.tempFile.getPath() + '\n' + response.getErrors();
+//					caller.callback.doNotify(rspn, true);
+//					Log.w(TAG, rspn);
+//				}
+//				caller.getTagsAdaptor().populateCache();
+//				caller.getAdaptor().populateCache();
+//				caller.getAdaptor().notifyDataSetChanged();
+//			} else if (response.getStatus() != -4) { //-4 already handled
+//				caller.callback.doNotify(
+//						String.format(caller.getString(R.string.msg_migrate_fail), caller.tempFile.getPath(), response.getStatus()),
+//						true
+//				);
+//			}
+//			cleanUp();
+//		}
+//
+//		private void cleanUp() {
+//			for (int i = 0; i < caller.tempPassword.length; i++)
+//				caller.tempPassword[i] = 0;
+//			caller.tempPassword = null;
+//			caller.tempFile = null;
+//			caller.callback.setBusyState(false);
+//		}
+//	}
 
 	/**
 	 * Export notes in encrypted format.

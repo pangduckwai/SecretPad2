@@ -55,7 +55,12 @@ class AsyncExportTask(private val caller: ContextFragment): AsyncTask<File, Void
 	override fun onPostExecute(result: Int?) {
 		if (result != null) {
 			if (result >= 0) {
-				caller.callback.doNotify(String.format(caller.getString(R.string.msg_export_okay), result, exportFileName, if (result > 1) PLURAL else EMPTY), false)
+				caller.callback.doNotify(
+						String.format(caller.getString(R.string.msg_export_okay)
+								, result
+								, exportFileName
+								, if (result > 1) PLURAL else EMPTY)
+						, false)
 			} else {
 				caller.callback.doNotify(String.format(caller.getString(R.string.msg_export_error), result), true)
 			}
