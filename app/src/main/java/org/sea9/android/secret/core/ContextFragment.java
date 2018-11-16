@@ -279,13 +279,13 @@ public class ContextFragment extends Fragment implements
 	 * @see org.sea9.android.secret.io.FileChooserAdaptor.Caller
 	 */
 	@Override
-	public void directorySelected(File selected) {
+	public void directorySelected(@NonNull File selected) {
 		Log.d(TAG, "Directory selected: " + selected.getName());
 		callback.onDirectorySelected(selected);
 	}
 
 	@Override
-	public void fileSelected(File selected) {
+	public void fileSelected(@NonNull File selected) {
 		Log.d(TAG, "File selected: " + selected.getName());
 		callback.onFileSelected();
 		(new AsyncImportTask(this)).execute(selected);

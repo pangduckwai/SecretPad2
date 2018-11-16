@@ -58,7 +58,7 @@ class FileChooser : DialogFragment() {
 		val adaptor = callback?.getFileAdaptor()
 		fileList.adapter = adaptor
 
-		adaptor?.select(null)
+		adaptor?.populateCache(null)
 	}
 
 	/*========================================
