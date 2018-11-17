@@ -113,6 +113,17 @@ public class ContextFragment extends Fragment implements
 	@Override public final void dataUpdated() { updated = true; }
 	//=========================================
 
+	/*=====================
+	 * Handle app settings
+	 */
+	public static final int SETTING_SORTBY_KEY = 0;
+	public static final int SETTING_SORTBY_TAG = 1;
+
+	private int sortBy = SETTING_SORTBY_TAG;
+	public final int getSortBy() { return sortBy; }
+	public final void setSortBy(int sort) { sortBy = sort; }
+	//=====================
+
 	/*=============================
 	 * Handle logon related stuffs
 	 */
@@ -350,7 +361,7 @@ public class ContextFragment extends Fragment implements
 		void onTagAdded(int position);
 		void onNoteSaved(boolean successful);
 	}
-	private Callback callback;
+	Callback callback; //TODO TEMP until move this to kotlin
 	public final Callback getCallback() { return callback; }
 
 	@Override

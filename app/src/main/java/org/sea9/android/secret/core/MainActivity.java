@@ -6,6 +6,7 @@ import android.app.SearchManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -57,6 +58,7 @@ public class MainActivity extends AppCompatActivity implements
 		MessageDialog.Callback {
 	public static final String TAG = "secret.main";
 	private static final int READ_EXTERNAL_STORAGE_REQUEST = 17523;
+	private static final String SETTING_SORTBY = "setting.sortBy";
 
 	private View mainView;
 	private ProgressBar progress;
@@ -180,11 +182,14 @@ public class MainActivity extends AppCompatActivity implements
 		}
 		recycler.setAdapter(ctxFrag.getAdaptor());
 
+		SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
+		ctxFrag.setSortBy(sharedPref.getInt(SETTING_SORTBY, ContextFragment.SETTING_SORTBY_TAG));
+
 		// If there is already a selection...
 		int pos = ctxFrag.getAdaptor().getSelectedPosition();
 		if (pos >= 0) {
 			recycler.smoothScrollToPosition(pos); // Scroll list to the selected row
-			ctxFrag.getAdaptor().selectDetails(pos);
+			ctxFrag.getAdaptor().retrieveDetails(pos);
 		}
 
 		// Restore busy state

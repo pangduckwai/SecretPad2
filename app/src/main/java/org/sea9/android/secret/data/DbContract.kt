@@ -44,12 +44,12 @@ object DbContract {
 			/**
 			 * Select all tags.
 			 */
-			fun select(helper: DbHelper): List<TagRecord> {
-				val cursor = helper.readableDatabase
-						.query(TABLE, COLUMNS, null, null, null, null, COL_TAG_NAME)
+			fun select(helper: DbHelper?): List<TagRecord> {
+				val cursor = helper?.readableDatabase
+						?.query(TABLE, COLUMNS, null, null, null, null, COL_TAG_NAME)
 
-				cursor.use {
-					val result = mutableListOf<TagRecord>()
+				val result = mutableListOf<TagRecord>()
+				cursor?.use {
 					with(it) {
 						while (moveToNext()) {
 							val pid = getLong(getColumnIndexOrThrow(PKEY))
@@ -59,40 +59,40 @@ object DbContract {
 							result.add(item)
 						}
 					}
-					return result
 				}
+				return result
 			}
 
 			/**
 			 * Search by tag name if a record already exists or not.
 			 */
-			fun search(helper: DbHelper, tagName: String): List<Long> {
+			fun search(helper: DbHelper?, tagName: String): List<Long> {
 				val args = arrayOf(tagName)
-				val cursor = helper.readableDatabase.rawQuery(QUERY_SEARCH, args)
+				val cursor = helper?.readableDatabase?.rawQuery(QUERY_SEARCH, args)
 
-				cursor.use {
-					val result = mutableListOf<Long>()
+				val result = mutableListOf<Long>()
+				cursor?.use {
 					with(it) {
 						while (moveToNext()) {
 							val pid = getLong(getColumnIndexOrThrow(PKEY))
 							result.add(pid)
 						}
 					}
-					return result
 				}
+				return result
 			}
 
 			/**
 			 * Insert a tag.
 			 */
-			fun insert(helper: DbHelper, tagName: String): TagRecord? {
+			fun insert(helper: DbHelper?, tagName: String): TagRecord? {
 				val timestamp = Date().time
 				val newRow = ContentValues().apply {
 					put(COL_TAG_NAME, tagName)
 					put(COMMON_MODF, timestamp)
 				}
-				val pid = helper.writableDatabase.insertOrThrow(TABLE, null, newRow)
-				return if (pid >= 0) {
+				val pid = helper?.writableDatabase?.insertOrThrow(TABLE, null, newRow)
+				return if (pid != null && pid >= 0) {
 					TagRecord(pid, tagName, timestamp)
 				} else {
 					null
@@ -102,8 +102,8 @@ object DbContract {
 			/**
 			 * Delete any unused tags.
 			 */
-			fun delete(helper: DbHelper): Int {
-				return helper.writableDatabase.compileStatement(QUERY_DELETE).executeUpdateDelete()
+			fun delete(helper: DbHelper?): Int {
+				return helper?.writableDatabase?.compileStatement(QUERY_DELETE)?.executeUpdateDelete() ?: -1
 			}
 		}
 	}
@@ -137,10 +137,10 @@ object DbContract {
 			private const val CONVERTED_MIN_COLUMN = 2
 			const val TAB = "\t"
 
-			fun count(helper: DbHelper): Int {
-				val cursor = helper.readableDatabase.rawQuery(QUERY_COUNT, null)
-				cursor.use {
-					var result = -1
+			fun count(helper: DbHelper?): Int {
+				val cursor = helper?.readableDatabase?.rawQuery(QUERY_COUNT, null)
+				var result = -1
+				cursor?.use {
 					with(it) {
 						while (moveToNext()) {
 							if (columnCount == 1) {
@@ -149,21 +149,21 @@ object DbContract {
 							}
 						}
 					}
-					return result
 				}
+				return result
 			}
 
 			/**
 			 * Select all notes.
 			 */
-			fun select(helper: DbHelper): List<NoteRecord>? {
+			fun select(helper: DbHelper?): List<NoteRecord>? {
 				// Not using order-by in query because keys are encrypted as well
-				val cursor = helper.readableDatabase
-						.query(TABLE, KEYS, null, null, null, null, null)
+				val cursor = helper?.readableDatabase
+						?.query(TABLE, KEYS, null, null, null, null, null)
 
-				cursor.use { c ->
-					val result = mutableSetOf<NoteRecord>()
-					var error = false
+				val result = mutableSetOf<NoteRecord>()
+				var error = false
+				cursor?.use { c ->
 					with(c) {
 						while (moveToNext()) {
 							val pid = getLong((getColumnIndexOrThrow(PKEY)))
@@ -182,28 +182,29 @@ object DbContract {
 							}
 						}
 					}
-					return if (!error) {
-						result.asSequence()
-								.sortedWith(compareBy { it.key }) // Sort here after decrypt
-								.toMutableList()
-					} else {
-						null
-					}
+				}
+				return if (!error) {
+//					result.asSequence()
+//							.sortedWith(compareBy { it.key }) // Sort here after decrypt
+//							.toMutableList()
+					result.toMutableList()
+				} else {
+					null
 				}
 			}
 
 			/**
 			 * Select one note by its ID, returns only the content.
 			 */
-			fun select(helper: DbHelper, nid: Long): String? {
+			fun select(helper: DbHelper?, nid: Long): String? {
 				val args = arrayOf(nid.toString())
-				val cursor = helper.readableDatabase
-						.query(TABLE, COLUMNS, COMMON_PKEY, args, null, null, null)
+				val cursor = helper?.readableDatabase
+						?.query(TABLE, COLUMNS, COMMON_PKEY, args, null, null, null)
 
-				cursor.use {
-					var rowCount = 0
-					lateinit var ctn: String
-					lateinit var slt: String
+				var rowCount = 0
+				lateinit var ctn: String
+				lateinit var slt: String
+				cursor?.use {
 					with(it) {
 						while (moveToNext()) {
 							rowCount++
@@ -211,16 +212,15 @@ object DbContract {
 							ctn = getString(getColumnIndexOrThrow(COL_CONTENT))
 						}
 					}
-
-					if (rowCount != 1) {
-						throw IllegalStateException("Corrupted database table")
+				}
+				if (rowCount != 1) {
+					throw IllegalStateException("Corrupted database table")
+				} else {
+					val ret = helper?.crypto?.decrypt(ctn.toCharArray(), CryptoUtils.decode(CryptoUtils.convert(slt.toCharArray())))
+					return if (ret != null) {
+						String(ret)
 					} else {
-						val ret = helper.crypto.decrypt(ctn.toCharArray(), CryptoUtils.decode(CryptoUtils.convert(slt.toCharArray())))
-						return if (ret != null) {
-							String(ret)
-						} else {
-							null
-						}
+						null
 					}
 				}
 			}
@@ -228,132 +228,141 @@ object DbContract {
 			/**
 			 * Insert a new note and all associated tag relations.
 			 */
-			fun insert(helper: DbHelper, key: String, content: String, tags: List<Long>): Long? {
-				val db = helper.writableDatabase
+			fun insert(helper: DbHelper?, key: String, content: String, tags: List<Long>): Long? {
+				val db = helper?.writableDatabase
 
-				val ksalt = CryptoUtils.generateSalt()
-				val csalt = CryptoUtils.generateSalt()
-				val kcphr = helper.crypto.encrypt(key.toCharArray(), ksalt)
-				val ccphr = helper.crypto.encrypt(content.toCharArray(), csalt)
-				val kcomp = key.trim().toLowerCase()
+				if (db != null) {
+					val ksalt = CryptoUtils.generateSalt()
+					val csalt = CryptoUtils.generateSalt()
+					val kcphr = helper.crypto.encrypt(key.toCharArray(), ksalt)
+					val ccphr = helper.crypto.encrypt(content.toCharArray(), csalt)
+					val kcomp = key.trim().toLowerCase()
 
-				val newRow = ContentValues().apply {
-					put(COL_KEY_SALT, String(CryptoUtils.convert(CryptoUtils.encode(ksalt))))
-					put(COL_KEY, String(kcphr))
-					put(COL_CONTENT_SALT, String(CryptoUtils.convert(CryptoUtils.encode(csalt))))
-					put(COL_CONTENT, String(ccphr))
-					put(COMMON_MODF, Date().time)
-				}
+					val newRow = ContentValues().apply {
+						put(COL_KEY_SALT, String(CryptoUtils.convert(CryptoUtils.encode(ksalt))))
+						put(COL_KEY, String(kcphr))
+						put(COL_CONTENT_SALT, String(CryptoUtils.convert(CryptoUtils.encode(csalt))))
+						put(COL_CONTENT, String(ccphr))
+						put(COMMON_MODF, Date().time)
+					}
 
-				db.beginTransactionNonExclusive()
-				try {
-					val cursor = db.query(TABLE, KEYS, null, null, null, null, null)
-					cursor.use {
-						with(it) {
-							while (moveToNext()) {
-								val pid = getLong((getColumnIndexOrThrow(PKEY)))
-								val slt = getString(getColumnIndexOrThrow(COL_KEY_SALT))
-								val ttl = getString(getColumnIndexOrThrow(COL_KEY))
-								val txt = helper.crypto.decrypt(ttl.toCharArray(), CryptoUtils.decode(CryptoUtils.convert(slt.toCharArray())))
-										?: run {
-											close()
-											return null
-										} //incorrect password
+					db.beginTransactionNonExclusive()
+					try {
+						val cursor = db.query(TABLE, KEYS, null, null, null, null, null)
+						cursor.use {
+							with(it) {
+								while (moveToNext()) {
+									val pid = getLong((getColumnIndexOrThrow(PKEY)))
+									val slt = getString(getColumnIndexOrThrow(COL_KEY_SALT))
+									val ttl = getString(getColumnIndexOrThrow(COL_KEY))
+									val txt = helper.crypto.decrypt(ttl.toCharArray(), CryptoUtils.decode(CryptoUtils.convert(slt.toCharArray())))
+											?: run {
+												close()
+												return null
+											} //incorrect password
 
-								if (String(txt).trim().toLowerCase() == kcomp) {
-									close()
-									return -1 * pid
-								} // found duplicated key
+									if (String(txt).trim().toLowerCase() == kcomp) {
+										close()
+										return -1 * pid
+									} // found duplicated key
+								}
 							}
 						}
-					}
 
-					val nid = db.insertOrThrow(TABLE, null, newRow)
-					if (nid >= 0) {
-						var failed = 0
-						for (tid in tags) {
-							if (NoteTags.insert(db, nid, tid) < 0) failed++
+						val nid = db.insertOrThrow(TABLE, null, newRow)
+						if (nid >= 0) {
+							var failed = 0
+							for (tid in tags) {
+								if (NoteTags.insert(db, nid, tid) < 0) failed++
+							}
+							if (failed > 0)
+								return null
+
+							db.setTransactionSuccessful()
 						}
-						if (failed > 0)
-							return null
-
-						db.setTransactionSuccessful()
+						return nid
+					} finally {
+						db.endTransaction()
 					}
-					return nid
-				} finally {
-					db.endTransaction()
 				}
+				return null
 			}
 
 			/**
 			 * Update the content of a note, and delete/insert all associated tag relations, by the note ID.
 			 */
-			fun update(helper: DbHelper, nid: Long, content: String, tags: List<Long>): Int {
+			fun update(helper: DbHelper?, nid: Long, content: String, tags: List<Long>): Int {
 				val args = arrayOf(nid.toString())
-				val db = helper.writableDatabase
+				val db = helper?.writableDatabase
 				var ret = -1
 
-				val salt = CryptoUtils.generateSalt()
-				val cphr = helper.crypto.encrypt(content.toCharArray(), salt)
+				if (db != null) {
+					val salt = CryptoUtils.generateSalt()
+					val cphr = helper.crypto.encrypt(content.toCharArray(), salt)
 
-				val newRow = ContentValues().apply {
-					put(COL_CONTENT_SALT, String(CryptoUtils.convert(CryptoUtils.encode(salt))))
-					put(COL_CONTENT, String(cphr))
-					put(COMMON_MODF, Date().time)
-				}
+					val newRow = ContentValues().apply {
+						put(COL_CONTENT_SALT, String(CryptoUtils.convert(CryptoUtils.encode(salt))))
+						put(COL_CONTENT, String(cphr))
+						put(COMMON_MODF, Date().time)
+					}
 
-				db.beginTransactionNonExclusive()
-				try {
-					val count = db.delete(NoteTags.TABLE, "${NoteTags.COL_NID} = ?", args)
-					if (count >= 0) {
-						var failed = 0
-						for (tid in tags) {
-							if (NoteTags.insert(db, nid, tid) < 0) failed ++
-						}
-						if (failed == 0) {
-							ret = db.update(TABLE, newRow, COMMON_PKEY, args)
-							if (ret >= 0) {
-								db.setTransactionSuccessful()
+					db.beginTransactionNonExclusive()
+					try {
+						val count = db.delete(NoteTags.TABLE, "${NoteTags.COL_NID} = ?", args)
+						if (count >= 0) {
+							var failed = 0
+							for (tid in tags) {
+								if (NoteTags.insert(db, nid, tid) < 0) failed++
+							}
+							if (failed == 0) {
+								ret = db.update(TABLE, newRow, COMMON_PKEY, args)
+								if (ret >= 0) {
+									db.setTransactionSuccessful()
+								}
 							}
 						}
+						return ret
+					} finally {
+						db.endTransaction()
 					}
-					return ret
-				} finally {
-					db.endTransaction()
 				}
+				return ret
 			}
 
 			/**
 			 * Delete a note, and all its associated tag relations, by its ID.
 			 */
-			fun delete(helper: DbHelper, nid: Long): Int {
+			fun delete(helper: DbHelper?, nid: Long): Int {
 				val args = arrayOf(nid.toString())
-				val db = helper.writableDatabase
+				val db = helper?.writableDatabase
 				var ret = -1
 
-				db.beginTransactionNonExclusive()
-				try {
-					val count = db.delete(NoteTags.TABLE, "${NoteTags.COL_NID} = ?", args)
-					if (count >= 0) {
-						ret = db.delete(TABLE, COMMON_PKEY, args)
-						if (ret >= 0) {
-							db.setTransactionSuccessful()
+				if (db != null) {
+					db.beginTransactionNonExclusive()
+					try {
+						val count = db.delete(NoteTags.TABLE, "${NoteTags.COL_NID} = ?", args)
+						if (count >= 0) {
+							ret = db.delete(TABLE, COMMON_PKEY, args)
+							if (ret >= 0) {
+								db.setTransactionSuccessful()
+							}
 						}
+						return ret
+					} finally {
+						db.endTransaction()
 					}
-					return ret
-				} finally {
-					db.endTransaction()
 				}
+				return ret
 			}
 
 			/**
 			 * Export notes in encrypted format.
 			 */
-			fun doExport(helper: DbHelper, out: PrintWriter): Int {
-				val cursor = helper.readableDatabase
-						.query(TABLE, EXPORTS, null, null, null, null, null)
+			fun doExport(helper: DbHelper?, out: PrintWriter): Int {
+				val cursor = helper?.readableDatabase
+						?.query(TABLE, EXPORTS, null, null, null, null, null)
 
-				cursor.use {
+				cursor?.use {
 					val buff = StringBuilder()
 					var count = 0
 					with(it) {
@@ -382,69 +391,72 @@ object DbContract {
 					}
 					return count
 				}
+				return -1
 			}
 
-			fun doOldImport(helper: DbHelper, crypto: DbHelper.Crypto, input: Array<String>, smart: SmartConverter?): Int {
+			fun doOldImport(helper: DbHelper?, crypto: DbHelper.Crypto, input: Array<String>, smart: SmartConverter?): Int {
 				if (input.size == OLD_FORMAT_COLUMN_COUNT) {
-					val db = helper.writableDatabase
+					val db = helper?.writableDatabase
 
-					// Decrypt using old password and old methods, return if decryption fail, possibly incorrect password
-					val dttl = crypto.decrypt(input[3].toCharArray(), CryptoUtils.decode(CryptoUtils.convert(input[1].toCharArray())))
-							?: return -3
-					val dctn = crypto.decrypt(input[4].toCharArray(), CryptoUtils.decode(CryptoUtils.convert(input[1].toCharArray())))
-							?: return -2
+					if (db != null) {
+						// Decrypt using old password and old methods, return if decryption fail, possibly incorrect password
+						val dttl = crypto.decrypt(input[3].toCharArray(), CryptoUtils.decode(CryptoUtils.convert(input[1].toCharArray())))
+								?: return -3
+						val dctn = crypto.decrypt(input[4].toCharArray(), CryptoUtils.decode(CryptoUtils.convert(input[1].toCharArray())))
+								?: return -2
 
-					var count = 0
-					val data: List<Array<String>>
-					data = if (smart != null)
-						smart.convert(input[2], String(dttl), String(dctn))
-					else
-						listOf(arrayOf(String(dttl), String(dctn), input[2]))
+						var count = 0
+						val data: List<Array<String>>
+						data = if (smart != null)
+							smart.convert(input[2], String(dttl), String(dctn))
+						else
+							listOf(arrayOf(String(dttl), String(dctn), input[2]))
 
-					db.beginTransactionNonExclusive()
-					try {
-						for (datum in data) {
-							val kslt = CryptoUtils.generateSalt()
-							val cslt = CryptoUtils.generateSalt()
+						db.beginTransactionNonExclusive()
+						try {
+							for (datum in data) {
+								val kslt = CryptoUtils.generateSalt()
+								val cslt = CryptoUtils.generateSalt()
 
-							// Encrypt using new password
-							val kcph = crypto.encrypt(datum[0].toCharArray(), kslt)
-							val ccph = crypto.encrypt(datum[1].toCharArray(), cslt)
+								// Encrypt using new password
+								val kcph = crypto.encrypt(datum[0].toCharArray(), kslt)
+								val ccph = crypto.encrypt(datum[1].toCharArray(), cslt)
 
-							val newRow = ContentValues().apply {
-								put(COL_KEY_SALT, String(CryptoUtils.convert(CryptoUtils.encode(kslt))))
-								put(COL_KEY, String(kcph))
-								put(COL_CONTENT_SALT, String(CryptoUtils.convert(CryptoUtils.encode(cslt))))
-								put(COL_CONTENT, String(ccph))
-								put(COMMON_MODF, input[5].toLong())
-							}
+								val newRow = ContentValues().apply {
+									put(COL_KEY_SALT, String(CryptoUtils.convert(CryptoUtils.encode(kslt))))
+									put(COL_KEY, String(kcph))
+									put(COL_CONTENT_SALT, String(CryptoUtils.convert(CryptoUtils.encode(cslt))))
+									put(COL_CONTENT, String(ccph))
+									put(COMMON_MODF, input[5].toLong())
+								}
 
-							val nid = helper.writableDatabase.insertOrThrow(TABLE, null, newRow)
-							if (nid >= 0) {
-								var tagCount = 0
-								if (datum.size > CONVERTED_MIN_COLUMN) {
-									for (i in CONVERTED_MIN_COLUMN until datum.size) {
-										val tags = Tags.search(helper, datum[i])
-										val tid = if (tags.isNotEmpty())
-											tags[0]
-										else
-											Tags.insert(helper, datum[i])?.pid
+								val nid = helper.writableDatabase.insertOrThrow(TABLE, null, newRow)
+								if (nid >= 0) {
+									var tagCount = 0
+									if (datum.size > CONVERTED_MIN_COLUMN) {
+										for (i in CONVERTED_MIN_COLUMN until datum.size) {
+											val tags = Tags.search(helper, datum[i])
+											val tid = if (tags.isNotEmpty())
+												tags[0]
+											else
+												Tags.insert(helper, datum[i])?.pid
 
-										if ((tid != null) && (tid >= 0)) {
-											if (NoteTags.insert(helper, nid, tid) >= 0)
-												tagCount++
+											if ((tid != null) && (tid >= 0)) {
+												if (NoteTags.insert(helper, nid, tid) >= 0)
+													tagCount++
+											}
 										}
 									}
+									if (tagCount == (datum.size - CONVERTED_MIN_COLUMN))
+										count++
 								}
-								if (tagCount == (datum.size - CONVERTED_MIN_COLUMN))
-									count ++
 							}
+							if (count == data.size)
+								db.setTransactionSuccessful()
+							return (count - data.size)
+						} finally {
+							db.endTransaction()
 						}
-						if (count == data.size)
-							db.setTransactionSuccessful()
-						return (count - data.size)
-					} finally {
-						db.endTransaction()
 					}
 				}
 				return -1 // Incoming data with invalid format, or decryption failed
@@ -453,56 +465,58 @@ object DbContract {
 			/**
 			 * Import one note with tag relations and (if any) new tags.
 			 */
-			fun doImport(helper: DbHelper, crypto: DbHelper.Crypto, data: Array<String>): Long {
+			fun doImport(helper: DbHelper?, crypto: DbHelper.Crypto, data: Array<String>): Long {
 				if (data.size >= EXPORT_FORMAT_MIN_COLUMN) {
-					val db = helper.writableDatabase
+					val db = helper?.writableDatabase
 
-					db.beginTransactionNonExclusive()
-					try {
-						// Decrypt using old password and old methods, return if decryption fail, possibly incorrect password
-						val dkey = crypto.decrypt(data[1].toCharArray(), CryptoUtils.decode(CryptoUtils.convert(data[0].toCharArray())))
-								?: return -3
-						val dctn = crypto.decrypt(data[3].toCharArray(), CryptoUtils.decode(CryptoUtils.convert(data[2].toCharArray())))
-								?: return -2
+					if (db != null) {
+						db.beginTransactionNonExclusive()
+						try {
+							// Decrypt using old password and old methods, return if decryption fail, possibly incorrect password
+							val dkey = crypto.decrypt(data[1].toCharArray(), CryptoUtils.decode(CryptoUtils.convert(data[0].toCharArray())))
+									?: return -3
+							val dctn = crypto.decrypt(data[3].toCharArray(), CryptoUtils.decode(CryptoUtils.convert(data[2].toCharArray())))
+									?: return -2
 
-						val kslt = CryptoUtils.generateSalt()
-						val cslt = CryptoUtils.generateSalt()
+							val kslt = CryptoUtils.generateSalt()
+							val cslt = CryptoUtils.generateSalt()
 
-						// Encrypt using new password
-						val kcph = crypto.encrypt(dkey, kslt)
-						val ccph = crypto.encrypt(dctn, cslt)
+							// Encrypt using new password
+							val kcph = crypto.encrypt(dkey, kslt)
+							val ccph = crypto.encrypt(dctn, cslt)
 
-						val newRow = ContentValues().apply {
-							put(COL_KEY_SALT, String(CryptoUtils.convert(CryptoUtils.encode(kslt))))
-							put(COL_KEY, String(kcph))
-							put(COL_CONTENT_SALT, String(CryptoUtils.convert(CryptoUtils.encode(cslt))))
-							put(COL_CONTENT, String(ccph))
-							put(COMMON_MODF, data[4].toLong())
-						}
+							val newRow = ContentValues().apply {
+								put(COL_KEY_SALT, String(CryptoUtils.convert(CryptoUtils.encode(kslt))))
+								put(COL_KEY, String(kcph))
+								put(COL_CONTENT_SALT, String(CryptoUtils.convert(CryptoUtils.encode(cslt))))
+								put(COL_CONTENT, String(ccph))
+								put(COMMON_MODF, data[4].toLong())
+							}
 
-						val nid = helper.writableDatabase.insertOrThrow(TABLE, null, newRow)
-						if (nid >= 0) {
-							var count = 0
-							if (data.size > EXPORT_FORMAT_MIN_COLUMN) {
-								for (i in EXPORT_FORMAT_MIN_COLUMN until data.size) {
-									val tags = Tags.search(helper, data[i])
-									val tid = if (tags.isNotEmpty())
-										tags[0]
-									else
-										Tags.insert(helper, data[i])?.pid
+							val nid = helper.writableDatabase.insertOrThrow(TABLE, null, newRow)
+							if (nid >= 0) {
+								var count = 0
+								if (data.size > EXPORT_FORMAT_MIN_COLUMN) {
+									for (i in EXPORT_FORMAT_MIN_COLUMN until data.size) {
+										val tags = Tags.search(helper, data[i])
+										val tid = if (tags.isNotEmpty())
+											tags[0]
+										else
+											Tags.insert(helper, data[i])?.pid
 
-									if ((tid != null) && (tid >= 0)) {
-										if (NoteTags.insert(helper, nid, tid) >= 0)
-											count++
+										if ((tid != null) && (tid >= 0)) {
+											if (NoteTags.insert(helper, nid, tid) >= 0)
+												count++
+										}
 									}
 								}
+								if (count == (data.size - EXPORT_FORMAT_MIN_COLUMN))
+									db.setTransactionSuccessful()
 							}
-							if (count == (data.size - EXPORT_FORMAT_MIN_COLUMN))
-								db.setTransactionSuccessful()
+							return nid
+						} finally {
+							db.endTransaction()
 						}
-						return nid
-					} finally {
-						db.endTransaction()
 					}
 				}
 				return -1 // Incoming data with invalid format, or decryption failed
@@ -512,56 +526,58 @@ object DbContract {
 			 * Re-encrypt, thus effectively changing the password.
 			 * @return 0 if successful, negative otherwise.
 			 */
-			fun passwd(helper: DbHelper, crypto: DbHelper.Crypto): Int {
-				val db = helper.writableDatabase
+			fun passwd(helper: DbHelper?, crypto: DbHelper.Crypto): Int {
+				val db = helper?.writableDatabase
 				var count = 0
 				var succd = 0
 
-				db.beginTransactionNonExclusive()
-				try {
-					val cursor = db.query(TABLE, EXPORTS, null, null, null, null, null)
+				if (db != null) {
+					db.beginTransactionNonExclusive()
+					try {
+						val cursor = db.query(TABLE, EXPORTS, null, null, null, null, null)
 
-					cursor.use {
-						with(it) {
-							while (moveToNext()) {
-								val pid = getLong((getColumnIndexOrThrow(PKEY)))
-								val kslt = getString(getColumnIndexOrThrow(COL_KEY_SALT))
-								val ekey = getString(getColumnIndexOrThrow(COL_KEY))
-								val cslt = getString(getColumnIndexOrThrow(COL_CONTENT_SALT))
-								val ectn = getString(getColumnIndexOrThrow(COL_CONTENT))
+						cursor.use {
+							with(it) {
+								while (moveToNext()) {
+									val pid = getLong((getColumnIndexOrThrow(PKEY)))
+									val kslt = getString(getColumnIndexOrThrow(COL_KEY_SALT))
+									val ekey = getString(getColumnIndexOrThrow(COL_KEY))
+									val cslt = getString(getColumnIndexOrThrow(COL_CONTENT_SALT))
+									val ectn = getString(getColumnIndexOrThrow(COL_CONTENT))
 
-								// Decrypt using old password, break if decryption fail, possibly incorrect password
-								val ckey = crypto.decrypt(ekey.toCharArray(), CryptoUtils.decode(CryptoUtils.convert(kslt.toCharArray())))
-										?: break
-								val cctn = crypto.decrypt(ectn.toCharArray(), CryptoUtils.decode(CryptoUtils.convert(cslt.toCharArray())))
-										?: break
+									// Decrypt using old password, break if decryption fail, possibly incorrect password
+									val ckey = crypto.decrypt(ekey.toCharArray(), CryptoUtils.decode(CryptoUtils.convert(kslt.toCharArray())))
+											?: break
+									val cctn = crypto.decrypt(ectn.toCharArray(), CryptoUtils.decode(CryptoUtils.convert(cslt.toCharArray())))
+											?: break
 
-								val nkst = CryptoUtils.generateSalt()
-								val ncst = CryptoUtils.generateSalt()
+									val nkst = CryptoUtils.generateSalt()
+									val ncst = CryptoUtils.generateSalt()
 
-								// Encrypt using new password
-								val nkey = crypto.encrypt(ckey, nkst)
-								val nctn = crypto.encrypt(cctn, ncst)
+									// Encrypt using new password
+									val nkey = crypto.encrypt(ckey, nkst)
+									val nctn = crypto.encrypt(cctn, ncst)
 
-								val args = arrayOf(pid.toString())
-								val newRow = ContentValues().apply {
-									put(COL_KEY_SALT, String(CryptoUtils.convert(CryptoUtils.encode(nkst))))
-									put(COL_KEY, String(nkey))
-									put(COL_CONTENT_SALT, String(CryptoUtils.convert(CryptoUtils.encode(ncst))))
-									put(COL_CONTENT, String(nctn))
-									put(COMMON_MODF, Date().time)
+									val args = arrayOf(pid.toString())
+									val newRow = ContentValues().apply {
+										put(COL_KEY_SALT, String(CryptoUtils.convert(CryptoUtils.encode(nkst))))
+										put(COL_KEY, String(nkey))
+										put(COL_CONTENT_SALT, String(CryptoUtils.convert(CryptoUtils.encode(ncst))))
+										put(COL_CONTENT, String(nctn))
+										put(COMMON_MODF, Date().time)
+									}
+
+									if (db.update(TABLE, newRow, COMMON_PKEY, args) == 1) succd++
+									count++
 								}
 
-								if (db.update(TABLE, newRow, COMMON_PKEY, args) == 1) succd++
-								count++
+								if (succd == count)
+									db.setTransactionSuccessful()
 							}
-
-							if (succd == count)
-								db.setTransactionSuccessful()
 						}
+					} finally {
+						db.endTransaction()
 					}
-				} finally {
-					db.endTransaction()
 				}
 				return if (succd <= 0)
 					-1
@@ -597,12 +613,12 @@ object DbContract {
 			/**
 			 * Select one note by its ID and return all tags associate with it.
 			 */
-			fun select(helper: DbHelper, nid: Long): List<TagRecord> {
+			fun select(helper: DbHelper?, nid: Long): List<TagRecord> {
 				val args = arrayOf(nid.toString())
-				val cursor = helper.readableDatabase.rawQuery(QUERY_CONTENT, args)
+				val cursor = helper?.readableDatabase?.rawQuery(QUERY_CONTENT, args)
 
-				cursor.use {
-					val result = mutableListOf<TagRecord>()
+				val result = mutableListOf<TagRecord>()
+				cursor?.use {
 					with(it) {
 						while (moveToNext()) {
 							val tid = getLong(getColumnIndexOrThrow(COL_TID))
@@ -611,38 +627,42 @@ object DbContract {
 							result.add(TagRecord(tid, tag, mod))
 						}
 					}
-					return result
 				}
+				return result
 			}
-			fun selectIds(helper: DbHelper, nid: Long): List<Long> {
+			fun selectIds(helper: DbHelper?, nid: Long): List<Long> {
 				val args = arrayOf(nid.toString())
-				val cursor = helper.readableDatabase.rawQuery(QUERY_CONTENT, args)
+				val cursor = helper?.readableDatabase?.rawQuery(QUERY_CONTENT, args)
 
-				cursor.use {
-					val result = mutableListOf<Long>()
+				val result = mutableListOf<Long>()
+				cursor?.use {
 					with(it) {
 						while (moveToNext()) {
 							val tid = getLong(getColumnIndexOrThrow(COL_TID))
 							result.add(tid)
 						}
 					}
-					return result
 				}
+				return result
 			}
 
 			/**
 			 * Add a note/tag relationship.
 			 */
-			fun insert(helper: DbHelper, nid: Long, tid: Long): Long {
-				return insert(helper.writableDatabase, nid, tid)
+			fun insert(helper: DbHelper?, nid: Long, tid: Long): Long {
+				return insert(helper?.writableDatabase, nid, tid)
 			}
-			fun insert(db: SQLiteDatabase, nid: Long, tid: Long): Long {
-				val newRow = ContentValues().apply {
-					put(COL_NID, nid)
-					put(COL_TID, tid)
-					put(COMMON_MODF, Date().time)
+			fun insert(db: SQLiteDatabase?, nid: Long, tid: Long): Long {
+				if (db != null) {
+					val newRow = ContentValues().apply {
+						put(COL_NID, nid)
+						put(COL_TID, tid)
+						put(COMMON_MODF, Date().time)
+					}
+					return db.insertOrThrow(TABLE, null, newRow)
 				}
-				return db.insertOrThrow(TABLE, null, newRow)
+				else
+					return -1
 			}
 
 		}

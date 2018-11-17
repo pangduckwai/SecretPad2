@@ -73,12 +73,15 @@ class FileChooserAdaptor(ctx: Caller): RecyclerView.Adapter<FileChooserAdaptor.V
 								val cp = File(currentPath)
 								populateCache(cp.parent)
 								caller.directorySelected(cp)
+								Log.d(TAG, "Parent directory $currentPath selected")
 							} else if (selected.path != FILE_SELF) {
 								populateCache(selected.path)
 								caller.directorySelected(File(selected.path))
+								Log.d(TAG, "Directory ${selected.path} selected")
 							}
 						} else {
 							caller.fileSelected(File(selected.path))
+							Log.d(TAG, "File ${selected.path} selected")
 						}
 						selectedPos = -1
 						caller.setBusy(false)
@@ -158,16 +161,6 @@ class FileChooserAdaptor(ctx: Caller): RecyclerView.Adapter<FileChooserAdaptor.V
 			}
 		}
 	}
-
-//	/*=========================
-//	 * @see java.io.FileFilter
-//	 */
-//	override fun accept(pathname: File?): Boolean {
-//		return if (pathname == null)
-//			false
-//		else
-//			pathname.exists() && (pathname.isDirectory || pathname.name.toLowerCase().endsWith(FILE_EXT))
-//	}
 
 	/*=============
 	 * View holder

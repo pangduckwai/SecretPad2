@@ -4,6 +4,7 @@ import org.junit.Test
 
 import org.junit.Assert.*
 import org.sea9.android.secret.compat.SmartConverter
+import org.sea9.android.secret.data.NoteRecord
 
 /**
  * Example local unit test, which will execute on the development machine (host).
@@ -56,5 +57,23 @@ class SecretPad2UnitTest {
 		assertTrue(result4.size == 3)
 
 		printResult(result4)
+	}
+
+	@Test
+	fun testSequence() {
+		val notes = listOf(
+				NoteRecord(3, "Key3", "Hello 3", null, "xxx yyy", 0),
+				NoteRecord(1, "Key1", "Hello 1", null, "xxx yyy", 0),
+				NoteRecord(4, "Key4", "Hello 4", null, "xxx yyy", 0),
+				NoteRecord(7, "Key7", "Hello 7", null, "xxx yyy", 0),
+				NoteRecord(2, "Key2", "Hello 2", null, "xxx yyy", 0),
+				NoteRecord(6, "Key6", "Hello 6", null, "xxx yyy", 0),
+				NoteRecord(5, "Key5", "Hello 5", null, "xxx yyy", 0))
+		val idx = notes.asSequence()
+				.indexOfFirst {
+					it.pid == 2L
+				}
+		System.out.println("Index found is $idx")
+		assertTrue(idx == 4)
 	}
 }

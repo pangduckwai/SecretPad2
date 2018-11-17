@@ -15,17 +15,22 @@
 		app:showAsAction="never" />
 	<item
 		android:id="@+id/action_export"
-		android:orderInCategory="200"
+		android:orderInCategory="300"
 		android:title="@string/action_export"
 		app:showAsAction="never" />
 	<item
 		android:id="@+id/action_passwd"
-		android:orderInCategory="200"
+		android:orderInCategory="400"
 		android:title="@string/action_passwd"
 		app:showAsAction="never" />
 	<item
+		android:id="@+id/action_sort"
+		android:orderInCategory="500"
+		android:title="@string/action_sort"
+		app:showAsAction="never" />
+	<item
 		android:id="@+id/action_about"
-		android:orderInCategory="300"
+		android:orderInCategory="600"
 		android:title="@string/action_about"
 		app:showAsAction="never" />
 
