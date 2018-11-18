@@ -54,8 +54,12 @@ class NotesAdaptor (ctx: Caller): RecyclerView.Adapter<NotesAdaptor.ViewHolder>(
 			null
 		}
 	}
-	fun filterRecords(query: String) {
-		shown = cache.asSequence()
+	fun filterRecords() {
+		val query = caller.getFilterQuery()
+		shown = if (query == null)
+			cache
+		else
+			cache.asSequence()
 				.filter {
 					it.key.contains(query, true) || ((it.tagNames != null) && it.tagNames!!.contains(query, true))
 				}.toMutableList()
@@ -122,11 +126,11 @@ class NotesAdaptor (ctx: Caller): RecyclerView.Adapter<NotesAdaptor.ViewHolder>(
 	 */
 	fun populateCache() {
 		try {
-			val notes = DbContract.Notes.select(caller.getDbHelper()!!) as MutableList<NoteRecord>
+			cache = DbContract.Notes.select(caller.getDbHelper()!!) as MutableList<NoteRecord>
 
 			// Build the concatenated tag string
 			val buff = StringBuilder()
-			for (record in notes) {
+			for (record in cache) {
 				val tags = record.tags
 				if ((tags != null) && (tags.size > 0)) {
 					buff.setLength(0)
@@ -137,27 +141,7 @@ class NotesAdaptor (ctx: Caller): RecyclerView.Adapter<NotesAdaptor.ViewHolder>(
 				}
 			}
 
-			cache = notes.asSequence()
-					.sortedWith(Comparator { x, y ->
-						when(caller.getSortBy()) {
-							ContextFragment.SETTING_SORTBY_KEY -> x.key.compareTo(y.key)
-							ContextFragment.SETTING_SORTBY_TAG -> {
-								if (x.tagNames.isNullOrEmpty() && !y.tagNames.isNullOrEmpty())
-									-1
-								else if (!x.tagNames.isNullOrEmpty() && y.tagNames.isNullOrEmpty())
-									1
-								else if (!x.tagNames.isNullOrEmpty() && !y.tagNames.isNullOrEmpty()) {
-									if (x.tagNames != y.tagNames)
-										x.tagNames!!.compareTo(y.tagNames!!)
-									else
-										x.key.compareTo(y.key)
-								} else
-									0
-							}
-							else -> x.modified.compareTo(y.modified)
-						}
-					}).toMutableList()
-			shown = cache
+			sortCache()
 		} catch (e: RuntimeException) {
 			if ((e.cause != null) && (e.cause is BadPaddingException)) {
 				val context = caller.getContext()
@@ -170,6 +154,30 @@ class NotesAdaptor (ctx: Caller): RecyclerView.Adapter<NotesAdaptor.ViewHolder>(
 			} else
 				throw e
 		}
+	}
+
+	fun sortCache() {
+		cache = cache.asSequence()
+				.sortedWith(Comparator { x, y ->
+					when(caller.getSortBy()) {
+						ContextFragment.SETTING_SORTBY_KEY -> x.key.compareTo(y.key)
+						ContextFragment.SETTING_SORTBY_TAG -> {
+							if (x.tagNames.isNullOrEmpty() && !y.tagNames.isNullOrEmpty())
+								-1
+							else if (!x.tagNames.isNullOrEmpty() && y.tagNames.isNullOrEmpty())
+								1
+							else if (!x.tagNames.isNullOrEmpty() && !y.tagNames.isNullOrEmpty()) {
+								if (x.tagNames != y.tagNames)
+									x.tagNames!!.compareTo(y.tagNames!!)
+								else
+									x.key.compareTo(y.key)
+							} else
+								0
+						}
+						else -> x.modified.compareTo(y.modified)
+					}
+				}).toMutableList()
+		filterRecords()
 	}
 
 	fun retrieveDetails(position: Int) {
@@ -215,6 +223,7 @@ class NotesAdaptor (ctx: Caller): RecyclerView.Adapter<NotesAdaptor.ViewHolder>(
 		fun getTag(tid: Long): String?
 		fun getSortBy(): Int
 		fun isFiltered(): Boolean
+		fun getFilterQuery(): String?
 		fun isBusy(): Boolean
 		fun onLogoff()
 	}

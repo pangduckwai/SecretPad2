@@ -24,9 +24,14 @@
 		android:title="@string/action_passwd"
 		app:showAsAction="never" />
 	<item
-		android:id="@+id/action_sort"
+		android:id="@+id/action_sort_key"
 		android:orderInCategory="500"
-		android:title="@string/action_sort"
+		android:title="@string/action_sort_key"
+		app:showAsAction="never" />
+	<item
+		android:id="@+id/action_sort_tag"
+		android:orderInCategory="550"
+		android:title="@string/action_sort_tag"
 		app:showAsAction="never" />
 	<item
 		android:id="@+id/action_about"

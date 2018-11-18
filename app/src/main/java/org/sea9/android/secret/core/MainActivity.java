@@ -58,7 +58,6 @@ public class MainActivity extends AppCompatActivity implements
 		MessageDialog.Callback {
 	public static final String TAG = "secret.main";
 	private static final int READ_EXTERNAL_STORAGE_REQUEST = 17523;
-	private static final String SETTING_SORTBY = "setting.sortBy";
 
 	private View mainView;
 	private ProgressBar progress;
@@ -183,7 +182,7 @@ public class MainActivity extends AppCompatActivity implements
 		recycler.setAdapter(ctxFrag.getAdaptor());
 
 		SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
-		ctxFrag.setSortBy(sharedPref.getInt(SETTING_SORTBY, ContextFragment.SETTING_SORTBY_TAG));
+		ctxFrag.setSortBy(sharedPref.getInt(ContextFragment.SETTING_SORTBY, ContextFragment.SETTING_SORTBY_TAG));
 
 		// If there is already a selection...
 		int pos = ctxFrag.getAdaptor().getSelectedPosition();
@@ -296,11 +295,24 @@ public class MainActivity extends AppCompatActivity implements
 			menu.findItem(R.id.action_passwd).setEnabled(false);
 		}
 
+		switch (ctxFrag.getSortBy()) {
+			case ContextFragment.SETTING_SORTBY_KEY:
+				menu.findItem(R.id.action_sort_key).setVisible(false);
+				menu.findItem(R.id.action_sort_tag).setVisible(true);
+				break;
+			case ContextFragment.SETTING_SORTBY_TAG:
+				menu.findItem(R.id.action_sort_key).setVisible(true);
+				menu.findItem(R.id.action_sort_tag).setVisible(false);
+				break;
+		}
+
 		return super.onPrepareOptionsMenu(menu);
 	}
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
+		SharedPreferences sharedPref;
+		SharedPreferences.Editor editor;
 		switch (item.getItemId()) {
 			case R.id.action_cleanup:
 				MessageDialog.Companion.getOkayCancelDialog(MSG_DIALOG_CLEANUP, getString(R.string.msg_confirm_delete_tags), null)
@@ -322,9 +334,30 @@ public class MainActivity extends AppCompatActivity implements
 				MessageDialog.Companion.getOkayCancelDialog(MSG_DIALOG_EXPORT, getString(R.string.msg_confirm_export), null)
 						.show(getSupportFragmentManager(), MessageDialog.TAG);
 				break;
+
 			case R.id.action_passwd:
 				PasswdDialog.getInstance().show(getSupportFragmentManager(), PasswdDialog.TAG);
 				break;
+
+			case R.id.action_sort_key:
+				sharedPref = getPreferences(Context.MODE_PRIVATE);
+				editor = sharedPref.edit();
+				editor.putInt(ContextFragment.SETTING_SORTBY, ContextFragment.SETTING_SORTBY_KEY);
+				editor.apply();
+				ctxFrag.setSortBy(ContextFragment.SETTING_SORTBY_KEY);
+				ctxFrag.getAdaptor().sortCache();
+				ctxFrag.getAdaptor().notifyDataSetChanged();
+				break;
+			case R.id.action_sort_tag:
+				sharedPref = getPreferences(Context.MODE_PRIVATE);
+				editor = sharedPref.edit();
+				editor.putInt(ContextFragment.SETTING_SORTBY, ContextFragment.SETTING_SORTBY_TAG);
+				editor.apply();
+				ctxFrag.setSortBy(ContextFragment.SETTING_SORTBY_TAG);
+				ctxFrag.getAdaptor().sortCache();
+				ctxFrag.getAdaptor().notifyDataSetChanged();
+				break;
+
 			case R.id.action_about:
 				AboutDialog.Companion.getInstance().show(getSupportFragmentManager(), AboutDialog.TAG);
 				break;

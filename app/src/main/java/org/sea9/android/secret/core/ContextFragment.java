@@ -116,8 +116,9 @@ public class ContextFragment extends Fragment implements
 	/*=====================
 	 * Handle app settings
 	 */
-	public static final int SETTING_SORTBY_KEY = 0;
-	public static final int SETTING_SORTBY_TAG = 1;
+	static final String SETTING_SORTBY = "setting.sortBy";
+	static final int SETTING_SORTBY_KEY = 0;
+	static final int SETTING_SORTBY_TAG = 1;
 
 	private int sortBy = SETTING_SORTBY_TAG;
 	public final int getSortBy() { return sortBy; }
@@ -230,20 +231,21 @@ public class ContextFragment extends Fragment implements
 
 	public void clearFilter() {
 		if (isFiltered()) {
+			long pid = -1;
 			filterQuery = null;
 			int pos = adaptor.getSelectedPosition();
 			if (pos >= 0) {
 				NoteRecord r = adaptor.getRecord(pos);
-				if (r != null) {
-					long pid = r.getPid();
+				if (r != null) pid = r.getPid();
+			}
 
-					adaptor.clearFilter();
-					adaptor.notifyDataSetChanged();
-					int position = adaptor.findSelectedPosition(pid);
-					if (position >= 0) {
-						adaptor.selectRow(position);
-						callback.onScrollToPosition(position);
-					}
+			adaptor.clearFilter();
+			adaptor.notifyDataSetChanged();
+			if (pid >= 0) {
+				int position = adaptor.findSelectedPosition(pid);
+				if (position >= 0) {
+					adaptor.selectRow(position);
+					callback.onScrollToPosition(position);
 				}
 			}
 		}
@@ -267,7 +269,7 @@ public class ContextFragment extends Fragment implements
 			@Override
 			protected void publishResults(CharSequence constraint, FilterResults results) {
 				filterQuery = (String) results.values;
-				adaptor.filterRecords(filterQuery);
+				adaptor.filterRecords();
 			}
 		};
 	}
@@ -741,7 +743,8 @@ public class ContextFragment extends Fragment implements
 				if (position >= 0) {
 					caller.callback.onScrollToPosition(position);
 					if (successful) {
-						caller.getAdaptor().notifyItemChanged(position);
+						// Not using notifyItemChanged(position) because update may change sort order if sort by tags
+						caller.getAdaptor().notifyDataSetChanged();
 						caller.getAdaptor().selectRow(position);
 					}
 				} else {
