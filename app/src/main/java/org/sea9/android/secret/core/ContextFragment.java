@@ -2,6 +2,7 @@ package org.sea9.android.secret.core;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.SQLException;
 import android.os.AsyncTask;
@@ -123,6 +124,28 @@ public class ContextFragment extends Fragment implements
 	private int sortBy = SETTING_SORTBY_TAG;
 	public final int getSortBy() { return sortBy; }
 	public final void setSortBy(int sort) { sortBy = sort; }
+
+	public final void doSort(SharedPreferences pref, int sort) {
+		long pid = -1;
+		int pos = adaptor.getSelectedPosition();
+		if (pos >= 0) {
+			NoteRecord r = adaptor.getRecord(pos);
+			if (r != null) pid = r.getPid();
+		}
+		SharedPreferences.Editor editor = pref.edit();
+		editor.putInt(SETTING_SORTBY, sort);
+		editor.apply();
+		sortBy = sort;
+		adaptor.sortCache();
+		adaptor.notifyDataSetChanged();
+		if (pid >= 0) {
+			int position = adaptor.findSelectedPosition(pid);
+			if (position >= 0) {
+				adaptor.selectRow(position);
+				callback.onScrollToPosition(position);
+			}
+		}
+	}
 	//=====================
 
 	/*=============================
@@ -363,7 +386,7 @@ public class ContextFragment extends Fragment implements
 		void onTagAdded(int position);
 		void onNoteSaved(boolean successful);
 	}
-	Callback callback; //TODO TEMP until move this to kotlin
+	Callback callback; //TODO TEMP until move this to kotlin, then should be private
 	public final Callback getCallback() { return callback; }
 
 	@Override

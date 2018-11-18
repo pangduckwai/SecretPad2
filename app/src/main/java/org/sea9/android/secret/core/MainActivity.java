@@ -311,8 +311,6 @@ public class MainActivity extends AppCompatActivity implements
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		SharedPreferences sharedPref;
-		SharedPreferences.Editor editor;
 		switch (item.getItemId()) {
 			case R.id.action_cleanup:
 				MessageDialog.Companion.getOkayCancelDialog(MSG_DIALOG_CLEANUP, getString(R.string.msg_confirm_delete_tags), null)
@@ -340,22 +338,10 @@ public class MainActivity extends AppCompatActivity implements
 				break;
 
 			case R.id.action_sort_key:
-				sharedPref = getPreferences(Context.MODE_PRIVATE);
-				editor = sharedPref.edit();
-				editor.putInt(ContextFragment.SETTING_SORTBY, ContextFragment.SETTING_SORTBY_KEY);
-				editor.apply();
-				ctxFrag.setSortBy(ContextFragment.SETTING_SORTBY_KEY);
-				ctxFrag.getAdaptor().sortCache();
-				ctxFrag.getAdaptor().notifyDataSetChanged();
+				ctxFrag.doSort(getPreferences(Context.MODE_PRIVATE), ContextFragment.SETTING_SORTBY_KEY);
 				break;
 			case R.id.action_sort_tag:
-				sharedPref = getPreferences(Context.MODE_PRIVATE);
-				editor = sharedPref.edit();
-				editor.putInt(ContextFragment.SETTING_SORTBY, ContextFragment.SETTING_SORTBY_TAG);
-				editor.apply();
-				ctxFrag.setSortBy(ContextFragment.SETTING_SORTBY_TAG);
-				ctxFrag.getAdaptor().sortCache();
-				ctxFrag.getAdaptor().notifyDataSetChanged();
+				ctxFrag.doSort(getPreferences(Context.MODE_PRIVATE), ContextFragment.SETTING_SORTBY_TAG);
 				break;
 
 			case R.id.action_about:
