@@ -159,18 +159,22 @@ class NotesAdaptor (ctx: Caller): RecyclerView.Adapter<NotesAdaptor.ViewHolder>(
 	fun sortCache() {
 		cache = cache.asSequence()
 				.sortedWith(Comparator { x, y ->
+					val kx = x.key.toUpperCase()
+					val ky = y.key.toUpperCase()
+					val tx = x.tagNames?.toUpperCase()
+					val ty = y.tagNames?.toUpperCase()
 					when(caller.getSortBy()) {
-						ContextFragment.SETTING_SORTBY_KEY -> x.key.compareTo(y.key)
+						ContextFragment.SETTING_SORTBY_KEY -> kx.compareTo(ky)
 						ContextFragment.SETTING_SORTBY_TAG -> {
-							if (x.tagNames.isNullOrEmpty() && !y.tagNames.isNullOrEmpty())
+							if (tx.isNullOrEmpty() && !ty.isNullOrEmpty())
 								-1
-							else if (!x.tagNames.isNullOrEmpty() && y.tagNames.isNullOrEmpty())
+							else if (!tx.isNullOrEmpty() && ty.isNullOrEmpty())
 								1
-							else if (!x.tagNames.isNullOrEmpty() && !y.tagNames.isNullOrEmpty()) {
-								if (x.tagNames != y.tagNames)
-									x.tagNames!!.compareTo(y.tagNames!!)
+							else if (!tx.isNullOrEmpty() && !ty.isNullOrEmpty()) {
+								if (tx != ty)
+									tx.compareTo(ty)
 								else
-									x.key.compareTo(y.key)
+									kx.compareTo(ky)
 							} else
 								0
 						}
