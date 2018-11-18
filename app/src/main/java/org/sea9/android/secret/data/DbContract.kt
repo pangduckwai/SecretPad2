@@ -607,15 +607,14 @@ object DbContract {
 					"select nt.$COL_NID, nt.$COL_TID, t.${Tags.COL_TAG_NAME}, nt.$COMMON_MODF" +
 					"  from $TABLE as nt" +
 					" inner join ${Tags.TABLE} as t on nt.$COL_TID = t.$PKEY" +
-					" where nt.$COL_NID = ?" +
-					" order by t.${Tags.COL_TAG_NAME}"
+					" where nt.$COL_NID = ?"
 
 			/**
 			 * Select one note by its ID and return all tags associate with it.
 			 */
 			fun select(helper: DbHelper?, nid: Long): List<TagRecord> {
 				val args = arrayOf(nid.toString())
-				val cursor = helper?.readableDatabase?.rawQuery(QUERY_CONTENT, args)
+				val cursor = helper?.readableDatabase?.rawQuery(QUERY_CONTENT + " order by t.${Tags.COL_TAG_NAME}", args)
 
 				val result = mutableListOf<TagRecord>()
 				cursor?.use {
