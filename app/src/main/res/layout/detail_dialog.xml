@@ -31,7 +31,7 @@
 		android:minHeight="0dp"
 		android:padding="@dimen/margin_narrow"
 		android:background="?android:attr/selectableItemBackground"
-		app:layout_constraintBottom_toBottomOf="parent"
+		app:layout_constraintTop_toTopOf="parent"
 		app:layout_constraintEnd_toEndOf="parent"
 		app:srcCompat="@android:drawable/ic_menu_save" />
 
@@ -45,7 +45,7 @@
 		android:minHeight="0dp"
 		android:padding="@dimen/margin_narrow"
 		android:background="?android:attr/selectableItemBackground"
-		app:layout_constraintBottom_toBottomOf="parent"
+		app:layout_constraintTop_toTopOf="parent"
 		app:layout_constraintEnd_toStartOf="@+id/dtl_save"
 		app:srcCompat="@android:drawable/ic_delete" />
 
@@ -58,7 +58,7 @@
 		android:layout_marginBottom="@dimen/margin_narrow"
 		android:layout_marginEnd="@dimen/margin_normal"
 		android:layout_marginTop="@dimen/margin_narrow"
-		app:layout_constraintBottom_toTopOf="@+id/dtl_save"
+		app:layout_constraintBottom_toBottomOf="parent"
 		app:layout_constraintEnd_toEndOf="parent"
 		app:layout_constraintTop_toBottomOf="@+id/edit_tag" />
 
@@ -169,16 +169,16 @@
 		app:layout_constraintStart_toStartOf="parent"
 		app:layout_constraintTop_toBottomOf="@+id/edit_key" />
 
-	<View
-		android:id="@+id/divider_b"
-		android:layout_width="0dp"
-		android:layout_height="1dp"
-		android:background="@android:color/darker_gray"
-		android:layout_marginStart="@dimen/margin_normal"
-		android:layout_marginEnd="@dimen/margin_normal"
-		app:layout_constraintEnd_toEndOf="parent"
-		app:layout_constraintStart_toStartOf="@+id/edit_tags"
-		app:layout_constraintTop_toTopOf="@+id/dtl_save" />
+	<!--<View-->
+		<!--android:id="@+id/divider_b"-->
+		<!--android:layout_width="0dp"-->
+		<!--android:layout_height="1dp"-->
+		<!--android:background="@android:color/darker_gray"-->
+		<!--android:layout_marginStart="@dimen/margin_normal"-->
+		<!--android:layout_marginEnd="@dimen/margin_normal"-->
+		<!--app:layout_constraintEnd_toEndOf="parent"-->
+		<!--app:layout_constraintStart_toStartOf="@+id/edit_tags"-->
+		<!--app:layout_constraintTop_toTopOf="@+id/dtl_save" />-->
 
 	<ProgressBar
 		android:id="@+id/progressbar"

@@ -109,7 +109,7 @@ public class DetailFragment extends DialogFragment {
 
 			@Override
 			public void onTextChanged(CharSequence s, int start, int before, int count) {
-				if (((before != 0) || (count != 0)) && !((start == 0) && (before == count))) {
+				if (!isNew) {
 					callback.dataUpdated();
 				}
 			}
@@ -124,9 +124,7 @@ public class DetailFragment extends DialogFragment {
 
 			@Override
 			public void onTextChanged(CharSequence s, int start, int before, int count) {
-				if (((before != 0) || (count != 0)) && !((start == 0) && (before == count))) {
-					callback.dataUpdated();
-				}
+				callback.dataUpdated();
 			}
 
 			@Override
