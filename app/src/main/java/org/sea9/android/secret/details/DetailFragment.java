@@ -109,7 +109,7 @@ public class DetailFragment extends DialogFragment {
 
 			@Override
 			public void onTextChanged(CharSequence s, int start, int before, int count) {
-				if (!isNew) {
+				if (isNew) {
 					callback.dataUpdated();
 				}
 			}
