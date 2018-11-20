@@ -18,6 +18,7 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import org.sea9.android.secret.R;
+import org.sea9.android.secret.core.ContextFragment;
 import org.sea9.android.secret.crypto.CryptoUtils;
 
 import java.util.Arrays;
@@ -84,6 +85,8 @@ public class PasswdDialog extends DialogFragment {
 			Snackbar.make(btnLogon, getString(R.string.msg_passwd_needed), Snackbar.LENGTH_LONG).show();
 		} else if (len2 != len1) {
 			Snackbar.make(btnLogon, getString(R.string.msg_passwd_mismatch), Snackbar.LENGTH_LONG).show();
+		} else if (!ContextFragment.POLICY.matcher(txt2).matches()) {
+			callback.doNotify(getString(R.string.msg_passwd_simple), true);
 		} else {
 			char[] c1 = new char[len1];
 			char[] c2 = new char[len2];
@@ -122,6 +125,7 @@ public class PasswdDialog extends DialogFragment {
 	 * Callback interface to the MainActivity
 	 */
 	public interface Callback {
+		void doNotify(String message, boolean stay);
 		void onChangePassword(char[] oldValue, char[] newValue);
 	}
 	private Callback callback;

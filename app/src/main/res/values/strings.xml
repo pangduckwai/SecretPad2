@@ -37,7 +37,8 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
 	<string name="ctn_add">Add</string>
 	<string name="msg_passwd_first">Enter a new master password</string>
 	<string name="msg_passwd_needed">Please provide a password</string>
-	<string name="msg_passwd_mismatch">Confirm password mismatched</string>
+	<string name="msg_passwd_mismatch">Password mismatched</string>
+	<string name="msg_passwd_simple">Password must be at least 8 characters long, with at lease one upper case, lower case, numeric and symbol character each respectively</string>
 	<string name="msg_passwd_current">Please provide the current password</string>
 	<string name="msg_passwd_changed">Password changed successfully</string>
 	<string name="msg_passwd_change_failed">Failed to change password</string>

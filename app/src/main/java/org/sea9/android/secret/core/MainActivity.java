@@ -549,6 +549,9 @@ public class MainActivity extends AppCompatActivity implements
 		ctxFrag.dataUpdated();
 	}
 
+	@Override
+	public boolean isTagsUpdated() { return ctxFrag.isTagsUpdated(); }
+
 	@Override @NonNull
 	public TagsAdaptor getTagsAdaptor() {
 		return ctxFrag.getTagsAdaptor();

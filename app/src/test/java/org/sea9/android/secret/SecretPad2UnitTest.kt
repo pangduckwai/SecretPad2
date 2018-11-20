@@ -5,6 +5,7 @@ import org.junit.Test
 import org.junit.Assert.*
 import org.sea9.android.secret.compat.SmartConverter
 import org.sea9.android.secret.data.NoteRecord
+import java.util.regex.Pattern
 
 /**
  * Example local unit test, which will execute on the development machine (host).
@@ -75,5 +76,29 @@ class SecretPad2UnitTest {
 				}
 		System.out.println("Index found is $idx")
 		assertTrue(idx == 4)
+	}
+
+	@Test
+	fun testListEqual() {
+		val l1 = listOf(3L, 1L, 4L)
+		val l2 = listOf(3L, 1L, 4L)
+		val l3 = listOf(4L, 1L, 3L)
+		assertTrue(l1.equals(l2))
+		assertTrue(!l1.equals(l3))
+	}
+
+	@Test
+	fun testRegex() {
+		val pattern = Pattern.compile("(?=.{8,})(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*_=,.></?~-]).*")
+		assertTrue(pattern.matcher("Abcd12#4").matches())
+		assertTrue(pattern.matcher("ABcD!2#$").matches())
+		assertTrue(pattern.matcher("Abcd12#45678").matches())
+		assertFalse(pattern.matcher("ABCD12#4").matches())
+		assertFalse(pattern.matcher("abcd12#4").matches())
+		assertFalse(pattern.matcher("AbcdEf#h").matches())
+		assertFalse(pattern.matcher("abcdefgh").matches())
+		assertFalse(pattern.matcher("12345678").matches())
+		assertFalse(pattern.matcher("ABCDEFGH").matches())
+		assertFalse(pattern.matcher("Abcd12#").matches())
 	}
 }

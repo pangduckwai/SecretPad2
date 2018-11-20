@@ -31,6 +31,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.regex.Pattern;
 
 import javax.crypto.BadPaddingException;
 
@@ -42,6 +43,7 @@ public class ContextFragment extends Fragment implements
 		Filterable, Filter.FilterListener {
 	public static final String TAG = "secret.ctx_frag";
 	public static final String PATTERN_DATE = "yyyy-MM-dd HH:mm:ss";
+	public static final Pattern POLICY = Pattern.compile("(?=.{8,})(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*_=,.></?~-]).*");
 	static final String NEWLINE = "\n";
 	static final String PLURAL = "s";
 	static final String EMPTY = "";
@@ -110,8 +112,16 @@ public class ContextFragment extends Fragment implements
 	 */
 	private boolean updated;
 	public final boolean isUpdated() { return updated; }
-	public final void clearUpdated() {  updated = false; }
-	@Override public final void dataUpdated() { updated = true; }
+	public final void dataUpdated() { updated = true; }
+
+	private boolean tUpdated;
+	public final boolean isTagsUpdated() { return tUpdated; }
+	public final void tagsUpdated() { tUpdated = true; }
+
+	public final void clearUpdated() {
+		updated = false;
+		tUpdated = false;
+	}
 	//=========================================
 
 	/*=====================

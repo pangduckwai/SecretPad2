@@ -29,9 +29,11 @@ import org.sea9.android.secret.data.NoteRecord;
 import org.sea9.android.secret.ui.MessageDialog;
 
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
 
 public class DetailFragment extends DialogFragment {
 	public static final String TAG = "secret.detail_dialog";
@@ -39,6 +41,7 @@ public class DetailFragment extends DialogFragment {
 	public static final String KEY = "secret.key";
 	public static final String CTN = "secret.content";
 	public static final String MOD = "secret.modified";
+	public static final String TGS = "secret.tags";
 	private static final String EMPTY = "";
 
 	private RecyclerView tagList;
@@ -50,6 +53,7 @@ public class DetailFragment extends DialogFragment {
 	private ImageButton bttnSav;
 	private TextView textNid;
 	private boolean isNew;
+	private List<Long> orgnTags;
 
 	public static DetailFragment getInstance(boolean isNew, NoteRecord record, String content) {
 		DetailFragment dialog = new DetailFragment();
@@ -62,6 +66,12 @@ public class DetailFragment extends DialogFragment {
 			args.putString(KEY, record.getKey());
 			args.putString(CTN, content);
 			args.putLong(MOD, record.getModified());
+			if (record.getTags() != null) {
+				long[] tags = new long[record.getTags().size()];
+				for (int i = 0; i < tags.length; i ++)
+					tags[i] = record.getTags().get(i);
+				args.putLongArray(TGS, tags);
+			}
 		}
 		dialog.setArguments(args);
 
@@ -93,8 +103,11 @@ public class DetailFragment extends DialogFragment {
 			editCtn.setText(args.getString(CTN));
 			editKey.setText(args.getString(KEY));
 			textNid.setText(Long.toString(args.getLong(NID)));
+
 			long mod = args.getLong(MOD);
 			textMod.setText(formatter.format((mod > 0) ? new Date(mod) : new Date()));
+
+			orgnTags = Arrays.stream(args.getLongArray(TGS)).boxed().collect(Collectors.toList());
 		}
 
 		tagList.setHasFixedSize(true);
@@ -142,11 +155,11 @@ public class DetailFragment extends DialogFragment {
 		});
 
 		bttnSav.setOnClickListener(v -> {
-			if (callback.isUpdated() && (tagList.getAdapter() != null)) {
+			if (isUpdated() && (tagList.getAdapter() != null)) {
 				Long i = (textNid.getText() != null) ? Long.parseLong(textNid.getText().toString()) : -1;
 				String k = (editKey.getText() != null) ? editKey.getText().toString() : EMPTY;
 				String c = (editCtn.getText() != null) ? editCtn.getText().toString() : EMPTY;
-				callback.onSave(isNew, i, k, c, ((TagsAdaptor) tagList.getAdapter()).getSelectedTags());
+				callback.onSave(isNew, i, k, c, callback.getTagsAdaptor().getSelectedTags());
 			} else
 				dismiss();
 		});
@@ -186,7 +199,7 @@ public class DetailFragment extends DialogFragment {
 	}
 
 	private void close() {
-		if (!callback.isFiltered() && callback.isUpdated()) {
+		if (!callback.isFiltered() && isUpdated()) {
 			DialogFragment d = MessageDialog.Companion.getOkayCancelDialog(MainActivity.MSG_DIALOG_DISCARD, getString(R.string.msg_discard_changes), null);
 			FragmentManager m = getFragmentManager();
 			if (m != null)
@@ -198,6 +211,14 @@ public class DetailFragment extends DialogFragment {
 		}
 	}
 
+	private boolean isUpdated() {
+		if (callback.isUpdated()) return true;
+		if (callback.isTagsUpdated()) {
+			return !(callback.getTagsAdaptor().getSelectedTags().equals(orgnTags));
+		}
+		return false;
+	}
+
 	/*========================================
 	 * Callback interface to the MainActivity
 	 */
@@ -205,6 +226,7 @@ public class DetailFragment extends DialogFragment {
 		boolean isFiltered();
 		boolean isUpdated();
 		void dataUpdated();
+		boolean isTagsUpdated();
 		TagsAdaptor getTagsAdaptor();
 		void onAdd(String t);
 		void onSave(boolean isNew, Long i, String k, String c, List<Long> t);

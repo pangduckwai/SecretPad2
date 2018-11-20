@@ -80,7 +80,7 @@ public class TagsAdaptor extends RecyclerView.Adapter<TagsAdaptor.ViewHolder> {
 				} else {
 					selectedIds.add(cache.get(position).getPid());
 				}
-				caller.dataUpdated();
+				caller.tagsUpdated();
 				notifyDataSetChanged();
 			}
 		});
@@ -128,7 +128,7 @@ public class TagsAdaptor extends RecyclerView.Adapter<TagsAdaptor.ViewHolder> {
 
 			if ((position >= 0) && !isSelected(position)) { //Something wrong if position < 0...
 				selectedIds.add(pid);
-				caller.dataUpdated();
+				caller.tagsUpdated();
 			}
 			notifyDataSetChanged();
 		}
@@ -154,7 +154,7 @@ public class TagsAdaptor extends RecyclerView.Adapter<TagsAdaptor.ViewHolder> {
 	public interface Caller {
 		DbHelper getDbHelper();
 		boolean isFiltered();
-		void dataUpdated();
+		void tagsUpdated();
 	}
 	private Caller caller;
 }
