@@ -18,7 +18,7 @@ public class AsyncPasswdTask extends AsyncTask<char[], Void, char[]> {
 
 	@Override
 	protected void onPreExecute() {
-		caller.getCallback().setBusyState(true);
+		if (caller.getCallback() != null) caller.getCallback().setBusyState(true);
 	}
 
 	@Override
@@ -59,7 +59,8 @@ public class AsyncPasswdTask extends AsyncTask<char[], Void, char[]> {
 				}
 			} catch (RuntimeException e) {
 				if ((e.getCause() != null) && (e.getCause() instanceof BadPaddingException)) {
-					caller.getCallback().doNotify(String.format(caller.getString(R.string.msg_logon_fail), e.getMessage()), true);
+					if (caller.getCallback() != null)
+						caller.getCallback().doNotify(String.format(caller.getString(R.string.msg_logon_fail), e.getMessage()), true);
 				} else
 					throw e;
 			}
@@ -71,10 +72,10 @@ public class AsyncPasswdTask extends AsyncTask<char[], Void, char[]> {
 	protected void onPostExecute(char[] result) {
 		if (result != null) {
 			caller.setPassword(result);
-			caller.getCallback().doNotify(caller.getString(R.string.msg_passwd_changed), false);
+			if (caller.getCallback() != null) caller.getCallback().doNotify(caller.getString(R.string.msg_passwd_changed), false);
 		} else {
-			caller.getCallback().doNotify(caller.getString(R.string.msg_passwd_change_failed), false);
+			if (caller.getCallback() != null) caller.getCallback().doNotify(caller.getString(R.string.msg_passwd_change_failed), false);
 		}
-		caller.getCallback().setBusyState(false);
+		if (caller.getCallback() != null) caller.getCallback().setBusyState(false);
 	}
 }
