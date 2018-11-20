@@ -3,6 +3,7 @@ package org.sea9.android.secret.data
 import android.content.ContentValues
 import android.database.sqlite.SQLiteDatabase
 import android.provider.BaseColumns
+import android.util.Log
 import org.sea9.android.secret.compat.SmartConverter
 import org.sea9.android.secret.crypto.CryptoUtils
 import java.io.PrintWriter
@@ -135,6 +136,7 @@ object DbContract {
 			const val EXPORT_FORMAT_1STROW_COL = 3
 			const val OLD_FORMAT_COLUMN_COUNT = 6
 			private const val CONVERTED_MIN_COLUMN = 2
+			private const val DOT = "."
 			const val TAB = "\t"
 
 			fun count(helper: DbHelper?): Int {
@@ -175,7 +177,15 @@ object DbContract {
 
 							val txt = helper.crypto.decrypt(key.toCharArray(), CryptoUtils.decode(CryptoUtils.convert(slt.toCharArray())))
 							if (txt != null) {
-								result.add(NoteRecord(pid, String(txt), null, tags, null, modified))
+								// Since note keys are encrypted, it cannot be known until up to this point that a key is
+								// duplicated. Importing old format notes may cause keys to duplicate, so add a dot at the
+								// end so that the duplicated ones can still be displayed on the main list.
+								val rec = NoteRecord(pid, String(txt), null, tags, null, modified)
+								if (result.contains(rec)) {
+									Log.i(DATABASE, "Duplicated key value $pid")
+									rec.key = String(txt) + DOT
+								}
+								result.add(rec)
 							} else {
 								error = true
 								break
@@ -184,9 +194,6 @@ object DbContract {
 					}
 				}
 				return if (!error) {
-//					result.asSequence()
-//							.sortedWith(compareBy { it.key }) // Sort here after decrypt
-//							.toMutableList()
 					result.toMutableList()
 				} else {
 					null
@@ -652,16 +659,16 @@ object DbContract {
 				return insert(helper?.writableDatabase, nid, tid)
 			}
 			fun insert(db: SQLiteDatabase?, nid: Long, tid: Long): Long {
-				if (db != null) {
+				return if (db != null) {
 					val newRow = ContentValues().apply {
 						put(COL_NID, nid)
 						put(COL_TID, tid)
 						put(COMMON_MODF, Date().time)
 					}
-					return db.insertOrThrow(TABLE, null, newRow)
+					db.insertOrThrow(TABLE, null, newRow)
 				}
 				else
-					return -1
+					-1
 			}
 
 		}

@@ -107,7 +107,11 @@ public class DetailFragment extends DialogFragment {
 			long mod = args.getLong(MOD);
 			textMod.setText(formatter.format((mod > 0) ? new Date(mod) : new Date()));
 
-			orgnTags = Arrays.stream(args.getLongArray(TGS)).boxed().collect(Collectors.toList());
+			long[] tags = args.getLongArray(TGS);
+			if (tags != null)
+				orgnTags = Arrays.stream(tags).boxed().collect(Collectors.toList());
+			else
+				orgnTags = null;
 		}
 
 		tagList.setHasFixedSize(true);
@@ -214,7 +218,10 @@ public class DetailFragment extends DialogFragment {
 	private boolean isUpdated() {
 		if (callback.isUpdated()) return true;
 		if (callback.isTagsUpdated()) {
-			return !(callback.getTagsAdaptor().getSelectedTags().equals(orgnTags));
+			if (orgnTags == null)
+				return true;
+			else
+				return !(callback.getTagsAdaptor().getSelectedTags().equals(orgnTags));
 		}
 		return false;
 	}
