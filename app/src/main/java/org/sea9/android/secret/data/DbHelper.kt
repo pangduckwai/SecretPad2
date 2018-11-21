@@ -15,7 +15,7 @@ class DbHelper(private val caller: Caller, val crypto: Crypto, isTest: Boolean):
 	companion object {
 		const val TAG = "secret.db_helper"
 		const val DB_NAME = DbContract.DATABASE
-		const val DB_VERN = 100
+		const val DB_VERN = 4
 	}
 
 	override fun close() {
