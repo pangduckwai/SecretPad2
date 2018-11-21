@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<string name="app_name">隐密笔记</string>
+	<string name="app_version">%s 版</string>
+	<string name="app_license">
+「隐密笔记」是一个以 GNU 通用公共授权第二版 (GNU GPLv2) 发表的自由软件。\n
+版权所有者不承担任何形式的担保责任，包括但不限于就适售性和爲某个特殊目的\n
+的适用性的默认担保责任。详细条文请参考 GNU 通用公共授权。
+    </string>
+	<string name="action_import">汇入笔记</string>
+	<string name="action_export">汇出笔记</string>
+	<string name="action_passwd">更改密码</string>
+	<string name="action_sort_key">以关键字排序</string>
+	<string name="action_sort_tag">以标籤排序</string>
+	<string name="action_about">关于隐密笔记</string>
+	<string name="action_cleanup">清除标籤</string>
+	<string name="value_details">笔记内容 [%s]</string>
+	<string name="value_details_new">新增</string>
+	<string name="value_details_edit">更改</string>
+	<string name="hint_password">密码</string>
+	<string name="hint_confirm">确认密码</string>
+	<string name="hint_old_password">旧密码</string>
+	<string name="hint_search">搜寻笔记</string>
+	<string name="hint_content">内容</string>
+	<string name="hint_key">关键字</string>
+	<string name="hint_tag">标籤</string>
+	<string name="hint_files">档案</string>
+	<string name="hint_directory">资料夹</string>
+	<string name="hint_current_dir">资料夹</string>
+	<string name="btn_logon">登入</string>
+	<string name="btn_okay">确认</string>
+	<string name="btn_cancel">取消</string>
+	<string name="ctn_save">存档</string>
+	<string name="ctn_add">新增</string>
+	<string name="msg_passwd_first">请选择一个主密码</string>
+	<string name="msg_passwd_needed">请提供一个密码</string>
+	<string name="msg_passwd_mismatch">密码不匹配</string>
+	<string name="msg_passwd_simple">密码必须至少8个字元，并须包含大、小写字母，数字及符号字元</string>
+	<string name="msg_passwd_current">请提供当前的密码</string>
+	<string name="msg_passwd_changed">成功更改密码</string>
+	<string name="msg_passwd_change_failed">更改密码失败</string>
+	<string name="msg_insert_okay">成功新增笔记 \'%s\'</string>
+	<string name="msg_insert_fail">新增笔记失败</string>
+	<string name="msg_insert_duplicated">笔记已经存在</string>
+	<string name="msg_update_okay">成功更改笔记 \'%s\'</string>
+	<string name="msg_update_fail">更改笔记 \'%s\' 失败</string>
+	<string name="msg_update_error">更改笔记失败</string>
+	<string name="msg_delete_okay">成功删除笔记 \'%s\'</string>
+	<string name="msg_delete_fail">删除笔记 \'%s\' 失败</string>
+	<string name="msg_delete_error">删除笔记失败</string>
+	<string name="msg_discard_changes">确定要放弃你的修改吗？</string>
+	<string name="msg_confirm_delete">确定要删除笔记 \'%s\' 吗？</string>
+	<string name="msg_confirm_delete_tags">确定要清除不用的标籤吗？</string>
+	<string name="msg_confirm_export">确定要汇出笔记吗？</string>
+	<string name="msg_confirm_passwd">确定要更改密码吗？</string>
+	<string name="msg_delete_tags_okay">成功清除了 %s 个标籤</string>
+	<string name="msg_delete_tags_fail">清除标籤失败</string>
+	<string name="msg_delete_tags_cancel">清除标籤已取消</string>
+	<string name="msg_filter_active">过滤模式启动中</string>
+	<string name="msg_not_logon">未登入</string>
+	<string name="msg_logon_fail">登入失败: %s</string>
+	<string name="msg_system_busy">系统忙碌中，请稍候…</string>
+	<string name="msg_migrate_logon">请输入旧版本所用的主密码</string>
+	<string name="msg_migrate_okay">成功从 %2$s 转换 %1$d 笔记</string>
+	<string name="msg_migrate_fail">从 %s 转换笔记失败 (%d): %s</string>
+	<string name="msg_migrate_error">转换笔记 %s 错误: %s</string>
+	<string name="msg_migrate_invalid">从 %s 转换笔记失败，列 %d 找到无效的档案格式</string>
+	<string name="msg_migrate_smart">尝试把旧格式笔记分为数个笔记项目</string>
+	<string name="msg_import_okay">成功从 %2%s 汇入 %1$d 个笔记</string>
+	<string name="msg_import_fail">从 %s 汇入笔记失败 (%d): %s</string>
+	<string name="msg_import_error">汇入笔记 %s 错误: %s</string>
+	<string name="msg_export_okay">成功把 %1$d 个笔记汇出至 %2$s</string>
+	<string name="msg_export_error">汇出笔记失败 (%d)</string>
+	<string name="msg_empty_key">关键字栏必须提供</string>
+</resources>

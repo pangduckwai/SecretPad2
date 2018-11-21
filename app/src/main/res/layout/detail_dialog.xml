@@ -40,7 +40,7 @@
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
 		android:layout_marginEnd="@dimen/margin_normal"
-		android:contentDescription="@string/ctn_cancel"
+		android:contentDescription="@string/btn_cancel"
 		android:minWidth="0dp"
 		android:minHeight="0dp"
 		android:padding="@dimen/margin_narrow"

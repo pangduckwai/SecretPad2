@@ -1,13 +1,13 @@
 <resources>
 	<string name="app_name">Secret Pad</string>
 	<string name="app_version">Version %s</string>
-	<string name="app_copyright">\u00A9 Copyright 2018 SEA9.ORG</string>
+	<string name="app_copyright" translatable="false">\u00A9 Copyright 2018 SEA9.ORG</string>
 	<string name="app_license">
 Secret Pad is a free software, and is released under the GNU GPLv2 license.\n
 This program is distributed WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
     </string>
-	<string name="app_author">paul@sea9.org</string>
+	<string name="app_author" translatable="false">paul@sea9.org</string>
 	<string name="action_import">Import Notes</string>
 	<string name="action_export">Export Notes</string>
 	<string name="action_passwd">Change Password</string>
@@ -18,7 +18,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
 	<string name="value_details">Note details [%s]</string>
 	<string name="value_details_new">add</string>
 	<string name="value_details_edit">edit</string>
-	<string name="value_export">SecretPad3Export</string>
+	<string name="value_export" translatable="false">SecretPad3Export</string>
 	<string name="hint_password">Password</string>
 	<string name="hint_confirm">Confirm Password</string>
 	<string name="hint_old_password">Old Password</string>
@@ -33,7 +33,6 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
 	<string name="btn_okay">Okay</string>
 	<string name="btn_cancel">Cancel</string>
 	<string name="ctn_save">Save</string>
-	<string name="ctn_cancel">Cancel</string>
 	<string name="ctn_add">Add</string>
 	<string name="msg_passwd_first">Enter a new master password</string>
 	<string name="msg_passwd_needed">Please provide a password</string>
@@ -58,7 +57,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
 	<string name="msg_confirm_passwd">Confirm to change password?</string>
 	<string name="msg_delete_tags_okay">%s unused tags deleted successfully</string>
 	<string name="msg_delete_tags_fail">Delete unused tags failed</string>
-	<string name="msg_delete_tags_cancel">Delete unused tags Cancelled</string>
+	<string name="msg_delete_tags_cancel">Delete unused tags cancelled</string>
 	<string name="msg_filter_active">Function disabled, filter is active</string>
 	<string name="msg_not_logon">Not yet logon</string>
 	<string name="msg_logon_fail">Logon failed: %s</string>
@@ -73,7 +72,6 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
 	<string name="msg_import_fail">Importing notes from %s failed (%d): %s</string>
 	<string name="msg_import_error">Importing %s error: %s</string>
 	<string name="msg_export_okay">%1$d note%3$s exported successfully to %2$s</string>
-	<string name="msg_export_fail">Exporting %s to %s failed (%d)</string>
 	<string name="msg_export_error">Exporting notes failed (%d)</string>
 	<string name="msg_empty_key">The note\'s key value cannot be empty</string>
 </resources>

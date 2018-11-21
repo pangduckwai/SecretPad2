@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<string name="app_name">隱密筆記</string>
+	<string name="app_version">%s 版</string>
+	<string name="app_license">
+「隱密筆記」是一個以 GNU 通用公共授權第二版 (GNU GPLv2) 發表的自由軟件。\n
+版權所有者不承擔任何形式的擔保責任，包括但不限於就適售性和爲某個特殊目的\n
+的適用性的默認擔保責任。詳細條文請參考 GNU 通用公共授權。
+    </string>
+	<string name="action_import">匯入筆記</string>
+	<string name="action_export">匯出筆記</string>
+	<string name="action_passwd">更改密碼</string>
+	<string name="action_sort_key">以關鍵字排序</string>
+	<string name="action_sort_tag">以標籤排序</string>
+	<string name="action_about">關於隱密筆記</string>
+	<string name="action_cleanup">清除標籤</string>
+	<string name="value_details">筆記內容 [%s]</string>
+	<string name="value_details_new">新增</string>
+	<string name="value_details_edit">更改</string>
+	<string name="hint_password">密碼</string>
+	<string name="hint_confirm">確認密碼</string>
+	<string name="hint_old_password">舊密碼</string>
+	<string name="hint_search">搜尋筆記</string>
+	<string name="hint_content">內容</string>
+	<string name="hint_key">關鍵字</string>
+	<string name="hint_tag">標籤</string>
+	<string name="hint_files">檔案</string>
+	<string name="hint_directory">資料夾</string>
+	<string name="hint_current_dir">資料夾</string>
+	<string name="btn_logon">登入</string>
+	<string name="btn_okay">確認</string>
+	<string name="btn_cancel">取消</string>
+	<string name="ctn_save">存檔</string>
+	<string name="ctn_add">新增</string>
+	<string name="msg_passwd_first">請選擇一個主密碼</string>
+	<string name="msg_passwd_needed">請提供一個密碼</string>
+	<string name="msg_passwd_mismatch">密碼不匹配</string>
+	<string name="msg_passwd_simple">密碼必須至少8個字元，並須包含大、小寫字母，數字及符號字元</string>
+	<string name="msg_passwd_current">請提供當前的密碼</string>
+	<string name="msg_passwd_changed">成功更改密碼</string>
+	<string name="msg_passwd_change_failed">更改密碼失敗</string>
+	<string name="msg_insert_okay">成功新增筆記 \'%s\'</string>
+	<string name="msg_insert_fail">新增筆記失敗</string>
+	<string name="msg_insert_duplicated">筆記已經存在</string>
+	<string name="msg_update_okay">成功更改筆記 \'%s\'</string>
+	<string name="msg_update_fail">更改筆記 \'%s\' 失敗</string>
+	<string name="msg_update_error">更改筆記失敗</string>
+	<string name="msg_delete_okay">成功刪除筆記 \'%s\'</string>
+	<string name="msg_delete_fail">刪除筆記 \'%s\' 失敗</string>
+	<string name="msg_delete_error">刪除筆記失敗</string>
+	<string name="msg_discard_changes">確定要放棄你的修改嗎？</string>
+	<string name="msg_confirm_delete">確定要刪除筆記 \'%s\' 嗎？</string>
+	<string name="msg_confirm_delete_tags">確定要清除不用的標籤嗎？</string>
+	<string name="msg_confirm_export">確定要匯出筆記嗎？</string>
+	<string name="msg_confirm_passwd">確定要更改密碼嗎？</string>
+	<string name="msg_delete_tags_okay">成功清除了 %s 個標籤</string>
+	<string name="msg_delete_tags_fail">清除標籤失敗</string>
+	<string name="msg_delete_tags_cancel">清除標籤已取消</string>
+	<string name="msg_filter_active">過濾模式啟動中</string>
+	<string name="msg_not_logon">未登入</string>
+	<string name="msg_logon_fail">登入失敗: %s</string>
+	<string name="msg_system_busy">系統忙碌中，請稍候…</string>
+	<string name="msg_migrate_logon">請輸入舊版本所用的主密碼</string>
+	<string name="msg_migrate_okay">成功從 %2$s 轉換 %1$d 筆記</string>
+	<string name="msg_migrate_fail">從 %s 轉換筆記失敗 (%d): %s</string>
+	<string name="msg_migrate_error">轉換筆記 %s 錯誤: %s</string>
+	<string name="msg_migrate_invalid">從 %s 轉換筆記失敗，列 %d 找到無效的檔案格式</string>
+	<string name="msg_migrate_smart">嘗試把舊格式筆記分為數個筆記項目</string>
+	<string name="msg_import_okay">成功從 %2%s 匯入 %1$d 個筆記</string>
+	<string name="msg_import_fail">從 %s 匯入筆記失敗 (%d): %s</string>
+	<string name="msg_import_error">匯入筆記 %s 錯誤: %s</string>
+	<string name="msg_export_okay">成功把 %1$d 個筆記匯出至 %2$s</string>
+	<string name="msg_export_error">匯出筆記失敗 (%d)</string>
+	<string name="msg_empty_key">關鍵字欄必須提供</string>
+</resources>
