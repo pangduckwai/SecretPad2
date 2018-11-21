@@ -66,7 +66,7 @@
 	<string name="msg_migrate_error">轉換筆記 %s 錯誤: %s</string>
 	<string name="msg_migrate_invalid">從 %s 轉換筆記失敗，列 %d 找到無效的檔案格式</string>
 	<string name="msg_migrate_smart">嘗試把舊格式筆記分為數個筆記項目</string>
-	<string name="msg_import_okay">成功從 %2%s 匯入 %1$d 個筆記</string>
+	<string name="msg_import_okay">成功從 %2$s 匯入 %1$d 個筆記</string>
 	<string name="msg_import_fail">從 %s 匯入筆記失敗 (%d): %s</string>
 	<string name="msg_import_error">匯入筆記 %s 錯誤: %s</string>
 	<string name="msg_export_okay">成功把 %1$d 個筆記匯出至 %2$s</string>

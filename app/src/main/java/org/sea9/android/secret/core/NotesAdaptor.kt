@@ -167,12 +167,13 @@ class NotesAdaptor (ctx: Caller): RecyclerView.Adapter<NotesAdaptor.ViewHolder>(
 						ContextFragment.SETTING_SORTBY_KEY -> kx.compareTo(ky)
 						ContextFragment.SETTING_SORTBY_TAG -> {
 							if (tx.isNullOrEmpty() && !ty.isNullOrEmpty())
-								-1
-							else if (!tx.isNullOrEmpty() && ty.isNullOrEmpty())
 								1
+							else if (!tx.isNullOrEmpty() && ty.isNullOrEmpty())
+								-1
 							else if (!tx.isNullOrEmpty() && !ty.isNullOrEmpty()) {
-								if (tx != ty)
-									tx.compareTo(ty)
+								val diff = tx.compareTo(ty)
+								if (diff != 0)
+									diff
 								else
 									kx.compareTo(ky)
 							} else
