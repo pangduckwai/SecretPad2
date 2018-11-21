@@ -573,6 +573,8 @@ public class ContextFragment extends Fragment implements
 			caller = ctx;
 		}
 
+		private String delKey;
+
 		@Override
 		protected void onPreExecute() {
 			caller.callback.setBusyState(true);
@@ -581,6 +583,10 @@ public class ContextFragment extends Fragment implements
 		@Override
 		protected int[] doInBackground(Integer... positions) {
 			if (positions.length > 0) {
+				delKey = Integer.toString(positions[0] + 1);
+				NoteRecord record = caller.getAdaptor().getRecord(positions[0]);
+				if (record != null) delKey = record.getKey();
+
 				int[] ret = { positions[0], -1 };
 				ret[1] = caller.getAdaptor().delete(positions[0]);
 				if (ret[1] >= 0) {
@@ -599,10 +605,10 @@ public class ContextFragment extends Fragment implements
 			if ((response != null) && (response.length == 2)) {
 				if (response[1] < 0) {
 					caller.getAdaptor().notifyDataSetChanged();
-					msg = String.format(Locale.getDefault(), caller.getString(R.string.msg_delete_fail), Integer.toString(response[0] + 1));
+					msg = String.format(Locale.getDefault(), caller.getString(R.string.msg_delete_fail), delKey);
 				} else {
 					caller.getAdaptor().notifyItemRemoved(response[0]);
-					msg = String.format(Locale.getDefault(), caller.getString(R.string.msg_delete_okay), Integer.toString(response[0] + 1));
+					msg = String.format(Locale.getDefault(), caller.getString(R.string.msg_delete_okay), delKey);
 					stay = false;
 				}
 			}

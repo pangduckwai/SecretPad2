@@ -48,11 +48,11 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
 	<string name="msg_update_okay">Note \'%s\' updated successfully</string>
 	<string name="msg_update_fail">Update note \'%s\' failed</string>
 	<string name="msg_update_error">Update note failed</string>
-	<string name="msg_delete_okay">Note %s deleted successfully</string>
-	<string name="msg_delete_fail">Delete note %s failed</string>
+	<string name="msg_delete_okay">Note \'%s\' deleted successfully</string>
+	<string name="msg_delete_fail">Delete note \'%s\' failed</string>
 	<string name="msg_delete_error">Delete note failed</string>
 	<string name="msg_discard_changes">Confirm to discard changes?</string>
-	<string name="msg_confirm_delete">Confirm to delete note %s?</string>
+	<string name="msg_confirm_delete">Confirm to delete note \'%s\'?</string>
 	<string name="msg_confirm_delete_tags">Confirm to delete unused tags?</string>
 	<string name="msg_confirm_export">Confirm to export notes?</string>
 	<string name="msg_confirm_passwd">Confirm to change password?</string>

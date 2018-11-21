@@ -158,11 +158,14 @@ public class MainActivity extends AppCompatActivity implements
 				}
 
 				final int position = viewHolder.getAdapterPosition();
+				String msg = Integer.toString(position+1);
+				NoteRecord record = ctxFrag.getAdaptor().getRecord(position);
+				if (record != null) msg = record.getKey();
 
 				Bundle bundle = new Bundle();
 				bundle.putInt(TAG, position);
 				MessageDialog.Companion.getOkayCancelDialog(MSG_DIALOG_DELETE
-						, String.format(Locale.getDefault(), getString(R.string.msg_confirm_delete), Integer.toString(position+1))
+						, String.format(Locale.getDefault(), getString(R.string.msg_confirm_delete), msg)
 						, bundle)
 					.show(getSupportFragmentManager(), MessageDialog.TAG);
 			}
