@@ -521,6 +521,8 @@ public class MainActivity extends AppCompatActivity implements
 	public void onCompatLogon(char[] value, boolean smart) {
 		if (value != null) {
 			ctxFrag.importOldFormat(value, smart);
+		} else {
+			doNotify(getString(R.string.msg_passwd_needed), false);
 		}
 	}
 	//==============================================================
