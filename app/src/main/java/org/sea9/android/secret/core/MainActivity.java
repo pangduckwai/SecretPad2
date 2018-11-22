@@ -578,11 +578,7 @@ public class MainActivity extends AppCompatActivity implements
 	 */
 	@Override
 	public void onSave(boolean isNew, Long i, String k, String c, List<Long> t) {
-		if (k.trim().length() <= 0) {
-			doNotify(getString(R.string.msg_empty_key), false);
-		} else {
-			ctxFrag.onSaveNote(isNew, i, k, c, t);
-		}
+		ctxFrag.onSaveNote(isNew, i, k, c, t);
 	}
 	//==============================================================
 

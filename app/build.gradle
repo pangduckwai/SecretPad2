@@ -10,7 +10,7 @@ android {
         applicationId "org.sea9.android.sn"
         minSdkVersion 24
         targetSdkVersion 28
-        versionCode 36
+        versionCode 37
         versionName "3.0.0rc9"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }

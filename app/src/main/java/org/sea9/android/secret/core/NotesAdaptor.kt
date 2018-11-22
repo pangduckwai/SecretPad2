@@ -170,14 +170,17 @@ class NotesAdaptor (ctx: Caller): RecyclerView.Adapter<NotesAdaptor.ViewHolder>(
 								1
 							else if (!tx.isNullOrEmpty() && ty.isNullOrEmpty())
 								-1
-							else if (!tx.isNullOrEmpty() && !ty.isNullOrEmpty()) {
-								val diff = tx.compareTo(ty)
-								if (diff != 0)
-									diff
-								else
+							else {
+								var diff = 0
+								if (!tx.isNullOrEmpty() && !ty.isNullOrEmpty()) {
+									diff = tx.compareTo(ty)
+								}
+
+								if (diff == 0)
 									kx.compareTo(ky)
-							} else
-								0
+								else
+									diff
+							}
 						}
 						else -> x.modified.compareTo(y.modified)
 					}
