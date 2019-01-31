@@ -66,7 +66,7 @@
 	<string name="msg_migrate_error">转换笔记 %s 错误: %s</string>
 	<string name="msg_migrate_invalid">从 %s 转换笔记失败，列 %d 找到无效的档案格式</string>
 	<string name="msg_migrate_smart">尝试把旧格式笔记分为数个笔记项目</string>
-	<string name="msg_import_okay">成功从 %2%s 汇入 %1$d 个笔记</string>
+	<string name="msg_import_okay">成功从 %2$s 汇入 %1$d 个笔记</string>
 	<string name="msg_import_fail">从 %s 汇入笔记失败 (%d): %s</string>
 	<string name="msg_import_error">汇入笔记 %s 错误: %s</string>
 	<string name="msg_export_okay">成功把 %1$d 个笔记汇出至 %2$s</string>

@@ -24,7 +24,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
 	<string name="hint_old_password">Old Password</string>
 	<string name="hint_search">Search notes</string>
 	<string name="hint_content">Content</string>
-	<string name="hint_key">Name</string>
+	<string name="hint_key">Key</string>
 	<string name="hint_tag">Tag</string>
 	<string name="hint_files">File</string>
 	<string name="hint_directory">Directory</string>
@@ -68,7 +68,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
 	<string name="msg_migrate_error">Migrating %s error: %s</string>
 	<string name="msg_migrate_invalid">Migrating notes from %s failed, invalid data file format at row %d</string>
 	<string name="msg_migrate_smart">Attempt to split old contents into separate notes base on format hints</string>
-	<string name="msg_import_okay">%1$d note%3$s imported successfully from %2%s</string>
+	<string name="msg_import_okay">%1$d note%3$s imported successfully from %2$s</string>
 	<string name="msg_import_fail">Importing notes from %s failed (%d): %s</string>
 	<string name="msg_import_error">Importing %s error: %s</string>
 	<string name="msg_export_okay">%1$d note%3$s exported successfully to %2$s</string>

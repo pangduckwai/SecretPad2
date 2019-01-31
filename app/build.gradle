@@ -10,14 +10,11 @@ android {
         applicationId "org.sea9.android.sn"
         minSdkVersion 24
         targetSdkVersion 28
-        versionCode 34
-        versionName "3.0.0rc9"
+        versionCode 38
+        versionName "3.0.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
-        debug {
-            applicationIdSuffix ".debug"
-        }
         release {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'

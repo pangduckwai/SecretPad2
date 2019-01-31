@@ -5,6 +5,7 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.LinearLayoutManager;
@@ -17,6 +18,7 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ProgressBar;
@@ -163,7 +165,12 @@ public class DetailFragment extends DialogFragment {
 				Long i = (textNid.getText() != null) ? Long.parseLong(textNid.getText().toString()) : -1;
 				String k = (editKey.getText() != null) ? editKey.getText().toString() : EMPTY;
 				String c = (editCtn.getText() != null) ? editCtn.getText().toString() : EMPTY;
-				callback.onSave(isNew, i, k, c, callback.getTagsAdaptor().getSelectedTags());
+
+				if (k.isEmpty()) {
+					closeKeyboard();
+					Snackbar.make(bttnSav, getString(R.string.msg_empty_key), Snackbar.LENGTH_LONG).show();
+				} else
+					callback.onSave(isNew, i, k, c, callback.getTagsAdaptor().getSelectedTags());
 			} else
 				dismiss();
 		});
@@ -224,6 +231,19 @@ public class DetailFragment extends DialogFragment {
 				return !(callback.getTagsAdaptor().getSelectedTags().equals(orgnTags));
 		}
 		return false;
+	}
+
+	private void closeKeyboard() {
+		View root = getView();
+		if (root != null) {
+			Context context = getContext();
+			View focused = root.findFocus();
+			if ((focused != null) && (context != null)) {
+				InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
+				if (imm != null)
+					imm.hideSoftInputFromWindow(focused.getWindowToken(), 0);
+			}
+		}
 	}
 
 	/*========================================
